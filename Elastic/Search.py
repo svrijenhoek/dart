@@ -16,6 +16,21 @@ class Search(Connector):
         response = self.es.search(index=index, body=body)
         return response['hits']['hits']
 
+    def get_popularity_not_calculated(self):
+        body = {
+            "size": 10000,
+            "query": {
+                "bool": {
+                    "must_not": {
+                        "exists": {
+                            "field": "popularity.facebook_share"
+                            }
+                    }
+                }
+            }
+        }
+        return self.execute_search('articles', body)
+
     def get_most_popular(self, size):
         body = {
             "size": size,
@@ -78,6 +93,16 @@ class Search(Connector):
             'from': offset,
             "query": {
                 "match_all": {}
+            }
+        }
+        return self.execute_search(index, body)
+
+    def get_by_id(self, index, id):
+        body = {
+            "query": {
+                "terms": {
+                    "_id": id
+                }
             }
         }
         return self.execute_search(index, body)
