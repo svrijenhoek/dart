@@ -35,7 +35,7 @@ class Search(Connector):
         body = {
             "size": size,
             "sort": [
-                {"popularity": {"order": "desc", "mode": "max", "unmapped_type": "long"}}
+                {"popularity.facebook_share": {"order": "desc", "mode": "max", "unmapped_type": "long"}}
             ],
             "query": {
                 "match_all": {},
@@ -57,7 +57,7 @@ class Search(Connector):
                      ]
                   }
             }}
-        return self.execute_search(index, body)
+        return self.execute_search(index, body)[0]
 
     def get_similar_documents(self, index, docid, size):
         body = {
@@ -74,8 +74,13 @@ class Search(Connector):
         return self.execute_search(index, body)
 
     def get_all_in_timerange(self, index, size, lower, upper):
+        size = 5000
+        offset = 0
+        all_documents = []
+
         body = {
             'size': size,
+            'from': offset,
             "sort": [
                 {"popularity.facebook_share": {"order": "desc", "mode": "max", "unmapped_type": "long"}}
             ],
@@ -85,9 +90,23 @@ class Search(Connector):
                     "gte": lower
                 }
             }}}
+
+        documents = self.execute_search(index, body)
+        while len(documents) > 0:
+            all_documents += documents
+            offset += size
+            body['from'] = offset
+            documents = self.execute_search(index, body)
+
+        return all_documents
         return self.execute_search(index, body)
 
-    def get_all_documents(self, index, size, offset):
+    # Do not use this function for querying the articles index!
+    def get_all_documents(self, index):
+        size = 1000
+        offset = 0
+        all_documents = []
+
         body = {
             'size': size,
             'from': offset,
@@ -95,7 +114,15 @@ class Search(Connector):
                 "match_all": {}
             }
         }
-        return self.execute_search(index, body)
+
+        documents = self.execute_search(index, body)
+        while len(documents) > 0:
+            all_documents += documents
+            offset += size
+            body['from'] = offset
+            documents = self.execute_search(index, body)
+
+        return all_documents
 
     def get_by_id(self, index, id):
         body = {
@@ -105,5 +132,5 @@ class Search(Connector):
                 }
             }
         }
-        return self.execute_search(index, body)
+        return self.execute_search(index, body)[0]
 

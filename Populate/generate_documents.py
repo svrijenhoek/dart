@@ -56,7 +56,7 @@ for path, subdirs, files in os.walk(root):
                     continue
 
             body = json.dumps(json_doc)
-            connector.add_document('articles', json_doc['id'], 'text', body)
+            connector.add_document('termvectors', json_doc['id'], '_doc', body)
             count_success += 1
             print(count_total)
 

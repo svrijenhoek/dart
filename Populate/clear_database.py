@@ -1,6 +1,6 @@
 import sys
 import getopt
-from Elastic.Connector import Connector
+from Elastic.Remove import Remove
 
 # this script van be executed to clear all generated data. Use parameters in the following way:
 # --documents Y/N --users Y/N --popularity Y/N --recommendations Y/N
@@ -13,7 +13,7 @@ def main(argv):
     except getopt.GetoptError:
         print('clear_database.py -d <Y/N> -u <Y/N> -p <Y/N -r <Y/N>')
         sys.exit(2)
-    connector = Connector()
+    connector = Remove()
     for opt, arg in opts:
         if opt == '-h':
             print('clear_database.py -d <Y/N> -u <Y/N> -p <Y/N -r <Y/N>')
@@ -31,7 +31,7 @@ def main(argv):
         elif opt in ("-u", "--users"):
             if arg == "Y":
                 print("Users deleted")
-                # connector.clear_index('users')
+                connector.clear_index('users')
             elif arg == "N":
                 print("Users not deleted")
             else:
@@ -49,7 +49,7 @@ def main(argv):
         elif opt in ("-r", "--recommendations"):
             if arg == "Y":
                 print("Recommendations deleted")
-                # connector.clear_index('recommendations')
+                connector.clear_index('recommendations')
             elif arg == "N":
                 print("Recommendations not deleted")
             else:

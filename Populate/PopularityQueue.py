@@ -9,6 +9,14 @@ from Elastic.Search import Search
 
 class PopularityQueue:
 
+    """
+    Queries the Facebook Graph API for the number of times this URL was shared, and adds this metric to the document
+    in Elasticsearch.
+
+    Facebook limits the Graph API at 200 requests per half hour, so this process takes a long time. Since every blocked
+    request also counts as a request, the process sleeps for 1800 seconds whenever a block is encountered.
+    """
+
     facebook_graph_url = 'https://graph.facebook.com/?id='
 
     connector = Connector()
@@ -24,7 +32,7 @@ class PopularityQueue:
         shares = content['share']['share_count']
         return comments, shares
 
-    def update_document(self, docid, share_count, comment_count):
+    def add_popularity(self, docid, share_count, comment_count):
         print("Share count: %d, Comment count: %d" % (share_count, comment_count))
         body = {
             "doc": {"popularity": {"facebook_share": int(share_count), "facebook_comment": int(comment_count)}}}
@@ -47,7 +55,7 @@ class PopularityQueue:
                 time.sleep(1800)
 
 
-def main():
+def main(argv):
     more_documents = True
     while more_documents:
         pq = PopularityQueue()
