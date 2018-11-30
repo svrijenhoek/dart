@@ -1,7 +1,6 @@
 from Elastic.Connector import Connector
-from Elastic.Search import Search
 
-import sys, math
+import math
 
 
 class CosineSimilarity:
@@ -44,5 +43,7 @@ class CosineSimilarity:
 #     print(doc2['_source']['title'])
 #     cs.calculate_cosine_similarity(doc1, doc2)
 #
+#
 # if __name__ == "__main__":
 #     main(sys.argv[1:])
+

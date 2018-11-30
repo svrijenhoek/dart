@@ -18,47 +18,56 @@ count_total = 0
 count_fault = 0
 count_success = 0
 
+
+def document_in_index(doc):
+    text = doc['text']
+    result = searcher.get_document_by_text(text)
+    return len(result) > 0
+
+
+def add_document(doc):
+    # see if the user has specified their own id. If this is the case, use this in Elasticsearch,
+    # otherwise generate a new one based on the title and publication date
+    if 'id' not in doc:
+        try:
+            doc_id = Util.generate_hash(doc['title'] + doc['publication_date'])
+            doc['id'] = doc_id
+        except KeyError:
+            return -1
+    # add NLP annotation if this wasn't done already
+    if 'entities' or 'dependencies' not in doc:
+        try:
+            annotated_doc, entities, dependencies = annotator.annotate(doc["text"])
+            doc['entities'] = entities
+            doc['dependencies'] = dependencies
+        except KeyError:
+            return -1
+    # add popularity metrics
+    if 'popularity' not in doc:
+        doc['popularity'] = {'calculated': 'no'}
+    body = json.dumps(doc)
+    connector.add_document('articles', doc['id'], 'text', body)
+    return 1
+
+
 # iterate over all the files in the data folder
 for path, subdirs, files in os.walk(root):
     for name in files:
+        print(count_total)
         # assumes all files are json-l, change this to something more robust!
         for line in open((os.path.join(path, name))):
             count_total += 1
             json_doc = json.loads(line)
-            # see if the user has specified their own id. If this is the case, use this in Elasticsearch,
-            # otherwise generate a new one based on the title and publication date
-            if 'id' not in json_doc:
-                try:
-                    doc_id = Util.generate_hash(json_doc['title']+json_doc['publication_date'])
-                    json_doc['id'] = doc_id
-                except KeyError:
-                    print('Title or publication date not found')
-                    count_fault += 1
-                    continue
-            # add NLP annotation if this wasn't done already
-            if 'entities' or 'dependencies' not in json_doc:
-                try:
-                    doc, entities, dependencies = annotator.annotate(json_doc["text"])
-                    json_doc['entities'] = entities
-                    json_doc['dependencies'] = dependencies
-                except KeyError:
-                    print("Text could not be loaded")
-                    count_fault += 1
-                    continue
-            # add popularity metrics
-            if 'popularity' not in json_doc:
-                doctype = json_doc['doctype']
-                try:
-                    json_doc['popularity'] = {'calculated': 'no'}
-                except KeyError:
-                    print("url could not be found in the configuration")
-                    count_fault += 1
-                    continue
+            # if not document_in_index(json_doc):
+            success = add_document(json_doc)
+            count_total += 1
+            if success == 1:
+                count_success += 1
+            else:
+                count_fault += 1
+            # else:
+            #     print("Document already in index")
 
-            body = json.dumps(json_doc)
-            connector.add_document('termvectors', json_doc['id'], '_doc', body)
-            count_success += 1
-            print(count_total)
 
 print("Total number of documents: "+str(count_total))
 print("Errors: "+str(count_fault))

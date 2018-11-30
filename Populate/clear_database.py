@@ -9,7 +9,7 @@ from Elastic.Remove import Remove
 
 def main(argv):
     try:
-        opts, args = getopt.getopt(argv, "hd:u:p:r:", ["documents=", "users=", "popularity=", "recommendations"])
+        opts, args = getopt.getopt(argv, "hd:u:p:r:t:", ["documents=", "users=", "popularity=", "recommendations=", "termvectors="])
     except getopt.GetoptError:
         print('clear_database.py -d <Y/N> -u <Y/N> -p <Y/N -r <Y/N>')
         sys.exit(2)
@@ -54,6 +54,15 @@ def main(argv):
                 print("Recommendations not deleted")
             else:
                 print("Command unknown, recommendations not deleted")
+        # Delete recommendations
+        elif opt in ("-t", "--termvectors"):
+            if arg == "Y":
+                print("Term vectors deleted")
+                connector.clear_index('termvectors')
+            elif arg == "N":
+                print("Term vectors not deleted")
+            else:
+                print("Command unknown, term vectors not deleted")
 
 
 if __name__ == "__main__":

@@ -15,6 +15,6 @@ class Connector:
         self.es.update(index=index, doc_type=doctype, id=docid, body=body)
 
     def get_term_vector(self, index, doctype, docid):
-        return self.es.termvectors(index=index, doc_type=doctype, id=docid)
+        return self.es.termvectors(index=index, doc_type=doctype, id=docid, positions=True, term_statistics=True)
 
 

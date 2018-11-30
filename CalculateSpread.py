@@ -15,29 +15,33 @@ class Calculations:
         all = self.searcher.get_all_documents('recommendations')
         self.recommendations = [
             {'date': i['_source']['date'],
-             'random': i['_source']['random'],
-             'most_popular': i['_source']['most_popular']
+             'types': i['_source']['recommendations']
              } for i in all]
 
     # create function for calculating source spread
     def calculate_source_spread(self):
         table = []
         for rec in self.recommendations:
-            date = rec['date']
-            [table.append([date, 'random', i['_source']['doctype']]) for i in rec['random']]
-            [table.append([date, 'most_popular', i['_source']['doctype']]) for i in rec['most_popular']]
-        df = pd.DataFrame(table)
-        df.columns = ['date', 'recommender', 'source']
-        for value in df.recommender.unique():
-            slice = df[(df.recommender == value)]
-            print(value)
-            print(slice.source.value_counts())
-            print(slice.source.describe())
-            print()
+            for type in rec['types']:
+                date = rec['date']
+                print(type)
+                print(rec['types'][type])
+        #         [table.append([date, 'random', i['_source']['doctype']]) for i in rec['random']]
+        #
+        #     [table.append([date, 'most_popular', i['_source']['doctype']]) for i in rec['most_popular']]
+        # df = pd.DataFrame(table)
+        # df.columns = ['date', 'recommender', 'source']
+        # for value in df.recommender.unique():
+        #     slice = df[(df.recommender == value)]
+        #     print(value)
+        #     print(slice.source.value_counts())
+        #     print(slice.source.describe())
+        #     print()
         # print(doctypes)
 
     # create function for calculating popularity spread
     def calculate_popularity_spread(self):
+
         table = []
         for rec in self.recommendations:
             date = rec['date']
@@ -89,10 +93,10 @@ class Calculations:
     def execute(self):
         print("SOURCE SPREAD")
         self.calculate_source_spread()
-        print("POPULARITY SPREAD")
-        self.calculate_popularity_spread()
-        print("COSINE SPREAD")
-        self.calculate_cosine_spread()
+        # print("POPULARITY SPREAD")
+        # self.calculate_popularity_spread()
+        # print("COSINE SPREAD")
+        # self.calculate_cosine_spread()
 
 
 def main(argv):

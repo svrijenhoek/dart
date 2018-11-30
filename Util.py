@@ -16,3 +16,8 @@ def get_random_number(mean, sdev):
 def generate_hash(s):
     return hashlib.sha1(s.encode('utf-8')).hexdigest()
 
+
+def write_to_json(file, s):
+    with open(file, 'w') as outfile:
+        json.dump(s, outfile, indent=4, separators=(',', ': '), sort_keys=True)
+

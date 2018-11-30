@@ -23,10 +23,10 @@ def get_graph_info(url):
 
 non_successful_list = []
 
-results = search.get_all_documents('articles', size, offset)
+results = search.get_all_documents_with_offset('articles', size, offset)
 total = len(results)
 while offset < total:
-    results = search.get_all_documents('articles', size, offset)
+    results = search.get_all_documents_with_offset('articles', size, offset)
     for hit in results:
         try:
             docid = hit['_id']

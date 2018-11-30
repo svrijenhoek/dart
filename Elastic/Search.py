@@ -16,9 +16,27 @@ class Search(Connector):
         response = self.es.search(index=index, body=body)
         return response['hits']['hits']
 
+    def execute_query(self, index, query):
+        body = query
+        return self.execute_search(index, body)
+
+    def get_document_by_text(self, text):
+        body = {
+            "query": {
+                "constant_score": {
+                    "filter": {
+                        "term": {
+                            "text": text
+                        }
+                    }
+                }
+            }
+        }
+        return self.execute_search('articles', body)
+
     def get_popularity_not_calculated(self):
         body = {
-            "size": 10000,
+            "size": 1000,
             "query": {
                 "bool": {
                     "must_not": {
@@ -99,7 +117,6 @@ class Search(Connector):
             documents = self.execute_search(index, body)
 
         return all_documents
-        return self.execute_search(index, body)
 
     # Do not use this function for querying the articles index!
     def get_all_documents(self, index):
@@ -124,6 +141,17 @@ class Search(Connector):
 
         return all_documents
 
+    def get_all_documents_with_offset(self, index, size, offset):
+        body = {
+            'size': size,
+            'from': offset,
+            "query": {
+                "match_all": {}
+            }
+        }
+
+        return self.execute_search(index, body)
+
     def get_by_id(self, index, id):
         body = {
             "query": {
@@ -134,3 +162,37 @@ class Search(Connector):
         }
         return self.execute_search(index, body)[0]
 
+    def get_by_url(self, index, url):
+        body = {
+            "query": {
+                "match": {
+                    "url": url
+                }
+            }
+        }
+        output = self.execute_search(index, body)
+        return output[0]
+
+    def more_like_this_history(self, reading_history, upper, lower):
+        like_query = [{"_index": "articles", "_id": doc} for doc in reading_history]
+        body = {
+            'query': {
+                "bool": {
+                    "must": {
+                        "range": {
+                            "publication_date": {
+                                "lt": upper,
+                                "gte": lower
+                            }
+                        },
+                    },
+                    "should": {
+                        "more_like_this": {
+                            "fields": ['text'],
+                            "like": like_query
+                        }
+                    }
+                }
+            }
+        }
+        return self.execute_search('articles', body)
