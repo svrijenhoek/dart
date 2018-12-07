@@ -23,7 +23,7 @@ class PopularityQueue:
     searcher = Search()
 
     def get_all_documents_without_popularity(self):
-        return self.searcher.get_popularity_not_calculated()
+        return self.searcher.get_not_calculated('popularity.facebook_share')
 
     def get_facebook_info(self, url):
         page = urllib.request.urlopen(self.facebook_graph_url + url)
@@ -36,7 +36,7 @@ class PopularityQueue:
         print("Share count: %d, Comment count: %d" % (share_count, comment_count))
         body = {
             "doc": {"popularity": {"facebook_share": int(share_count), "facebook_comment": int(comment_count)}}}
-        self.connector.update_document('articles', 'text', docid, body)
+        self.connector.update_document('articles', '_doc', docid, body)
 
     def execute(self, documents):
         for doc in documents:

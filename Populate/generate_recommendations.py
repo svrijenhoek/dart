@@ -17,15 +17,15 @@ class RecommendationGenerator:
 
     def generate_random(self):
         random_numbers = np.random.choice(len(self.documents), self.size, False)
-        return [self.documents[i] for i in random_numbers]
+        return [self.documents[i]['_id'] for i in random_numbers]
 
     def generate_most_popular(self):
-        return [self.documents[i] for i in range(int(self.size))]
+        return [self.documents[i]['_id'] for i in range(int(self.size))]
 
     def generate_more_like_this(self, user, upper, lower):
         reading_history = user['_source']['reading_history']
         results = self.searcher.more_like_this_history(reading_history, upper, lower)
-        return [results[i] for i in range(min(int(self.size), len(results)))]
+        return [results[i]['_id'] for i in range(min(int(self.size), len(results)))]
 
 
 class RunRecommendations:
@@ -69,7 +69,7 @@ class RunRecommendations:
                 }
                 body = json.dumps(json_doc)
                 docid = json_doc.pop('_id', None)
-                # self.connector.add_document('recommendations', docid, 'recommendation', body)
+                self.connector.add_document('recommendations', docid, 'recommendation', body)
 
 
 def main(argv):

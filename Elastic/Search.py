@@ -34,12 +34,28 @@ class Search(Connector):
         }
         return self.execute_search('articles', body)
 
-    def get_popularity_not_calculated(self):
+    def get_not_calculated(self, type):
         body = {
             "size": 1000,
             "query": {
                 "bool": {
                     "must_not": {
+                        "exists": {
+                            "field": type
+                            }
+                    }
+                }
+            }
+        }
+        return self.execute_search('articles', body)
+
+    def get_popularity_calculated_with_offset(self, offset):
+        body = {
+            "size": 1000,
+            "from": offset,
+            "query": {
+                "bool": {
+                    "must": {
                         "exists": {
                             "field": "popularity.facebook_share"
                             }
@@ -133,7 +149,7 @@ class Search(Connector):
         }
 
         documents = self.execute_search(index, body)
-        while len(documents) > 0:
+        while len(documents) > 0 and offset < 2000:
             all_documents += documents
             offset += size
             body['from'] = offset
@@ -155,8 +171,12 @@ class Search(Connector):
     def get_by_id(self, index, id):
         body = {
             "query": {
-                "terms": {
-                    "_id": id
+                "bool": {
+                    "filter": {
+                        "term": {
+                            "_id": id
+                        }
+                    }
                 }
             }
         }

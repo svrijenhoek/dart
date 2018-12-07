@@ -27,8 +27,8 @@ class CosineSimilarity:
             return float(numerator) / denominator
 
     def calculate_cosine_similarity(self, doc1, doc2):
-        tv1 = self.connector.get_term_vector('termvectors', '_doc', doc1)
-        tv2 = self.connector.get_term_vector('termvectors', '_doc', doc2)
+        tv1 = self.connector.get_term_vector('articles', '_doc', doc1)
+        tv2 = self.connector.get_term_vector('articles', '_doc', doc2)
         dict1 = self.create_dictionary(tv1)
         dict2 = self.create_dictionary(tv2)
         return self.cosine(dict1, dict2)

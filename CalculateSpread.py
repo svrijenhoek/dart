@@ -24,20 +24,18 @@ class Calculations:
         for rec in self.recommendations:
             for type in rec['types']:
                 date = rec['date']
-                print(type)
-                print(rec['types'][type])
-        #         [table.append([date, 'random', i['_source']['doctype']]) for i in rec['random']]
-        #
-        #     [table.append([date, 'most_popular', i['_source']['doctype']]) for i in rec['most_popular']]
-        # df = pd.DataFrame(table)
-        # df.columns = ['date', 'recommender', 'source']
-        # for value in df.recommender.unique():
-        #     slice = df[(df.recommender == value)]
-        #     print(value)
-        #     print(slice.source.value_counts())
-        #     print(slice.source.describe())
-        #     print()
-        # print(doctypes)
+                recommended_docs = rec['types'][type]
+                for docid in recommended_docs:
+                    document = self.searcher.get_by_id('articles', docid)
+                    table.append([date, type, document['_source']['doctype']])
+
+        df = pd.DataFrame(table)
+        df.columns = ['date', 'recommender', 'source']
+        for value in df.recommender.unique():
+            slice = df[(df.recommender == value)]
+            print(value)
+            print(slice.source.describe())
+            print()
 
     # create function for calculating popularity spread
     def calculate_popularity_spread(self):
@@ -45,11 +43,13 @@ class Calculations:
         table = []
         for rec in self.recommendations:
             date = rec['date']
-            try:
-                [table.append([date, 'random', i['_source']['popularity']['facebook_share']]) for i in rec['random']]
-                [table.append([date, 'most_popular', i['_source']['popularity']['facebook_share']]) for i in rec['most_popular']]
-            except KeyError:
-                continue
+            for type in rec['types']:
+                for docid in rec['types'][type]:
+                    try:
+                        document = self.searcher.get_by_id('articles', docid)
+                        table.append([date, type, document['_source']['popularity']['facebook_share']])
+                    except KeyError:
+                        continue
         df = pd.DataFrame(table)
         df.columns = ['date', 'recommender', 'shares']
         for value in df.recommender.unique():
@@ -62,12 +62,10 @@ class Calculations:
         table = []
         for rec in self.recommendations:
             date = rec['date']
-            try:
-                [table.append([date, 'random', i['_id']]) for i in rec['random']]
-                [table.append([date, 'most_popular', i['_id']]) for i in
-                 rec['most_popular']]
-            except KeyError:
-                continue
+            for type in rec['types']:
+                for docid in rec['types'][type]:
+                    table.append([date, type, docid])
+
         df = pd.DataFrame(table)
         df.columns = ['date', 'recommender', 'id']
         for recommender in df.recommender.unique():
@@ -82,7 +80,8 @@ class Calculations:
                     for y in range(0, len(df2)):
                         try:
                             cosine = self.cs.calculate_cosine_similarity(text_ids[x], text_ids[y])
-                            if cosine < 1: output.append(cosine)
+                            if cosine < 1:
+                                output.append(cosine)
                         except KeyError:
                             continue
                 if not len(output) == 0:
@@ -92,11 +91,11 @@ class Calculations:
 
     def execute(self):
         print("SOURCE SPREAD")
-        self.calculate_source_spread()
-        # print("POPULARITY SPREAD")
+        # self.calculate_source_spread()
+        print("POPULARITY SPREAD")
         # self.calculate_popularity_spread()
-        # print("COSINE SPREAD")
-        # self.calculate_cosine_spread()
+        print("COSINE SPREAD")
+        self.calculate_cosine_spread()
 
 
 def main(argv):

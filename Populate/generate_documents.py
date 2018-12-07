@@ -19,12 +19,6 @@ count_fault = 0
 count_success = 0
 
 
-def document_in_index(doc):
-    text = doc['text']
-    result = searcher.get_document_by_text(text)
-    return len(result) > 0
-
-
 def add_document(doc):
     # see if the user has specified their own id. If this is the case, use this in Elasticsearch,
     # otherwise generate a new one based on the title and publication date
@@ -46,7 +40,7 @@ def add_document(doc):
     if 'popularity' not in doc:
         doc['popularity'] = {'calculated': 'no'}
     body = json.dumps(doc)
-    connector.add_document('articles', doc['id'], 'text', body)
+    connector.add_document('articles', doc['id'], '_doc', body)
     return 1
 
 
@@ -58,15 +52,12 @@ for path, subdirs, files in os.walk(root):
         for line in open((os.path.join(path, name))):
             count_total += 1
             json_doc = json.loads(line)
-            # if not document_in_index(json_doc):
             success = add_document(json_doc)
             count_total += 1
             if success == 1:
                 count_success += 1
             else:
                 count_fault += 1
-            # else:
-            #     print("Document already in index")
 
 
 print("Total number of documents: "+str(count_total))
