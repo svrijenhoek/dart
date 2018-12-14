@@ -14,20 +14,31 @@ class Calculations:
     cs = CosineSimilarity()
 
     def __init__(self):
-        self.recommendations = [Recommendation(i) for i in self.searcher.get_all_documents('recommendations')]
-
-    # create function for calculating source spread
-    def calculate_source_spread(self):
-        table = []
-        for rec in self.recommendations:
+        print("INITIALIZING")
+        # prepare tables
+        source_table = []
+        popularity_table = []
+        cosine_table = []
+        recommendations = [Recommendation(i) for i in self.searcher.get_all_documents('recommendations')]
+        for rec in recommendations:
             for type in rec.get_recommendation_types():
                 date = rec.date
                 for docid in rec.get_articles_for_type(type):
                     document = Article(self.searcher.get_by_id('articles', docid))
-                    table.append([date, type, document.doctype])
+                    source_table.append([date, type, document.doctype])
+                    popularity_table.append([date, type, document.popularity])
+                    cosine_table.append([date, type, docid])
+        # transform tables into dataframes
+        self.source_df = pd.DataFrame(source_table)
+        self.source_df.columns = ['date', 'recommender', 'source']
+        self.popularity_df = pd.DataFrame(popularity_table)
+        self.popularity_df.columns = ['date', 'recommender', 'shares']
+        self.cosine_df = pd.DataFrame(cosine_table)
+        self.cosine_df.columns = ['date', 'recommender', 'id']
 
-        df = pd.DataFrame(table)
-        df.columns = ['date', 'recommender', 'source']
+    # create function for calculating source spread
+    def calculate_source_spread(self):
+        df = self.source_df
         for value in df.recommender.unique():
             slice = df[(df.recommender == value)]
             print(value)
@@ -36,19 +47,7 @@ class Calculations:
 
     # create function for calculating popularity spread
     def calculate_popularity_spread(self):
-
-        table = []
-        for rec in self.recommendations:
-            date = rec.date
-            for type in rec.get_recommendation_types():
-                for docid in rec.get_articles_for_type(type):
-                    try:
-                        document = Article(self.searcher.get_by_id('articles', docid))
-                        table.append([date, type, document.popularity])
-                    except KeyError:
-                        continue
-        df = pd.DataFrame(table)
-        df.columns = ['date', 'recommender', 'shares']
+        df = self.popularity_df
         for value in df.recommender.unique():
             slice = df[(df.recommender == value)]
             print(value)
@@ -56,15 +55,7 @@ class Calculations:
 
     # create function for calculating cosine similarity spread
     def calculate_cosine_spread(self):
-        table = []
-        for rec in self.recommendations:
-            date = rec.date
-            for type in rec.get_recommendation_types():
-                for docid in rec.get_articles_for_type(type):
-                    table.append([date, type, docid])
-
-        df = pd.DataFrame(table)
-        df.columns = ['date', 'recommender', 'id']
+        df = self.cosine_df
         for recommender in df.recommender.unique():
             averages = []
             print(recommender)
@@ -72,15 +63,7 @@ class Calculations:
             for date in slice.date.unique():
                 df2 = slice[(slice.date == date)]
                 text_ids = df2.id
-                output = []
-                for x in range(0, len(df2)):
-                    for y in range(0, len(df2)):
-                        try:
-                            cosine = self.cs.calculate_cosine_similarity(text_ids[x], text_ids[y])
-                            if cosine < 1:
-                                output.append(cosine)
-                        except KeyError:
-                            continue
+                output = self.cs.calculate_cosine_similarity(text_ids)
                 if not len(output) == 0:
                     averages.append(np.mean(output))
             print(np.mean(averages))

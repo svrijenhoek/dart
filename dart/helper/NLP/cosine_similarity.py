@@ -29,9 +29,12 @@ class CosineSimilarity:
         else:
             return float(numerator) / denominator
 
-    def calculate_cosine_similarity(self, doc1, doc2):
-        tv1 = self.connector.get_term_vector('articles', '_doc', doc1)
-        tv2 = self.connector.get_term_vector('articles', '_doc', doc2)
-        dict1 = self.create_dictionary(tv1)
-        dict2 = self.create_dictionary(tv2)
-        return self.cosine(dict1, dict2)
+    def calculate_cosine_similarity(self, doc_list):
+        tv_list = [self.connector.get_term_vector('articles', '_doc', doc) for doc in doc_list]
+        dict_list = [self.create_dictionary(tv) for tv in tv_list]
+        output = []
+        for x in range(0, len(dict_list)):
+            for y in range(0, len(dict_list)):
+                if y > x:
+                    output.append(self.cosine(dict_list[x], dict_list[y]))
+        return output
