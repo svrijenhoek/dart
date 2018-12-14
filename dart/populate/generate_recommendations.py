@@ -4,8 +4,8 @@ import numpy as np
 import json, sys
 
 import dart.Util as Util
-from dart.helper.elastic.Connector import Connector
-from dart.helper.elastic.QueryBuilder import QueryBuilder
+from dart.helper.elastic.connector import Connector
+from dart.helper.elastic.querybuilder import QueryBuilder
 
 
 class RecommendationGenerator:

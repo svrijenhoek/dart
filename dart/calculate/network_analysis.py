@@ -1,13 +1,25 @@
 import sys
 import pandas as pd
-from Elastic.Search import Search
-import Util
+from dart.helper.elastic.querybuilder import QueryBuilder
+from dart.Article import Article
+import dart.Util as Util
 
 
 class NetworkAnalysis:
 
-    searcher = Search()
+    searcher = QueryBuilder()
+    checked_list = []
     results = []
+
+    @staticmethod
+    def compare_entities(df1, df2):
+        s2 = pd.DataFrame()
+        df1_per = df1[(df1.label == 'PER')]
+        df2_per = df2[(df2.label == 'PER')]
+        if len(df1_per) > 0 and len(df2_per) > 0:
+            s1 = pd.merge(df1_per, df2_per, how='inner', on=['text'])
+            s2 = s1.drop_duplicates(subset='text')
+        return len(s2)
 
     def add_to_results(self, id1, id2, weight):
         self.results.append(
@@ -18,46 +30,45 @@ class NetworkAnalysis:
             }
         )
 
-    def compare_entities(self, df1, df2):
-        s2 = pd.DataFrame()
-        df1_per = df1[(df1.label == 'PER')]
-        df2_per = df2[(df2.label == 'PER')]
-        if len(df1_per) > 0 and len(df2_per) > 0:
-            s1 = pd.merge(df1_per, df2_per, how='inner', on=['text'])
-            s2 = s1.drop_duplicates(subset='text')
-        return s2
+    def compare_to_all_documents(self, docx):
+        dfx = pd.DataFrame.from_dict(docx.entities)
+        size = 2000
+        sid, scroll_size = self.searcher.get_all_documents_with_offset('articles', size)
+        while scroll_size > 0:
+            page = self.searcher.scroll(sid, '2m')
+            # Update the scroll ID
+            sid = page['_scroll_id']
+            # Get the number of results that we returned in the last scroll
+            documents = page['hits']['hits']
+            scroll_size = len(documents)
+            self.iterate(dfx, docx.id, documents)
+
+    def iterate(self, dfx, idx, documents):
+        for entry in documents:
+            docy = Article(entry)
+            if docy.id not in self.checked_list:
+                dfy = pd.DataFrame.from_dict(docy.entities)
+                if len(dfx) > 0 and len(dfy) > 0:
+                    # number of unique entities they have in common
+                    s = self.compare_entities(dfx, dfy)
+                    if s > 0:
+                        self.add_to_results(idx, docy.id, s)
 
     def execute(self):
-        size = 100
-        offset_x = 0
-        docs_x = self.searcher.get_all_documents_with_offset('articles', size, offset_x)
-        while len(docs_x) > 0:
-            count = offset_x
-            for doc_x in docs_x:
-                count += 1
-                print(count)
-                try:
-                    dfx = pd.DataFrame.from_dict(doc_x['_source']['entities'])
-                    offset_y = offset_x
-                    docs_y = self.searcher.get_all_documents_with_offset('articles', size, offset_y)
-                    while len(docs_y) > 0:
-                        for doc_y in docs_y:
-                            dfy = pd.DataFrame.from_dict(doc_y['_source']['entities'])
-                            if len(dfx) > 0 and len(dfy) > 0:
-                                s1 = self.compare_entities(dfx, dfy)
-                                if len(s1) > 0:
-                                    id1 = doc_x['_id']
-                                    id2 = doc_y['_id']
-                                    weight = len(s1)
-                                    self.add_to_results(id1, id2, weight)
-                        offset_y += size
-                        docs_y = self.searcher.get_all_documents_with_offset('articles', size, offset_y)
-                except KeyError:
-                    continue
-            offset_x += size
-            docs_x = self.searcher.get_all_documents_with_offset('articles', size, offset_x)
-        Util.write_to_json('graph.json', self.results)
-        print(self.results)
+        size = 2000
+        sid, scroll_size = self.searcher.get_all_documents_with_offset('articles', size)
+        while scroll_size > 0:
+            page = self.searcher.scroll(sid, '2m')
+            # Update the scroll ID
+            sid = page['_scroll_id']
+            # Get the number of results that we returned in the last scroll
+            documents = page['hits']['hits']
+            for entry in documents:
+                document = Article(entry)
+                self.compare_to_all_documents(document)
+                self.checked_list.append(document.id)
+                Util.write_to_json('..\..\output\graph\\result_'+document.id+'.json', self.results)
+            scroll_size = len(documents)
 
 
 def main(argv):

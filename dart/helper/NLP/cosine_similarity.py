@@ -1,4 +1,4 @@
-from dart.helper.elastic.Connector import Connector
+from dart.helper.elastic.connector import Connector
 import math
 
 

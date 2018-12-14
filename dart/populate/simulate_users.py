@@ -1,7 +1,7 @@
 import json
 import dart.Util as Util
-from dart.helper.elastic.Connector import Connector
-from dart.helper.elastic.QueryBuilder import QueryBuilder
+from dart.helper.elastic.connector import Connector
+from dart.helper.elastic.querybuilder import QueryBuilder
 
 n_users = Util.read_config_file("user", "number_of_users")
 n_topics = Util.read_config_file("user", "average_topical_interest")

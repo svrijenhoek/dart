@@ -1,9 +1,9 @@
 import json
 import os
 
-from dart.helper.elastic.Connector import Connector
-from dart.helper.elastic.QueryBuilder import QueryBuilder
-from dart.helper.NLP.Annotator import Annotator
+from dart.helper.elastic.connector import Connector
+from dart.helper.elastic.querybuilder import QueryBuilder
+from dart.helper.NLP.annotator import Annotator
 
 import dart.Util as Util
 

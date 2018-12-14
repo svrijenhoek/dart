@@ -1,5 +1,5 @@
 import time
-from dart.helper.elastic.Connector import Connector
+from dart.helper.elastic.connector import Connector
 
 # Class dealing with all Elasticsearch Search operations. Contains the following queries:
 # - most popular documents
@@ -15,6 +15,10 @@ class QueryBuilder(Connector):
     def execute_search(self, index, body):
         response = self.es.search(index=index, body=body)
         return response['hits']['hits']
+
+    def execute_search_with_scroll(self, index, body):
+        response = self.es.search(index=index, scroll='1m', body=body)
+        return response['_scroll_id'], response['hits']['total']
 
     # returns the articles that have a certain field not populated. This is used for example when calculating the
     # popularity of articles.
@@ -148,16 +152,14 @@ class QueryBuilder(Connector):
         return all_documents
 
     # common method for going through all articles in the articles index
-    def get_all_documents_with_offset(self, index, size, offset):
+    def get_all_documents_with_offset(self, index, size):
         body = {
             'size': size,
-            'from': offset,
             "query": {
                 "match_all": {}
             }
         }
-
-        return self.execute_search(index, body)
+        return self.execute_search_with_scroll(index, body)
 
     # get elastic entry by id
     def get_by_id(self, index, docid):
@@ -209,3 +211,6 @@ class QueryBuilder(Connector):
             }
         }
         return self.execute_search('articles', body)
+
+    def scroll(self, sid, scroll):
+        return self.es.scroll(scroll_id=sid, scroll=scroll)

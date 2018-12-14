@@ -1,33 +1,30 @@
 import sys
 import numpy as np
 import pandas as pd
-from Elastic.Search import Search
-from NLP.CosineSimilarity import CosineSimilarity
+from dart.helper.elastic.querybuilder import QueryBuilder
+from dart.helper.NLP.cosine_similarity import CosineSimilarity
+from dart.Recommendation import Recommendation
+from dart.Article import Article
 
 
 class Calculations:
 
-    searcher = Search()
+    searcher = QueryBuilder()
     recommendations = []
     cs = CosineSimilarity()
 
     def __init__(self):
-        all = self.searcher.get_all_documents('recommendations')
-        self.recommendations = [
-            {'date': i['_source']['date'],
-             'types': i['_source']['recommendations']
-             } for i in all]
+        self.recommendations = [Recommendation(i) for i in self.searcher.get_all_documents('recommendations')]
 
     # create function for calculating source spread
     def calculate_source_spread(self):
         table = []
         for rec in self.recommendations:
-            for type in rec['types']:
-                date = rec['date']
-                recommended_docs = rec['types'][type]
-                for docid in recommended_docs:
-                    document = self.searcher.get_by_id('articles', docid)
-                    table.append([date, type, document['_source']['doctype']])
+            for type in rec.get_recommendation_types():
+                date = rec.date
+                for docid in rec.get_articles_for_type(type):
+                    document = Article(self.searcher.get_by_id('articles', docid))
+                    table.append([date, type, document.doctype])
 
         df = pd.DataFrame(table)
         df.columns = ['date', 'recommender', 'source']
@@ -42,12 +39,12 @@ class Calculations:
 
         table = []
         for rec in self.recommendations:
-            date = rec['date']
-            for type in rec['types']:
-                for docid in rec['types'][type]:
+            date = rec.date
+            for type in rec.get_recommendation_types():
+                for docid in rec.get_articles_for_type(type):
                     try:
-                        document = self.searcher.get_by_id('articles', docid)
-                        table.append([date, type, document['_source']['popularity']['facebook_share']])
+                        document = Article(self.searcher.get_by_id('articles', docid))
+                        table.append([date, type, document.popularity])
                     except KeyError:
                         continue
         df = pd.DataFrame(table)
@@ -61,9 +58,9 @@ class Calculations:
     def calculate_cosine_spread(self):
         table = []
         for rec in self.recommendations:
-            date = rec['date']
-            for type in rec['types']:
-                for docid in rec['types'][type]:
+            date = rec.date
+            for type in rec.get_recommendation_types():
+                for docid in rec.get_articles_for_type(type):
                     table.append([date, type, docid])
 
         df = pd.DataFrame(table)
