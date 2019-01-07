@@ -1,7 +1,7 @@
 import sys
 from dart.helper.elastic.querybuilder import QueryBuilder
-from dart.Recommendation import Recommendation
-from dart.Article import Article
+from dart.models.Recommendation import Recommendation
+from dart.models.Article import Article
 import pandas as pd
 import matplotlib.pyplot as plt
 

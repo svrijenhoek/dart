@@ -5,6 +5,7 @@ import time
 
 from dart.helper.elastic.connector import Connector
 from dart.helper.elastic.querybuilder import QueryBuilder
+from dart.models.Article import Article
 
 
 class PopularityQueue:
@@ -39,13 +40,11 @@ class PopularityQueue:
         self.connector.update_document('articles', '_doc', docid, body)
 
     def execute(self, documents):
-        for doc in documents:
+        for document in documents:
+            article = Article(document)
             try:
-                url = doc['_source']['url']
-                docid = doc['_id']
-
-                comment_count, share_count = self.get_facebook_info(url)
-                self.add_popularity(docid, share_count, comment_count)
+                comment_count, share_count = self.get_facebook_info(article.url)
+                self.add_popularity(article.id, share_count, comment_count)
                 time.sleep(2)
             except KeyError:
                 print("URL not found")

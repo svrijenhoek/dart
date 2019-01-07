@@ -1,4 +1,4 @@
-from dart.Document import Document
+from dart.models.Document import Document
 
 
 class Article(Document):
@@ -11,10 +11,15 @@ class Article(Document):
         self.doctype = self.source['doctype']
         self.entities = self.source['entities']
         self.stylometrics = self.source['stylometrics']
+        self.url = self.source['url']
         try:
             self.popularity = self.source['popularity']['facebook_share']
         except KeyError:
             self.popularity = 0
+        try:
+            self.recommended = self.source['recommended']
+        except KeyError:
+            self.recommended = []
 
     def get_style_metric(self, metric):
         return self.stylometrics[metric]

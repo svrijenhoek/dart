@@ -3,8 +3,8 @@ import numpy as np
 import pandas as pd
 from dart.helper.elastic.querybuilder import QueryBuilder
 from dart.helper.NLP.cosine_similarity import CosineSimilarity
-from dart.Recommendation import Recommendation
-from dart.Article import Article
+from dart.models.Recommendation import Recommendation
+from dart.models.Article import Article
 
 
 class Calculations:

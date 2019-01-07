@@ -1,4 +1,4 @@
-from dart.Document import Document
+from dart.models.Document import Document
 
 
 class Recommendation(Document):

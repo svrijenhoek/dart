@@ -187,6 +187,31 @@ class QueryBuilder(Connector):
         output = self.execute_search(index, body)
         return output[0]
 
+    # common method for going through all articles in the articles index
+    def get_unique_values(self, index, field):
+        field_keyword = field+'.keyword'
+        body = {
+            "aggs": {
+               "values": {
+                 "cardinality": {
+                   "field": field_keyword
+                 }
+                },
+            }
+        }
+        output = self.execute_search(index, body)
+        return [entry['_source'][field] for entry in output]
+
+    def get_field_with_value(self, index, field, value):
+        body = {
+             "query": {
+                "match": {
+                    field: value
+                }
+             }
+        }
+        return self.execute_search(index, body)
+
     # used in the 'more like this' recommendation generator. Finds more articles based on the users reading history
     def more_like_this_history(self, reading_history, upper, lower):
         like_query = [{"_index": "articles", "_id": doc} for doc in reading_history]
