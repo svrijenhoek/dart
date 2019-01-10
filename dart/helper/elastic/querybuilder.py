@@ -204,6 +204,7 @@ class QueryBuilder(Connector):
 
     def get_field_with_value(self, index, field, value):
         body = {
+            "size": 10000,
              "query": {
                 "match": {
                     field: value

@@ -9,8 +9,8 @@ class Connector:
     es = Elasticsearch()
 
     # add document to the specified elastic index
-    def add_document(self, index, docid, doc_type, body):
-        self.es.index(index=index, doc_type=doc_type, id=docid, body=body)
+    def add_document(self, index, doc_type, body):
+        self.es.index(index=index, doc_type=doc_type, body=body)
 
     # update a small part of the given document
     def update_document(self, index, doc_type, docid, body):

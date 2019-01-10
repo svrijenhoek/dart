@@ -68,8 +68,7 @@ class RunRecommendations:
 
     def add_to_index(self, json_doc):
         body = json.dumps(json_doc)
-        docid = json_doc.pop('_id', None)
-        self.connector.add_document('recommended_articles', docid, '_doc', body)
+        self.connector.add_document('recommended_articles', doc_type='_doc', body=body)
 
     def add_document(self, date, user_id, rec_type, article):
         doc = self.create_json_doc(user_id, date, rec_type, article)
@@ -78,6 +77,7 @@ class RunRecommendations:
     def execute(self):
         # go over every date specified in the config file
         for date in self.dates:
+            print(date)
             # define the timerange for retrieving documents
             upper = datetime.strptime(date, '%d-%m-%Y')
             lower = upper - timedelta(days=self.timerange)
@@ -87,10 +87,11 @@ class RunRecommendations:
             recommendation_size = min(len(documents), self.size)
 
             rg = RecommendationGenerator(documents, recommendation_size)
-            try:
-                for user in self.users:
+            count = 0
+            for user in self.users:
+                try:
+                    count = count+1
                     user_id = user['_id']
-                    print(user_id)
                     # generate random selection
                     random_recommendation = rg.generate_random()
                     for docid in random_recommendation:
@@ -106,8 +107,10 @@ class RunRecommendations:
                     for docid in more_like_this_recommendation:
                         article = Article(self.searcher.get_by_id('articles', docid))
                         self.add_document(date, user_id, 'more_like_this', article)
-            except KeyError:
-                continue
+                except KeyError:
+                    print("Help, a Key Error occurred!")
+                    continue
+            print(count)
 
 
 def main(argv):
