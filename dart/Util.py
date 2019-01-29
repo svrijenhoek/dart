@@ -21,3 +21,8 @@ def write_to_json(file, s):
     with open(file, 'w') as outfile:
         json.dump(s, outfile, indent=4, separators=(',', ': '), sort_keys=True)
 
+
+def read_json_file(file):
+    with open(file) as F:
+        return json.load(F)
+

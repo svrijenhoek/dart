@@ -11,9 +11,16 @@ class Article(Document):
         self.doctype = self.source['doctype']
         self.entities = self.source['entities']
         self.stylometrics = self.source['stylometrics']
-        self.complexity = self.stylometrics['complexity']
-        self.nwords = self.stylometrics['nwords']
-        self.nsentences = self.stylometrics['nsentences']
+        try:
+            self.author = self.source['byline']
+        except KeyError:
+            self.author = ''
+        try:
+            self.complexity = self.stylometrics['complexity']
+            self.nwords = self.stylometrics['nwords']
+            self.nsentences = self.stylometrics['nsentences']
+        except KeyError:
+            pass
         self.url = self.source['url']
         try:
             self.popularity = self.source['popularity']['facebook_share']
