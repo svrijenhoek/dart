@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 from dart.helper.elastic.connector import Connector
 
 # Class dealing with all Elasticsearch Search operations. Contains the following queries:
@@ -101,7 +102,7 @@ class QueryBuilder(Connector):
         return self.execute_search(index, body)
 
     # retrieve all documents published in a certain timerange (usually 3 days)
-    def get_all_in_timerange(self, index, size, lower, upper):
+    def get_in_timerange(self, index, size, lower, upper):
         size = size
         offset = 0
         all_documents = []
@@ -127,6 +128,29 @@ class QueryBuilder(Connector):
             documents = self.execute_search(index, body)
 
         return all_documents
+
+    def get_all_in_timerange(self, index, l, u):
+        lower = datetime.strptime(l, '%d-%m-%Y')
+        upper = datetime.strptime(u, '%d-%m-%Y')
+        docs = []
+        body = {
+            'query': {"range": {
+                "publication_date": {
+                    "lt": upper,
+                    "gte": lower
+                }
+            }
+            }
+        }
+        sid, scroll_size = self.execute_search_with_scroll('articles', body)
+        # Start retrieving documents
+        while scroll_size > 0:
+            result = self.scroll(sid, '2m')
+            sid = result['_scroll_id']
+            scroll_size = len(result['hits']['hits'])
+            for hit in result['hits']['hits']:
+                docs.append(hit)
+        return docs
 
     # Do not use this function for querying the articles index!
     def get_all_documents(self, index):

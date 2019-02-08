@@ -1,6 +1,7 @@
 import json
 import hashlib
 import numpy as np
+import pickle
 
 
 def read_config_file(top, key):
@@ -25,4 +26,15 @@ def write_to_json(file, s):
 def read_json_file(file):
     with open(file) as F:
         return json.load(F)
+
+
+def load_data(location):
+    with open(location, 'rb') as input:
+        file = pickle.load(input)
+    return file
+
+
+def save_data(location, data):
+    with open(location, 'wb') as pickle_file:
+        pickle.dump(data, pickle_file)
 
