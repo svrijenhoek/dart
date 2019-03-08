@@ -42,8 +42,10 @@ class Personalization:
                 mean = np.mean(df1[header])
                 self.add_document(user, header, mean)
 
-    # construct the json document that can be added to the elasticsearch index
     def add_document(self, user, header, mean):
+        """
+        construct the json document that can be added to the elasticsearch index
+        """
         doc = {
             'user': user,
             'type': header,
@@ -52,10 +54,17 @@ class Personalization:
         body = json.dumps(doc)
         self.connector.add_document('personalization', '_doc', body)
 
-    # calculates for lists x and y how many elements they have in common
-    # output: 0..1, where 1 is a complete match and 0 is no match at all
     @staticmethod
     def calculate_similarity(x, y):
+        """
+        calculates for lists x and y how many elements they have in common
+        output: 0..1, where 1 is a complete match and 0 is no match at all
+
+        >>> Personalization.calculate_similarity([0, 1, 2, 3], [0, 1, 2, 3])
+        1.0
+        >>> Personalization.calculate_similarity([0, 1, 2, 3], [2])
+        0.4
+        """
         sm = difflib.SequenceMatcher(None, x, y)
         return sm.ratio()
 
