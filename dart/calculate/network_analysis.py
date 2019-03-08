@@ -1,7 +1,7 @@
 import sys
 import itertools
 import pandas as pd
-from dart.helper.elastic.querybuilder import QueryBuilder
+from dart.handler.elastic.article_handler import ArticleHandler
 from dart.models.Article import Article
 from dart.models.Recommendation import Recommendation
 import dart.Util as Util
@@ -10,7 +10,7 @@ import dart.Util as Util
 class NetworkAnalysis:
 
     def __init__(self):
-        self.searcher = QueryBuilder()
+        self.searcher = ArticleHandler()
         self.results = []
 
     @staticmethod

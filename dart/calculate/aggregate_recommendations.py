@@ -1,6 +1,9 @@
 from dart.models.Article import Article
-from dart.helper.elastic.querybuilder import QueryBuilder
-from dart.helper.elastic.connector import Connector
+from dart.models.Recommendation import Recommendation
+from dart.handler.elastic.user_handler import UserHandler
+from dart.handler.elastic.article_handler import ArticleHandler
+from dart.handler.elastic.recommendation_handler import RecommendationHandler
+from dart.handler.elastic.connector import Connector
 import pandas as pd
 import json
 
@@ -11,24 +14,27 @@ class AggregateRecommendations:
 
     def __init__(self):
         self.connector = Connector()
-        self.searcher = QueryBuilder()
-        self.users = self.searcher.get_all_documents('users')
+        self.user_handler = UserHandler()
+        self.article_handler = ArticleHandler()
+        self.recommendation_handler = RecommendationHandler()
+        self.users = self.user_handler.get_all_users()
 
     def retrieve_recommendations(self, user_id):
         columns = ["id", "date", "type", "popularity", "complexity", "nwords", "nsentences"]
-        recommended_articles = self.searcher.get_field_with_value('recommended_articles', 'recommendation.user_id', user_id)
+        recommended_articles = self.recommendation_handler.get_recommendations_to_user(user_id)
         table = []
         for ra in recommended_articles:
-            recommendation_type = ra['_source']['recommendation']['type']
-            recommendation_date = ra['_source']['recommendation']['date']
-            article = Article(self.searcher.get_by_id('articles', ra['_source']['article']['id']))
-            row = [article.id, recommendation_date, recommendation_type, article.popularity, article.complexity,
-                   article.nwords, article.nsentences]
-            table.append(row)
+            recommendation = Recommendation(ra)
+            for type in recommendation.get_recommendation_types():
+                for article_id in recommendation[type]:
+                    article = Article(self.article_handler.get_by_id(article_id))
+                    row = [article.id, recommendation.date, type, article.popularity, article.complexity,
+                           article.nwords, article.nsentences]
+                    table.append(row)
         df = pd.DataFrame(table, columns=columns)
         return df
 
-    def get_metrics(self, df):
+    def get_averages(self, df):
         avg_complexity = self.calculate_average(df, 'complexity')
         avg_popularity = self.calculate_average(df, 'popularity')
         avg_nwords = self.calculate_average(df, 'nwords')
@@ -54,20 +60,22 @@ class AggregateRecommendations:
         self.connector.add_document('aggregated_recommendations', '_doc', body)
 
     def execute(self):
+        # iterate over all recommendations generated for all users
         for user in self.users:
-            print(user['_id'])
             df = self.retrieve_recommendations(user['_id'])
             types = df.type.unique()
+            # do for all recommendation types separately
             for type in types:
-                articles_per_type = df[(df.type == type)]
-                year_metrics = self.get_metrics(articles_per_type)
-                self.add_document(user['_id'], 'year', '31-12-2017', type, year_metrics)
-                dates = articles_per_type.date.unique()
+                articles = df[(df.type == type)]
+                # calculate yearly averages
+                averages = self.get_averages(articles)
+                self.add_document(user['_id'], 'year', '31-12-2017', type, averages)
+                # calculate monthly averages
+                dates = articles.date.unique()
                 for date in dates:
-                    print(date)
-                    articles_per_date = articles_per_type[(articles_per_type.date == date)]
-                    month_metrics = self.get_metrics(articles_per_date)
-                    self.add_document(user['_id'], 'month', date, type, month_metrics)
+                    articles_per_date = articles[(articles.date == date)]
+                    averages = self.get_metrics(articles_per_date)
+                    self.add_document(user['_id'], 'month', date, type, averages)
 
 
 def main(argv):

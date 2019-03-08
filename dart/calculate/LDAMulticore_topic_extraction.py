@@ -1,5 +1,5 @@
-from dart.helper.elastic.querybuilder import QueryBuilder
-from dart.helper.elastic.connector import Connector
+from dart.handler.elastic.article_handler import ArticleHandler
+from dart.handler.elastic.connector import Connector
 from dart.models.Article import Article
 import dart.Util
 from nltk.stem.snowball import DutchStemmer
@@ -8,7 +8,7 @@ import spacy
 from operator import itemgetter
 from collections import OrderedDict
 
-searcher = QueryBuilder()
+searcher = ArticleHandler()
 connector = Connector()
 ner = spacy.load('nl_core_news_sm', disable=['parser', 'tagger'])
 pos = spacy.load('nl_core_news_sm', disable=['ner', 'parser'])

@@ -1,5 +1,5 @@
-from dart.helper.elastic.querybuilder import QueryBuilder
-from dart.helper.elastic.connector import Connector
+from dart.handler.elastic.article_handler import ArticleHandler
+from dart.handler.elastic.connector import Connector
 from dart.models.Article import Article
 from nltk.corpus import stopwords
 from nltk.stem.snowball import DutchStemmer
@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from gensim import corpora
 import spacy
 
-searcher = QueryBuilder()
+searcher = ArticleHandler()
 connector = Connector()
 nlp = spacy.load('nl_core_news_sm')
 

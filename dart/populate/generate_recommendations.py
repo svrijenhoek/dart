@@ -4,17 +4,26 @@ import numpy as np
 import json, sys
 
 import dart.Util as Util
-from dart.helper.elastic.connector import Connector
-from dart.helper.elastic.querybuilder import QueryBuilder
+from dart.handler.elastic.connector import Connector
+from dart.handler.elastic.article_handler import ArticleHandler
 from dart.models.Article import Article
 
 
 class RecommendationGenerator:
 
+    """
+    Class that generates baseline recommendations based on the articles stored in the 'articles' Elasticsearch index.
+    Eight articles are 'recommended' following to the following three methods:
+    - Random --> recommends randomly chosen articles
+    - Most popular --> recommends the articles that have been shared most on Facebook
+    - More like this --> recommends the articles that are most similar to what the user has read before
+
+    """
+
     def __init__(self, documents, size):
         self.documents = documents
         self.size = size
-        self.searcher = QueryBuilder()
+        self.searcher = ArticleHandler()
 
     def generate_random(self):
         random_numbers = np.random.choice(len(self.documents), self.size, False)
@@ -33,7 +42,7 @@ class RunRecommendations:
 
     def __init__(self):
         self.connector = Connector()
-        self.searcher = QueryBuilder()
+        self.searcher = ArticleHandler()
 
         self.timerange = Util.read_config_file("recommendations", "range")
         self.size = Util.read_config_file("recommendations", "size")

@@ -1,15 +1,15 @@
 import sys
 import numpy as np
 import pandas as pd
-from dart.helper.elastic.querybuilder import QueryBuilder
-from dart.helper.NLP.cosine_similarity import CosineSimilarity
+from dart.handler.elastic.article_handler import ArticleHandler
+from dart.handler.NLP.cosine_similarity import CosineSimilarity
 from dart.models.Recommendation import Recommendation
 from dart.models.Article import Article
 
 
 class Calculations:
 
-    searcher = QueryBuilder()
+    searcher = ArticleHandler()
     recommendations = []
     cs = CosineSimilarity()
 

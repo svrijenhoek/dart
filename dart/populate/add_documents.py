@@ -1,15 +1,15 @@
 import json
 import os
 
-from dart.helper.elastic.connector import Connector
-from dart.helper.elastic.querybuilder import QueryBuilder
-from dart.helper.NLP.annotator import Annotator
+from dart.handler.elastic.connector import Connector
+from dart.handler.elastic.article_handler import ArticleHandler
+from dart.handler.NLP.annotator import Annotator
 
 import dart.Util as Util
 
 
 connector = Connector()
-searcher = QueryBuilder()
+searcher = ArticleHandler()
 annotator = Annotator()
 
 root = Util.read_config_file("general", "data_folder")

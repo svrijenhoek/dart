@@ -3,8 +3,8 @@ import urllib
 import json
 import time
 
-from dart.helper.elastic.connector import Connector
-from dart.helper.elastic.querybuilder import QueryBuilder
+from dart.handler.elastic.connector import Connector
+from dart.handler.elastic.article_handler import ArticleHandler
 from dart.models.Article import Article
 
 
@@ -21,7 +21,7 @@ class PopularityQueue:
     facebook_graph_url = 'https://graph.facebook.com/?id='
 
     connector = Connector()
-    searcher = QueryBuilder()
+    searcher = ArticleHandler()
 
     def get_all_documents_without_popularity(self):
         return self.searcher.get_not_calculated('popularity.facebook_share')

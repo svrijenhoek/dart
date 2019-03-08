@@ -1,6 +1,8 @@
 from dart.models.Article import Article
-from dart.helper.elastic.querybuilder import QueryBuilder
-from dart.helper.elastic.connector import Connector
+from dart.models.Recommendation import Recommendation
+from dart.handler.elastic.recommendation_handler import RecommendationHandler
+from dart.handler.elastic.article_handler import ArticleHandler
+from dart.handler.elastic.connector import Connector
 import dart.Util as Util
 import pandas as pd
 import json
@@ -17,15 +19,17 @@ class AnalyzeLocations:
 
     def __init__(self):
         self.connector = Connector()
-        self.searcher = QueryBuilder()
-        self.recommendations = self.searcher.get_all_documents('recommendations')
+        self.rec_handler = RecommendationHandler()
+        self.article_handler = ArticleHandler()
+        self.recommendations = self.rec_handler.get_all_documents()
         try:
             self.known_locations = Util.read_json_file('../../output/known_locations.json')
         except FileNotFoundError:
             self.known_locations = {}
+            
 
     def initialize(self):
-        table = [x['_source'] for x in self.recommendations]
+        table = [Recommendation(x).source for x in self.recommendations]
         df = pd.DataFrame.from_dict(table)
         return df
 
@@ -73,7 +77,7 @@ class AnalyzeLocations:
             for recommendation in row.recommendations:
                 article_list = row.recommendations[recommendation]
                 for article_id in article_list:
-                    article = Article(self.searcher.get_by_id('articles', article_id))
+                    article = Article(self.article_handler.get_by_id(article_id))
                     locations = self.analyze_entities(article.entities)
                     for location in locations:
                         self.add_document(article.title, article.publication_date, recommendation, location)

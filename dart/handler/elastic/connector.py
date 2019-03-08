@@ -8,6 +8,17 @@ class Connector:
 
     es = Elasticsearch()
 
+    def execute_search(self, index, body):
+        response = self.es.search(index=index, body=body)
+        return response['hits']['hits']
+
+    def execute_search_with_scroll(self, index, body):
+        response = self.es.search(index=index, scroll='1m', body=body)
+        return response['_scroll_id'], response['hits']['total']
+
+    def scroll(self, sid, scroll):
+        return self.es.scroll(scroll_id=sid, scroll=scroll)
+
     # add document to the specified elastic index
     def add_document(self, index, doc_type, body):
         self.es.index(index=index, doc_type=doc_type, body=body)

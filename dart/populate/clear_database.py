@@ -1,6 +1,6 @@
 import sys
 import getopt
-from dart.helper.elastic.connector import Connector
+from dart.handler.elastic.connector import Connector
 
 # this script van be executed to clear all generated data. Use parameters in the following way:
 # --documents Y/N --users Y/N --popularity Y/N --recommendations Y/N

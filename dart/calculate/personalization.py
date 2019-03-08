@@ -1,5 +1,5 @@
-from dart.helper.elastic.querybuilder import QueryBuilder
-from dart.helper.elastic.connector import Connector
+from dart.handler.elastic.article_handler import ArticleHandler
+from dart.handler.elastic.connector import Connector
 import pandas as pd
 import numpy as np
 import difflib
@@ -13,7 +13,7 @@ import json
 class Personalization:
 
     def __init__(self):
-        self.searcher = QueryBuilder()
+        self.searcher = ArticleHandler()
         self.connector = Connector()
 
     # retrieves all recommendations found in the elasticsearch index

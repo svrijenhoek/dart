@@ -19,7 +19,6 @@ class Annotator:
             'dep': token.dep_,
             'head_text': token.head.text,
             'head_pos': token.head.pos_,
-            # 'children': [child for child in token.children]
         } for token in doc]
 
         return doc, entities, dependencies

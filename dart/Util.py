@@ -2,12 +2,18 @@ import json
 import hashlib
 import numpy as np
 import pickle
+import random
+import string
 
 
 def read_config_file(top, key):
     with open('..\\..\\..\\config.json') as json_data_file:
         data = json.load(json_data_file)
     return data[top][key]
+
+
+def random_string(N):
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=N))
 
 
 def get_random_number(mean, sdev):

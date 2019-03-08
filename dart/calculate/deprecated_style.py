@@ -1,5 +1,5 @@
 import sys
-from dart.helper.elastic.querybuilder import QueryBuilder
+from dart.handler.elastic.article_handler import ArticleHandler
 from dart.models.Recommendation import Recommendation
 from dart.models.Article import Article
 import pandas as pd
@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 class StyloMetrics:
 
-    searcher = QueryBuilder()
+    searcher = ArticleHandler()
     df = []
 
     def __init__(self):

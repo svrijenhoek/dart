@@ -1,7 +1,7 @@
 import json
 import dart.Util as Util
-from dart.helper.elastic.connector import Connector
-from dart.helper.elastic.querybuilder import QueryBuilder
+from dart.handler.elastic.connector import Connector
+from dart.handler.elastic.article_handler import ArticleHandler
 
 n_users = Util.read_config_file("user", "number_of_users")
 n_topics = Util.read_config_file("user", "average_topical_interest")
@@ -10,7 +10,7 @@ mean_popular = Util.read_config_file("user", "size_popular_stories")
 mean_random = Util.read_config_file("user", "size_random")
 
 connector = Connector()
-searcher = QueryBuilder()
+searcher = ArticleHandler()
 
 for x in range(0, n_users):
     # generate reading history

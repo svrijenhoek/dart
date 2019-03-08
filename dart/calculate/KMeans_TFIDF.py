@@ -1,4 +1,4 @@
-from dart.helper.elastic.querybuilder import QueryBuilder
+from dart.handler.elastic.article_handler import ArticleHandler
 from dart.models.Article import Article
 import dart.Util
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -12,7 +12,7 @@ from nltk.stem.snowball import SnowballStemmer
 stopwords = nltk.corpus.stopwords.words('dutch')
 stopwords.extend(['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag', 'weekend', 'week'])
 stemmer = SnowballStemmer("dutch")
-searcher = QueryBuilder()
+searcher = ArticleHandler()
 test_location = '../../output/august_test_documents.pkl'
 
 

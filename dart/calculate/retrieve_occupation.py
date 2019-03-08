@@ -1,15 +1,15 @@
 import requests
 from dart.models.Recommendation import Recommendation
 from dart.models.Article import Article
-from dart.helper.elastic.querybuilder import QueryBuilder
-from dart.helper.elastic.connector import Connector
+from dart.handler.elastic.article_handler import ArticleHandler
+from dart.handler.elastic.connector import Connector
 import json
 import sys
 import elasticsearch
 
 
 known_entities = {}
-searcher = QueryBuilder()
+searcher = ArticleHandler()
 connector = Connector()
 
 
