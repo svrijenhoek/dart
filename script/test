@@ -11,6 +11,8 @@ if [[ -z "$CI" ]]; then
     python -m pylint dart
 fi
 
+python -m spacy download nl > /dev/null
+
 # Run test with pytest, including doctests
 python -m pytest --doctest-modules --junit-xml=pytest.xml
 
