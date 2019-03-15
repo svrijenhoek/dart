@@ -10,6 +10,11 @@ class Article(Document):
         self.publication_date = self.source['publication_date']
         self.doctype = self.source['doctype']
         self.entities = self.source['entities']
+        self.dependencies = self.source['dependencies']
+        try:
+            self.tags = self.source['tags']
+        except KeyError:
+            self.tags = ''
         self.stylometrics = self.source['stylometrics']
         try:
             self.author = self.source['byline']

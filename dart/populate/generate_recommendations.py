@@ -40,13 +40,13 @@ class RecommendationGenerator:
 
 class RunRecommendations:
 
-    def __init__(self):
+    def __init__(self, configuration):
         self.connector = Connector()
         self.searcher = ArticleHandler()
 
-        self.timerange = Util.read_config_file("recommendations", "range")
-        self.size = Util.read_config_file("recommendations", "size")
-        self.dates = Util.read_config_file("recommendations", "dates")
+        self.timerange = configuration["recommendation_range"]
+        self.size = configuration["recommendation_size"]
+        self.dates = configuration["dates"]
 
         self.users = self.searcher.get_all_documents('users')
 
@@ -122,10 +122,7 @@ class RunRecommendations:
             print(count)
 
 
-def main(argv):
-    run = RunRecommendations()
+def execute(configuration):
+    run = RunRecommendations(configuration)
     run.execute()
 
-
-if __name__ == "__main__":
-    main(sys.argv[1:])

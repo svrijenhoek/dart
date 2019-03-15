@@ -7,8 +7,6 @@ from dart.handler.elastic.connector import Connector
 import pandas as pd
 import json
 
-import sys
-
 
 class AggregateRecommendations:
 
@@ -78,10 +76,6 @@ class AggregateRecommendations:
                     self.add_document(user['_id'], 'month', date, type, averages)
 
 
-def main(argv):
+def execute():
     run = AggregateRecommendations()
     run.execute()
-
-
-if __name__ == "__main__":
-    main(sys.argv[1:])

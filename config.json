@@ -1,23 +1,17 @@
 {
-  "general": {
-    "data_folder": "..\\data\\articles\\",
-    "output_format": "aggregate"
-  },
-  "popularity": {
-    "volkskrant (www)": {
-      "mean": 10000,
-      "sdev": 2000
-    },
-    "nu": {
-      "mean": 20000,
-      "sdev": 5000
-    },
-    "geenstijl": {
-      "mean": 5000,
-      "sdev": 1000
-    }
+  "metrics": ["length", "complexity", "popularity", "locations","occupations","source","personalization"],
+  "articles": {
+    "folder": "data\\articles\\",
+    "append": "N",
+    "alternative_schema": "N",
+    "schema": "..\\data\\schemas\\articles.json",
+    "preprocessing": "stemming"
   },
   "user": {
+    "load": "N",
+    "append": "N",
+    "folder": "..\\data\\users\\",
+    "schema": "..\\data\\schemas\\users.json",
     "number_of_users": 50,
     "average_topical_interest": 3,
     "average_spread_per_interest": 15,
@@ -26,6 +20,13 @@
     "sticks_to_source": 0.7
   },
   "recommendations": {
+    "load": "N",
+    "append": "N",
+    "folder": "..\\data\\recommendations\\",
+    "schema": "..\\data\\schemas\\users.json",
+    "baseline_recommendations": ["random", "most_popular", "more_like_this"],
+    "range": 3,
+    "size": 8,
     "dates": [
       "01-02-2017",
       "01-03-2017",
@@ -38,8 +39,6 @@
       "01-10-2017",
       "01-11-2017",
       "01-12-2017"
-    ],
-    "range": 3,
-    "size": 8
+    ]
   }
 }

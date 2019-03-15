@@ -12,6 +12,10 @@ known_entities = {}
 searcher = ArticleHandler()
 connector = Connector()
 
+"""
+This needs some serious rewriting haha
+"""
+
 
 def execute_query(query):
     url = 'https://query.wikidata.org/sparql'
@@ -129,25 +133,26 @@ def analyze_document(doc):
     return all_occupations, all_parties, all_positions
 
 
-recommendations = [Recommendation(i) for i in searcher.get_all_documents('recommendations')]
-for recommendation in recommendations:
-    print(recommendation.date)
-    for type in recommendation.get_recommendation_types():
-        for docid in recommendation.recommendations[type]:
-            document = Article(searcher.get_by_id('articles', docid))
-            occupations, parties, positions = analyze_document(document)
-            for occupation in occupations:
-                frequency = occupations[occupation]
-                add_document(type, recommendation.user, recommendation.date, docid,
-                             'occupation', occupation, frequency)
-            for party in parties:
-                frequency = parties[party]
-                add_document(type, recommendation.user, recommendation.date, docid,
-                             'party', party, frequency)
-            for position in positions:
-                frequency = positions[position]
-                add_document(type, recommendation.user, recommendation.date, docid,
-                             'position', position, frequency)
+def execute():
+    recommendations = [Recommendation(i) for i in searcher.get_all_documents('recommendations')]
+    for recommendation in recommendations:
+        print(recommendation.date)
+        for type in recommendation.get_recommendation_types():
+            for docid in recommendation.recommendations[type]:
+                document = Article(searcher.get_by_id('articles', docid))
+                occupations, parties, positions = analyze_document(document)
+                for occupation in occupations:
+                    frequency = occupations[occupation]
+                    add_document(type, recommendation.user, recommendation.date, docid,
+                                 'occupation', occupation, frequency)
+                for party in parties:
+                    frequency = parties[party]
+                    add_document(type, recommendation.user, recommendation.date, docid,
+                                 'party', party, frequency)
+                for position in positions:
+                    frequency = positions[position]
+                    add_document(type, recommendation.user, recommendation.date, docid,
+                                 'position', position, frequency)
 
 
 

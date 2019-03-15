@@ -3,7 +3,7 @@ import spacy
 
 class Annotator:
 
-    nlp = spacy.load('nl_core_news_sm')
+    nlp = spacy.load('nl_core_news_sm', disable=['parser'])
 
     def annotate(self, text):
         doc = self.nlp(text)
@@ -14,12 +14,10 @@ class Annotator:
             'label': e.label_
         } for e in doc.ents]
 
-        dependencies = [{
+        tags = [{
             'text': token.text,
-            'dep': token.dep_,
-            'head_text': token.head.text,
-            'head_pos': token.head.pos_,
+            'tag': token.pos_
         } for token in doc]
 
-        return doc, entities, dependencies
+        return doc, entities, tags
 

@@ -7,9 +7,35 @@ import string
 
 
 def read_config_file(top, key):
-    with open('..\\..\\..\\config.json') as json_data_file:
+    with open('config.json') as json_data_file:
         data = json.load(json_data_file)
     return data[top][key]
+
+
+def read_full_config_file():
+    dictionary = {}
+    dictionary['articles_folder'] = read_config_file('articles', 'folder')
+    dictionary['articles_schema'] = read_config_file('articles', 'alternative_schema')
+    dictionary['append_articles'] = read_config_file('articles', 'append')
+
+    dictionary['user_folder'] = read_config_file('user', 'folder')
+    dictionary['user_load'] = read_config_file('user', 'load')
+    dictionary['user_schema'] = read_config_file('user', 'schema')
+    dictionary['user_append'] = read_config_file('user', 'append')
+    dictionary['user_number'] = read_config_file('user', 'number_of_users')
+    dictionary['user_topics'] = read_config_file('user', 'average_topical_interest')
+    dictionary['user_popular'] = read_config_file('user', 'size_popular_stories')
+    dictionary['user_random'] = read_config_file('user', 'size_random')
+
+    dictionary['recommendations_folder'] = read_config_file('recommendations', 'folder')
+    dictionary['recommendations_load'] = read_config_file('recommendations', 'load')
+    dictionary['recommendations_schema'] = read_config_file('recommendations', 'schema')
+    dictionary['recommendations_append'] = read_config_file('recommendations', 'append')
+    dictionary['baseline_recommendations'] = read_config_file('recommendations', 'baseline_recommendations')
+    dictionary['recommendation_range'] = read_config_file('recommendations', 'range')
+    dictionary['recommendation_size'] = read_config_file('recommendations', 'size')
+    dictionary['recommendation_dates'] = read_config_file('recommendations', 'dates')
+    return dictionary
 
 
 def random_string(N):

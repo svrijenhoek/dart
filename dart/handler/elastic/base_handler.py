@@ -37,4 +37,5 @@ class BaseHandler(Connector):
                 }
             }
         }
-        return super(BaseHandler, self).execute_search(index, body)[0]
+        output = super(BaseHandler, self).execute_search(index, body)
+        return output[0]

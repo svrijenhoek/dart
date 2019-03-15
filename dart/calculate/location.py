@@ -9,8 +9,6 @@ import json
 import urllib
 import string
 
-import sys
-
 
 class AnalyzeLocations:
 
@@ -26,7 +24,6 @@ class AnalyzeLocations:
             self.known_locations = Util.read_json_file('../../output/known_locations.json')
         except FileNotFoundError:
             self.known_locations = {}
-            
 
     def initialize(self):
         table = [Recommendation(x).source for x in self.recommendations]
@@ -92,10 +89,7 @@ class AnalyzeLocations:
             Util.write_to_json('../../output/known_locations.json', self.known_locations)
 
 
-def main(argv):
+def execute():
     run = AnalyzeLocations()
     run.execute()
 
-
-if __name__ == "__main__":
-    main(sys.argv[1:])
