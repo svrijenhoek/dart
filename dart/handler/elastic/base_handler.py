@@ -5,7 +5,7 @@ import time
 class BaseHandler(Connector):
 
     def __init__(self):
-        super(Connector, self).__init__()
+        super(BaseHandler, self).__init__()
 
     # gets a random document from a specified index
     def get_random(self, index):
@@ -25,7 +25,7 @@ class BaseHandler(Connector):
             }}
         return super(BaseHandler, self).execute_search(index, body)[0]
 
-    def get_by_id(self, index, docid):
+    def get_by_docid(self, index, docid):
         body = {
             "query": {
                 "bool": {

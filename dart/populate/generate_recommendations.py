@@ -104,17 +104,17 @@ class RunRecommendations:
                     # generate random selection
                     random_recommendation = rg.generate_random()
                     for docid in random_recommendation:
-                        article = Article(self.searcher.get_by_id('articles', docid))
+                        article = Article(self.searcher.get_by_docid('articles', docid))
                         self.add_document(date, user_id, 'random', article)
                     # select most popular
                     most_popular_recommendation = rg.generate_most_popular()
                     for docid in most_popular_recommendation:
-                        article = Article(self.searcher.get_by_id('articles', docid))
+                        article = Article(self.searcher.get_by_docid('articles', docid))
                         self.add_document(date, user_id, 'most_popular', article)
                     # get more like the user has previously read
                     more_like_this_recommendation = rg.generate_more_like_this(user, upper, lower)
                     for docid in more_like_this_recommendation:
-                        article = Article(self.searcher.get_by_id('articles', docid))
+                        article = Article(self.searcher.get_by_docid('articles', docid))
                         self.add_document(date, user_id, 'more_like_this', article)
                 except KeyError:
                     print("Help, a Key Error occurred!")

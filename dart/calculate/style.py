@@ -25,7 +25,7 @@ class AggregateRecommendations:
             recommendation = Recommendation(ra)
             for type in recommendation.get_recommendation_types():
                 for article_id in recommendation[type]:
-                    article = Article(self.article_handler.get_by_id(article_id))
+                    article = Article(self.article_handler.get_by_docid(article_id))
                     row = [article.id, recommendation.date, type, article.popularity, article.complexity,
                            article.nwords, article.nsentences]
                     table.append(row)

@@ -15,7 +15,7 @@ class IdentifyEmotiveContent:
         self.nlp = spacy.load('nl_core_news_sm', disable=['parser', 'ner'])
 
     def execute(self):
-        for x in range(0, 100):
+        for _ in range(0, 100):
             document = Article(self.searcher.get_random_article())
             print(document.title)
             print(document.doctype)

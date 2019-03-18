@@ -26,7 +26,7 @@ def execute_query(query):
 def get_occupations(label):
     query = """
         SELECT DISTINCT ?occupation_label WHERE { 
-          ?s ?label '""" + label + """'@nl . 
+          ?s ?label '""" + label + """'@nl .
           ?s wdt:P106 ?occupation .
           ?occupation rdfs:label ?occupation_label
           FILTER(LANG(?occupation_label) = "" || LANGMATCHES(LANG(?occupation_label), "nl"))
@@ -83,9 +83,9 @@ def update_list(o, l):
     return l
 
 
-def add_document(type, user, date, doc_id, key, label, frequency):
+def add_document(doctype, user, date, doc_id, key, label, frequency):
     doc = {
-        'type': type,
+        'type': doctype,
         'date': date,
         'user': user,
         'article_id': doc_id,
@@ -137,21 +137,21 @@ def execute():
     recommendations = [Recommendation(i) for i in searcher.get_all_documents('recommendations')]
     for recommendation in recommendations:
         print(recommendation.date)
-        for type in recommendation.get_recommendation_types():
-            for docid in recommendation.recommendations[type]:
-                document = Article(searcher.get_by_id('articles', docid))
+        for recommendation_type in recommendation.get_recommendation_types():
+            for docid in recommendation.recommendations[recommendation_type]:
+                document = Article(searcher.get_by_docid('articles', docid))
                 occupations, parties, positions = analyze_document(document)
                 for occupation in occupations:
                     frequency = occupations[occupation]
-                    add_document(type, recommendation.user, recommendation.date, docid,
+                    add_document(recommendation_type, recommendation.user, recommendation.date, docid,
                                  'occupation', occupation, frequency)
                 for party in parties:
                     frequency = parties[party]
-                    add_document(type, recommendation.user, recommendation.date, docid,
+                    add_document(recommendation_type, recommendation.user, recommendation.date, docid,
                                  'party', party, frequency)
                 for position in positions:
                     frequency = positions[position]
-                    add_document(type, recommendation.user, recommendation.date, docid,
+                    add_document(recommendation_type, recommendation.user, recommendation.date, docid,
                                  'position', position, frequency)
 
 

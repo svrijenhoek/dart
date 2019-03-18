@@ -1,8 +1,8 @@
 {
   "metrics": ["length", "complexity", "popularity", "locations","occupations","source","personalization"],
+  "append": "N",
   "articles": {
     "folder": "data\\articles\\",
-    "append": "N",
     "alternative_schema": "N",
     "schema": "..\\data\\schemas\\articles.json",
     "preprocessing": "stemming"

@@ -78,7 +78,7 @@ class FindDutchPoliticians:
             for type in recommendation.get_recommendation_types():
                 for docid in recommendation.recommendations[type]:
                     if docid not in checked_documents:
-                        document = Article(self.article_handler.get_by_id(docid))
+                        document = Article(self.article_handler.get_by_docid(docid))
                         mentions = self.find_mentioned_persons(document.entities)
                         politicians = self.find_politicians(mentions)
                         if len(politicians) > 0:

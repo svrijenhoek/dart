@@ -5,7 +5,7 @@ import pandas as pd
 
 class RecommendationHandler(BaseHandler):
     def __init__(self):
-        super(BaseHandler, self).__init__()
+        super(RecommendationHandler, self).__init__()
 
     @staticmethod
     def make_dataframe(docs):

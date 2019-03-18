@@ -74,7 +74,7 @@ class AnalyzeLocations:
             for recommendation in row.recommendations:
                 article_list = row.recommendations[recommendation]
                 for article_id in article_list:
-                    article = Article(self.article_handler.get_by_id(article_id))
+                    article = Article(self.article_handler.get_by_docid(article_id))
                     locations = self.analyze_entities(article.entities)
                     for location in locations:
                         self.add_document(article.title, article.publication_date, recommendation, location)

@@ -42,7 +42,7 @@ class AddDocuments:
         # add NLP annotation if this wasn't done already
         if 'entities' or 'dependencies' not in doc:
             try:
-                annotated_doc, entities, tags = self.annotator.annotate(doc["text"])
+                _, entities, tags = self.annotator.annotate(doc["text"])
                 doc['entities'] = entities
                 doc['tags'] = tags
             except KeyError:
@@ -58,7 +58,7 @@ class AddDocuments:
 
     def execute(self):
         # iterate over all the files in the data folder
-        for path, subdirs, files in os.walk(self.root):
+        for path, _, files in os.walk(self.root):
             for name in files:
                 # assumes all files are json-l, change this to something more robust!
                 for line in open((os.path.join(path, name))):
