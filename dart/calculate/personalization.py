@@ -72,9 +72,9 @@ class Personalization:
     # output: table where each row contains a user_id, the date, and the similarity to one other recommendation
     def compare_recommendations(self, date, df):
         table = []
-        for index_x, row_x in df.iterrows():
+        for _, row_x in df.iterrows():
             recommendation_types = row_x.recommendations.keys()
-            for index_y, row_y in df.iterrows():
+            for _, row_y in df.iterrows():
                 row = {'user_id': row_x.user_id, 'date': date}
                 for key in recommendation_types:
                     x = row_x.recommendations[key]

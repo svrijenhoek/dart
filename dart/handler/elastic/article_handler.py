@@ -114,7 +114,7 @@ class ArticleHandler(BaseHandler):
         return docs
 
     # get elastic entry by id
-    def get_by_docid(self, docid):
+    def get_by_id(self, docid):
         return super(ArticleHandler, self).get_by_docid('articles', docid)
 
     def get_by_url(self, index, url):

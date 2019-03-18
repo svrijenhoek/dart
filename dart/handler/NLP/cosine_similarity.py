@@ -33,8 +33,8 @@ class CosineSimilarity:
         tv_list = [self.connector.get_term_vector('articles', '_doc', doc) for doc in doc_list]
         dict_list = [self.create_dictionary(tv) for tv in tv_list]
         output = []
-        for x in range(0, len(dict_list)):
-            for y in range(0, len(dict_list)):
-                if y > x:
-                    output.append(self.cosine(dict_list[x], dict_list[y]))
+        for ix, x in enumerate(dict_list):
+            for iy, y in enumerate(dict_list):
+                if iy > ix:
+                    output.append(self.cosine(x, y))
         return output

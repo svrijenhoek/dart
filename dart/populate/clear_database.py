@@ -14,7 +14,7 @@ def main(argv):
         print('clear_database.py -d <Y/N> -u <Y/N> -p <Y/N -r <Y/N>')
         sys.exit(2)
     connector = Connector()
-    for opt, arg in opts:
+    for opt, _ in opts:
         if opt == '-h':
             print('clear_database.py -d <Y/N> -u <Y/N> -p <Y/N -r <Y/N>')
             sys.exit()

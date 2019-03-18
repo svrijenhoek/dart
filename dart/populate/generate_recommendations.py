@@ -1,9 +1,8 @@
 from datetime import datetime, timedelta
 
 import numpy as np
-import json, sys
+import json
 
-import dart.Util as Util
 from dart.handler.elastic.connector import Connector
 from dart.handler.elastic.article_handler import ArticleHandler
 from dart.models.Article import Article
@@ -91,7 +90,7 @@ class RunRecommendations:
             upper = datetime.strptime(date, '%d-%m-%Y')
             lower = upper - timedelta(days=self.timerange)
             # retrieve all the documents that are relevant for this date
-            documents = self.searcher.get_all_in_timerange('articles', 5000, lower, upper)
+            documents = self.searcher.get_all_in_timerange(lower, upper)
             # to account for a very sparse index
             recommendation_size = min(len(documents), self.size)
 
@@ -104,17 +103,17 @@ class RunRecommendations:
                     # generate random selection
                     random_recommendation = rg.generate_random()
                     for docid in random_recommendation:
-                        article = Article(self.searcher.get_by_docid('articles', docid))
+                        article = Article(self.searcher.get_by_id('articles', docid))
                         self.add_document(date, user_id, 'random', article)
                     # select most popular
                     most_popular_recommendation = rg.generate_most_popular()
                     for docid in most_popular_recommendation:
-                        article = Article(self.searcher.get_by_docid('articles', docid))
+                        article = Article(self.searcher.get_by_id('articles', docid))
                         self.add_document(date, user_id, 'most_popular', article)
                     # get more like the user has previously read
                     more_like_this_recommendation = rg.generate_more_like_this(user, upper, lower)
                     for docid in more_like_this_recommendation:
-                        article = Article(self.searcher.get_by_docid('articles', docid))
+                        article = Article(self.searcher.get_by_id('articles', docid))
                         self.add_document(date, user_id, 'more_like_this', article)
                 except KeyError:
                     print("Help, a Key Error occurred!")

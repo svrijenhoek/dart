@@ -30,11 +30,11 @@ class AnalyzeLocations:
         df = pd.DataFrame.from_dict(table)
         return df
 
-    def add_document(self, title, date, type, location):
+    def add_document(self, title, date, recommendation_type, location):
         doc = {
             'title': title,
             'date': date,
-            'type': type,
+            'type': recommendation_type,
             'text': location[0],
             'country_code': location[1][0],
             'location': {
@@ -74,7 +74,7 @@ class AnalyzeLocations:
             for recommendation in row.recommendations:
                 article_list = row.recommendations[recommendation]
                 for article_id in article_list:
-                    article = Article(self.article_handler.get_by_docid(article_id))
+                    article = Article(self.article_handler.get_by_id(article_id))
                     locations = self.analyze_entities(article.entities)
                     for location in locations:
                         self.add_document(article.title, article.publication_date, recommendation, location)

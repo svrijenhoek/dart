@@ -139,7 +139,7 @@ def execute():
         print(recommendation.date)
         for recommendation_type in recommendation.get_recommendation_types():
             for docid in recommendation.recommendations[recommendation_type]:
-                document = Article(searcher.get_by_docid('articles', docid))
+                document = Article(searcher.get_by_id('articles', docid))
                 occupations, parties, positions = analyze_document(document)
                 for occupation in occupations:
                     frequency = occupations[occupation]

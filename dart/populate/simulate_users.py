@@ -2,9 +2,11 @@ import json
 import dart.Util as Util
 from dart.handler.elastic.connector import Connector
 from dart.handler.elastic.article_handler import ArticleHandler
+from dart.handler.elastic.user_handler import UserHandler
 
 connector = Connector()
 searcher = ArticleHandler()
+user_handler = UserHandler()
 
 
 def execute(configuration):
@@ -21,7 +23,7 @@ def execute(configuration):
         for _ in range(0, n_topics):
             document = searcher.get_random_document('articles')
             spread = max(Util.get_random_number(n_spread, n_spread/2), 5)
-            response = searcher.get_similar_documents('articles', document['_source']['id'], spread)
+            response = searcher.get_similar_documents(document['_source']['id'], spread)
             for article in response:
                 reading_history.append(article['_id'])
 
@@ -33,7 +35,7 @@ def execute(configuration):
 
         # add random articles
         n_random = Util.get_random_number(mean_random, mean_random/1.5)
-        for y in range(0, n_random):
+        for _ in range(0, n_random):
             article = searcher.get_random_document('articles')
             reading_history.append(article['_source']['id'])
 
@@ -47,5 +49,5 @@ def execute(configuration):
         user_id = json_doc.pop('_id', None)
         body = json.dumps(json_doc)
 
-        connector.add_document('users', user_id, 'user', body)
+        connector.add_document('users', 'user', body)
 

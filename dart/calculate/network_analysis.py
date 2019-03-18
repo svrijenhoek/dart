@@ -62,7 +62,7 @@ class NetworkAnalysis:
             for recommendation_type in user_df.type.unique():
                 self.results = []
                 user_type_df = user_df[(user_df.type == recommendation_type)]
-                documents = [Article(self.searcher.get_by_docid('articles', doc)) for doc in user_type_df.docid.unique()]
+                documents = [Article(self.searcher.get_by_id('articles', doc)) for doc in user_type_df.docid.unique()]
                 self.compare_documents(documents)
                 Util.write_to_json('..\..\output\graph\\result_'+user_id+'_'+recommendation_type+'.json', self.results)
             print('{} finished'.format(user_id))

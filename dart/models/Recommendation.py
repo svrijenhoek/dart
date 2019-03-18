@@ -12,5 +12,5 @@ class Recommendation(Document):
     def get_recommendation_types(self):
         return self.recommendations.keys()
 
-    def get_articles_for_type(self, type):
-        return self.recommendations[type]
+    def get_articles_for_type(self, recommendation_type):
+        return self.recommendations[recommendation_type]

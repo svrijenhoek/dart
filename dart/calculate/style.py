@@ -18,15 +18,15 @@ class AggregateRecommendations:
         self.users = self.user_handler.get_all_users()
 
     def retrieve_recommendations(self, user_id):
-        columns = ["id", "date", "type", "popularity", "complexity", "nwords", "nsentences"]
+        columns = ["id", "date", "recommendation_type", "popularity", "complexity", "nwords", "nsentences"]
         recommended_articles = self.recommendation_handler.get_recommendations_to_user(user_id)
         table = []
         for ra in recommended_articles:
             recommendation = Recommendation(ra)
-            for type in recommendation.get_recommendation_types():
-                for article_id in recommendation[type]:
-                    article = Article(self.article_handler.get_by_docid(article_id))
-                    row = [article.id, recommendation.date, type, article.popularity, article.complexity,
+            for recommendation_type in recommendation.get_recommendation_types():
+                for article_id in recommendation[recommendation_type]:
+                    article = Article(self.article_handler.get_by_id(article_id))
+                    row = [article.id, recommendation.date, recommendation_type, article.popularity, article.complexity,
                            article.nwords, article.nsentences]
                     table.append(row)
         df = pd.DataFrame(table, columns=columns)
@@ -63,17 +63,17 @@ class AggregateRecommendations:
             df = self.retrieve_recommendations(user['_id'])
             types = df.type.unique()
             # do for all recommendation types separately
-            for type in types:
-                articles = df[(df.type == type)]
+            for recommendation_type in types:
+                articles = df[(df.type == recommendation_type)]
                 # calculate yearly averages
                 averages = self.get_averages(articles)
-                self.add_document(user['_id'], 'year', '31-12-2017', type, averages)
+                self.add_document(user['_id'], 'year', '31-12-2017', recommendation_type, averages)
                 # calculate monthly averages
                 dates = articles.date.unique()
                 for date in dates:
                     articles_per_date = articles[(articles.date == date)]
                     averages = self.get_metrics(articles_per_date)
-                    self.add_document(user['_id'], 'month', date, type, averages)
+                    self.add_document(user['_id'], 'month', date, recommendation_type, averages)
 
 
 def execute():

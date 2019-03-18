@@ -37,7 +37,7 @@ class FindDutchPoliticians:
         return politicians
 
     def mentioned_at(self, person, mentions):
-        for index, mention in enumerate(mentions):
+        for mention in mentions:
             if len(mention) > len(person):
                 longer = mention
                 shorter = person
@@ -75,10 +75,10 @@ class FindDutchPoliticians:
         checked_documents = {}
         recommendations = [Recommendation(i) for i in self.article_handler.get_all_documents('recommendations')]
         for recommendation in recommendations:
-            for type in recommendation.get_recommendation_types():
-                for docid in recommendation.recommendations[type]:
+            for recommendation_type in recommendation.get_recommendation_types():
+                for docid in recommendation.recommendations[recommendation_type]:
                     if docid not in checked_documents:
-                        document = Article(self.article_handler.get_by_docid(docid))
+                        document = Article(self.article_handler.get_by_id(docid))
                         mentions = self.find_mentioned_persons(document.entities)
                         politicians = self.find_politicians(mentions)
                         if len(politicians) > 0:
