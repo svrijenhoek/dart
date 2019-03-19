@@ -5,5 +5,5 @@ requests~=2.21
 whoswho~=0.2
 nltk~=3.4
 gensim~=3.7
-spacy~=2.0
+spacy~=2.1
 scikit-learn~=0.20
