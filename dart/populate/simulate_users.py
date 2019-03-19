@@ -46,8 +46,6 @@ def execute(configuration):
             "reading_history": reading_history
         }
 
-        user_id = json_doc.pop('_id', None)
         body = json.dumps(json_doc)
-
         connector.add_document('users', 'user', body)
 

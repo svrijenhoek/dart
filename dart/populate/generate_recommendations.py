@@ -113,7 +113,7 @@ class RunRecommendations:
                     # get more like the user has previously read
                     more_like_this_recommendation = rg.generate_more_like_this(user, upper, lower)
                     for docid in more_like_this_recommendation:
-                        article = Article(self.searcher.get_by_id('articles', docid))
+                        article = Article(self.searcher.get_by_id(docid))
                         self.add_document(date, user_id, 'more_like_this', article)
                 except KeyError:
                     print("Help, a Key Error occurred!")

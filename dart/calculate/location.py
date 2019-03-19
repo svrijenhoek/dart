@@ -70,7 +70,7 @@ class AnalyzeLocations:
         return output
 
     def analyze(self, df):
-        for index, row in df.iterrows():
+        for _, row in df.iterrows():
             for recommendation in row.recommendations:
                 article_list = row.recommendations[recommendation]
                 for article_id in article_list:
