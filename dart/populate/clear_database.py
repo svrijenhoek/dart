@@ -9,7 +9,7 @@ from dart.handler.elastic.connector import Connector
 
 def main(argv):
     try:
-        opts, _ = getopt.getopt(argv, "hd:u:p:r:t:", ["documents=", "users=", "popularity=", "recommendations=", "termvectors="])
+        opts, arg = getopt.getopt(argv, "hd:u:p:r:t:", ["documents=", "users=", "popularity=", "recommendations=", "termvectors="])
     except getopt.GetoptError:
         print('clear_database.py -d <Y/N> -u <Y/N> -p <Y/N -r <Y/N>')
         sys.exit(2)

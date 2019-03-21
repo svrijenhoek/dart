@@ -5,6 +5,7 @@ import logging
 from dart.handler.elastic.connector import Connector
 from dart.handler.elastic.article_handler import ArticleHandler
 from dart.handler.NLP.annotator import Annotator
+from dart.handler.NLP.textpipe import Textpipe
 
 import dart.Util as Util
 
@@ -24,6 +25,7 @@ class AddDocuments:
         self.connector = Connector()
         self.searcher = ArticleHandler()
         self.annotator = Annotator()
+        self.textpipe = Textpipe()
 
         self.count_total = 0
         self.count_fault = 0
@@ -51,6 +53,12 @@ class AddDocuments:
         # add popularity metrics
         if 'popularity' not in doc:
             doc['popularity'] = {'calculated': 'no'}
+
+        if 'complexity' or 'nsentences' or 'nwords' not in doc:
+            nwords, nsentences, complexity = self.textpipe.analyze(doc['text'])
+            doc['nwords'] = nwords
+            doc['nsentences'] = nsentences
+            doc['complexity'] = complexity
         body = json.dumps(doc)
         module_logger.info('Added document: '+doc['title'])
         self.connector.add_document('articles', '_doc', body)

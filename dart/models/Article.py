@@ -10,20 +10,18 @@ class Article(Document):
         self.publication_date = self.source['publication_date']
         self.doctype = self.source['doctype']
         self.entities = self.source['entities']
-        self.dependencies = self.source['dependencies']
         try:
             self.tags = self.source['tags']
         except KeyError:
             self.tags = ''
-        self.stylometrics = self.source['stylometrics']
         try:
             self.author = self.source['byline']
         except KeyError:
             self.author = ''
         try:
-            self.complexity = self.stylometrics['complexity']
-            self.nwords = self.stylometrics['nwords']
-            self.nsentences = self.stylometrics['nsentences']
+            self.complexity = self.source['complexity']
+            self.nwords = self.source['nwords']
+            self.nsentences = self.source['nsentences']
         except KeyError:
             pass
         self.url = self.source['url']

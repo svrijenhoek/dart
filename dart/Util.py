@@ -46,7 +46,7 @@ def get_random_number(mean, sdev):
 
 
 def generate_hash(s):
-    return hashlib.sha2(s.encode('utf-8')).hexdigest()
+    return hashlib.sha1(s.encode('utf-8')).hexdigest()
 
 
 def write_to_json(file, s):

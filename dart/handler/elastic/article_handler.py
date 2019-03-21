@@ -91,8 +91,8 @@ class ArticleHandler(BaseHandler):
         return super(ArticleHandler, self).execute_search('articles', body)
 
     def get_all_in_timerange(self, l, u):
-        lower = datetime.strptime(l, '%d-%m-%Y')
-        upper = datetime.strptime(u, '%d-%m-%Y')
+        lower = l.strftime('%Y-%m-%dT%H:%M:%S')
+        upper = u.strftime('%Y-%m-%dT%H:%M:%S')
         docs = []
         body = {
             'query': {"range": {

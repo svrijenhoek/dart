@@ -45,7 +45,7 @@ class RunRecommendations:
 
         self.timerange = configuration["recommendation_range"]
         self.size = configuration["recommendation_size"]
-        self.dates = configuration["dates"]
+        self.dates = configuration["recommendation_dates"]
 
         self.users = self.searcher.get_all_documents('users')
 
@@ -63,9 +63,9 @@ class RunRecommendations:
                 "popularity": article.popularity,
                 "publication_date": article.publication_date,
                 "style": {
-                    "complexity": article.get_style_metric('complexity'),
-                    "nwords": article.get_style_metric('nwords'),
-                    "nsentences": article.get_style_metric('nsentences')
+                    "complexity": article.complexity,
+                    "nwords": article.nwords,
+                    "nsentences": article.nsentences
                 },
                 "text": article.text,
                 "title": article.title,
@@ -103,7 +103,7 @@ class RunRecommendations:
                     # generate random selection
                     random_recommendation = rg.generate_random()
                     for docid in random_recommendation:
-                        article = Article(self.searcher.get_by_id('articles', docid))
+                        article = Article(self.searcher.get_by_id(docid))
                         self.add_document(date, user_id, 'random', article)
                     # select most popular
                     most_popular_recommendation = rg.generate_most_popular()

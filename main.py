@@ -63,7 +63,7 @@ def main(argv):
         # initialization is currently not necessary for articles
     if config['recommendations_load'] == 'Y':
         module_logger.warning("Loading recommendation data to be implemented")
-    if not config['recommendations_baseline'] == []:
+    if not config['baseline_recommendations'] == []:
         module_logger.info("Generating baseline recommendations")
         dart.populate.generate_recommendations.execute(config)
 

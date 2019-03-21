@@ -21,7 +21,7 @@ def execute(configuration):
         reading_history = []
         # get articles around topics
         for _ in range(0, n_topics):
-            document = searcher.get_random_document('articles')
+            document = searcher.get_random_article()
             spread = max(Util.get_random_number(n_spread, n_spread/2), 5)
             response = searcher.get_similar_documents(document['_source']['id'], spread)
             for article in response:
@@ -36,7 +36,7 @@ def execute(configuration):
         # add random articles
         n_random = Util.get_random_number(mean_random, mean_random/1.5)
         for _ in range(0, n_random):
-            article = searcher.get_random_document('articles')
+            article = searcher.get_random_article()
             reading_history.append(article['_source']['id'])
 
         json_doc = {

@@ -14,8 +14,6 @@ class IdentifyEmotiveContent:
     def calculate(self, s):
         """
         calculates for each tag specified its representation in the selected article
-        >>> IdentifyEmotiveContent.calculate(pd.Series({'text': 'Burgemeester', 'tag': 'NOUN'}, {'text': 'Rob', 'tag': 'NOUN'}, {'text': 'Bats', 'tag': 'PROPN'}))
-        {'DET': 0, 'ADP': 0, 'PROPN': 0.3333}
         """
         counts = s.value_counts()
         result = {}

@@ -39,3 +39,20 @@ class BaseHandler(Connector):
         }
         output = super(BaseHandler, self).execute_search(index, body)
         return output[0]
+
+    def get_all_documents(self, index):
+        docs = []
+        body = {
+            "query": {
+                "match_all": {},
+            }
+        }
+        sid, scroll_size = super(BaseHandler, self).execute_search_with_scroll(index, body)
+        # Start retrieving documents
+        while scroll_size > 0:
+            result = super(BaseHandler, self).scroll(sid, '2m')
+            sid = result['_scroll_id']
+            scroll_size = len(result['hits']['hits'])
+            for hit in result['hits']['hits']:
+                docs.append(hit)
+        return docs
