@@ -1,11 +1,12 @@
 from dart.models.Article import Article
 from dart.models.Recommendation import Recommendation
+from dart.models.User import User
 from dart.handler.elastic.user_handler import UserHandler
 from dart.handler.elastic.article_handler import ArticleHandler
 from dart.handler.elastic.recommendation_handler import RecommendationHandler
 from dart.handler.elastic.connector import Connector
 import pandas as pd
-import json
+import json, sys
 
 
 class AggregateRecommendations:
@@ -23,12 +24,10 @@ class AggregateRecommendations:
         table = []
         for ra in recommended_articles:
             recommendation = Recommendation(ra)
-            for recommendation_type in recommendation.get_recommendation_types():
-                for article_id in recommendation[recommendation_type]:
-                    article = Article(self.article_handler.get_by_id(article_id))
-                    row = [article.id, recommendation.date, recommendation_type, article.popularity, article.complexity,
-                           article.nwords, article.nsentences]
-                    table.append(row)
+            article = Article(self.article_handler.get_by_id(recommendation.article['id']))
+            row = [article.id, recommendation.date, recommendation.type, article.popularity, article.complexity,
+                      article.nwords, article.nsentences]
+            table.append(row)
         df = pd.DataFrame(table, columns=columns)
         return df
 
@@ -59,23 +58,20 @@ class AggregateRecommendations:
 
     def execute(self):
         # iterate over all recommendations generated for all users
-        for user in self.users:
-            df = self.retrieve_recommendations(user['_id'])
-            types = df.type.unique()
+        for entry in self.users:
+            user = User(entry)
+            df = self.retrieve_recommendations(user.id)
+            recommendation_types = df.recommendation_type.unique()
             # do for all recommendation types separately
-            for recommendation_type in types:
-                articles = df[(df.type == recommendation_type)]
+            for recommendation_type in recommendation_types:
+                articles = df[(df.recommendation_type == recommendation_type)]
                 # calculate yearly averages
                 averages = self.get_averages(articles)
-                self.add_document(user['_id'], 'year', '31-12-2017', recommendation_type, averages)
+                self.add_document(user.id, 'year', '31-12-2017', recommendation_type, averages)
                 # calculate monthly averages
                 dates = articles.date.unique()
                 for date in dates:
                     articles_per_date = articles[(articles.date == date)]
-                    averages = self.get_metrics(articles_per_date)
-                    self.add_document(user['_id'], 'month', date, recommendation_type, averages)
+                    averages = self.get_averages(articles_per_date)
+                    self.add_document(user.id, 'month', date, recommendation_type, averages)
 
-
-def execute():
-    run = AggregateRecommendations()
-    run.execute()
