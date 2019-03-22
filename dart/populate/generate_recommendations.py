@@ -76,7 +76,7 @@ class RunRecommendations:
 
     def add_to_index(self, json_doc):
         body = json.dumps(json_doc)
-        self.connector.add_document('recommended_articles', doc_type='_doc', body=body)
+        self.connector.add_document('recommendations', doc_type='_doc', body=body)
 
     def add_document(self, date, user_id, rec_type, article):
         doc = self.create_json_doc(user_id, date, rec_type, article)

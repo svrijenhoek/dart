@@ -25,35 +25,34 @@ def main(argv):
     config = dart.Util.read_full_config_file()
     es = Elasticsearch()
 
-    # step 1: load articles
-    if es.indices.exists(index="articles") and config["append"] == "N":
-        # delete index
-        elastic_connector.clear_index('articles')
-        module_logger.info("Index removed")
-        # initialization is currently not necessary for articles
-    if not es.indices.exists(index="articles"):
-        # placeholder in case this is going to be needed
-        module_logger.info("Index created")
-
-
-    if config['articles_schema'] == "N":
-        module_logger.info("Started adding documents")
-        temp = dart.populate.add_documents.AddDocuments(config['articles_folder'])
-        temp.execute()
-    else:
-        module_logger.info("Schema interpretation to be implemented")
-
-    # step 2: simulate users
-    if es.indices.exists(index="users") and config["append"] == "N":
-        # delete index
-        elastic_connector.clear_index('users')
-        module_logger.info("User index removed")
-        # initialization is currently not necessary for articles
-    if config['user_load'] == "Y":
-        module_logger.warning("Loading user data to be implemented")
-    else:
-        module_logger.info("Simulating user data")
-        dart.populate.simulate_users.execute(config)
+    # # step 1: load articles
+    # if es.indices.exists(index="articles") and config["append"] == "N":
+    #     # delete index
+    #     elastic_connector.clear_index('articles')
+    #     module_logger.info("Index removed")
+    #     # initialization is currently not necessary for articles
+    # if not es.indices.exists(index="articles"):
+    #     # placeholder in case this is going to be needed
+    #     module_logger.info("Index created")
+    #
+    # if config['articles_schema'] == "N":
+    #     module_logger.info("Started adding documents")
+    #     temp = dart.populate.add_documents.AddDocuments(config['articles_folder'])
+    #     temp.execute()
+    # else:
+    #     module_logger.info("Schema interpretation to be implemented")
+    #
+    # # step 2: simulate users
+    # if es.indices.exists(index="users") and config["append"] == "N":
+    #     # delete index
+    #     elastic_connector.clear_index('users')
+    #     module_logger.info("User index removed")
+    #     # initialization is currently not necessary for articles
+    # if config['user_load'] == "Y":
+    #     module_logger.warning("Loading user data to be implemented")
+    # else:
+    #     module_logger.info("Simulating user data")
+    #     dart.populate.simulate_users.execute(config)
 
     # step 3: simulate recommendations
     if es.indices.exists(index="recommendations") and config["append"] == "N":

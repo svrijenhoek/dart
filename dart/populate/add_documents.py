@@ -35,6 +35,8 @@ class AddDocuments:
         # see if the user has specified their own id. If this is the case, use this in Elasticsearch,
         # otherwise generate a new one based on the title and publication date
         # TO DO: see if this is necessary!
+        del doc['htmlsource']
+
         if 'id' not in doc:
             try:
                 doc_id = Util.generate_hash(doc['title'] + doc['publication_date'])
