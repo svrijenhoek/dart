@@ -7,15 +7,6 @@ class RecommendationHandler(BaseHandler):
     def __init__(self):
         super(RecommendationHandler, self).__init__()
 
-    @staticmethod
-    def make_dataframe(docs):
-        recommendations = [Recommendation(doc) for doc in docs]
-        table = []
-        for rec in recommendations:
-            table.append(rec.date, rec.user, rec.recommendations)
-        df = pd.DataFrame(table, columns=['date', 'user', 'recommendations'])
-        return df
-
     def get_all_recommendations(self):
         return super(RecommendationHandler, self).get_all_documents('recommendations')
 
@@ -42,4 +33,18 @@ class RecommendationHandler(BaseHandler):
         }
         output = super(RecommendationHandler, self).execute_search('recommendations', body)
         return [entry['_source']['recommendations'] for entry in output]
+
+    # retrieves all recommendations found in the elasticsearch index
+    def initialize(self):
+        """
+        Retrieves all recommendations in Elasticsearch
+        Returns a Dataframe
+        """
+        recommendations = self.get_all_recommendations()
+        table = []
+        for entry in recommendations:
+            recommendation = Recommendation(entry)
+            table.append([recommendation.user, recommendation.date, recommendation.type, recommendation.article['id']])
+        columns = ['user_id', 'date', 'recommendation_type', 'id']
+        return pd.DataFrame(table, columns=columns)
 
