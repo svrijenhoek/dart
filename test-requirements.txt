@@ -1,3 +1,4 @@
 nosexcover~=1.0
 pylint~=2.3
 pytest~=4.3
+textpipe~=0.6
