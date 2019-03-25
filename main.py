@@ -18,41 +18,40 @@ def main(argv):
     logging.basicConfig(filename='dart.log', level=logging.INFO,
                         format='%(asctime)s - %(name)s - %(threadName)s -  %(levelname)s - %(message)s')
     module_logger = logging.getLogger('main')
-    # print(logging.getLoggerClass().root.handlers[0].baseFilename)
     elastic_connector = dart.handler.elastic.connector.Connector()
 
     # step 0: load config file
     config = dart.Util.read_full_config_file()
     es = Elasticsearch()
 
-    # # step 1: load articles
-    # if es.indices.exists(index="articles") and config["append"] == "N":
-    #     # delete index
-    #     elastic_connector.clear_index('articles')
-    #     module_logger.info("Index removed")
-    #     # initialization is currently not necessary for articles
-    # if not es.indices.exists(index="articles"):
-    #     # placeholder in case this is going to be needed
-    #     module_logger.info("Index created")
-    #
-    # if config['articles_schema'] == "N":
-    #     module_logger.info("Started adding documents")
-    #     temp = dart.populate.add_documents.AddDocuments(config['articles_folder'])
-    #     temp.execute()
-    # else:
-    #     module_logger.info("Schema interpretation to be implemented")
-    #
-    # # step 2: simulate users
-    # if es.indices.exists(index="users") and config["append"] == "N":
-    #     # delete index
-    #     elastic_connector.clear_index('users')
-    #     module_logger.info("User index removed")
-    #     # initialization is currently not necessary for articles
-    # if config['user_load'] == "Y":
-    #     module_logger.warning("Loading user data to be implemented")
-    # else:
-    #     module_logger.info("Simulating user data")
-    #     dart.populate.simulate_users.execute(config)
+    # step 1: load articles
+    if es.indices.exists(index="articles") and config["append"] == "N":
+        # delete index
+        elastic_connector.clear_index('articles')
+        module_logger.info("Index removed")
+        # initialization is currently not necessary for articles
+    if not es.indices.exists(index="articles"):
+        # placeholder in case this is going to be needed
+        module_logger.info("Index created")
+
+    if config['articles_schema'] == "N":
+        module_logger.info("Started adding documents")
+        temp = dart.populate.add_documents.AddDocuments(config['articles_folder'])
+        temp.execute()
+    else:
+        module_logger.info("Schema interpretation to be implemented")
+
+    # step 2: simulate users
+    if es.indices.exists(index="users") and config["append"] == "N":
+        # delete index
+        elastic_connector.clear_index('users')
+        module_logger.info("User index removed")
+        # initialization is currently not necessary for articles
+    if config['user_load'] == "Y":
+        module_logger.warning("Loading user data to be implemented")
+    else:
+        module_logger.info("Simulating user data")
+        dart.populate.simulate_users.execute(config)
 
     # step 3: simulate recommendations
     if es.indices.exists(index="recommendations") and config["append"] == "N":
@@ -70,16 +69,20 @@ def main(argv):
     metrics = config['metrics']
     if 'length' or 'complexity' or 'popularity' in metrics:
         module_logger.info("Calculating style metrics")
-        dart.calculate.style.execute()
+        ar = dart.calculate.style.AggregateRecommendations()
+        ar.execute()
     if 'personalization' in metrics:
         module_logger.info("Calculating personalization metrics")
-        dart.calculate.personalization.execute()
+        p = dart.calculate.personalization.Personalization()
+        p.execute()
     if 'locations' in metrics:
         module_logger.info("Calculating location metrics")
-        dart.calculate.location.execute()
+        loc = dart.calculate.location.AnalyzeLocations()
+        loc.execute()
     if 'occupations' in metrics:
         module_logger.info("Calculating occupation metrics")
-        dart.calculate.occupations.execute()
+        occ = dart.calculate.occupations.Occupations()
+        occ.execute()
 
 
 if __name__ == "__main__":

@@ -5,35 +5,36 @@ import random
 import string
 
 
-def read_config_file(top, key):
+def read_config_file():
     with open('config.json') as json_data_file:
         data = json.load(json_data_file)
-    return data[top][key]
+    return data
 
 
 def read_full_config_file():
+    data = read_config_file()
     dictionary = {}
-    dictionary['append'] = read_config_file('append', 0)
-    dictionary['metrics'] = read_config_file('metrics', 0)
-    dictionary['articles_folder'] = read_config_file('articles', 'folder')
-    dictionary['articles_schema'] = read_config_file('articles', 'alternative_schema')
+    dictionary['append'] = data['append']
+    dictionary['metrics'] = data['metrics']
+    dictionary['articles_folder'] = data['articles']['folder']
+    dictionary['articles_schema'] = data['articles']['alternative_schema']
 
-    dictionary['user_folder'] = read_config_file('user', 'folder')
-    dictionary['user_load'] = read_config_file('user', 'load')
-    dictionary['user_schema'] = read_config_file('user', 'schema')
-    dictionary['user_number'] = read_config_file('user', 'number_of_users')
-    dictionary['user_topics'] = read_config_file('user', 'average_topical_interest')
-    dictionary['user_spread'] = read_config_file('user', 'average_spread_per_interest')
-    dictionary['user_popular'] = read_config_file('user', 'size_popular_stories')
-    dictionary['user_random'] = read_config_file('user', 'size_random')
+    dictionary['user_folder'] = data['user']['folder']
+    dictionary['user_load'] = data['user']['load']
+    dictionary['user_schema'] = data['user']['schema']
+    dictionary['user_number'] = data['user']['number_of_users']
+    dictionary['user_topics'] = data['user']['average_topical_interest']
+    dictionary['user_spread'] = data['user']['average_spread_per_interest']
+    dictionary['user_popular'] = data['user']['size_popular_stories']
+    dictionary['user_random'] = data['user']['size_random']
 
-    dictionary['recommendations_folder'] = read_config_file('recommendations', 'folder')
-    dictionary['recommendations_load'] = read_config_file('recommendations', 'load')
-    dictionary['recommendations_schema'] = read_config_file('recommendations', 'schema')
-    dictionary['baseline_recommendations'] = read_config_file('recommendations', 'baseline_recommendations')
-    dictionary['recommendation_range'] = read_config_file('recommendations', 'range')
-    dictionary['recommendation_size'] = read_config_file('recommendations', 'size')
-    dictionary['recommendation_dates'] = read_config_file('recommendations', 'dates')
+    dictionary['recommendations_folder'] = data['recommendations']['folder']
+    dictionary['recommendations_load'] = data['recommendations']['load']
+    dictionary['recommendations_schema'] = data['recommendations']['schema']
+    dictionary['baseline_recommendations'] = data['recommendations']['baseline_recommendations']
+    dictionary['recommendation_range'] = data['recommendations']['range']
+    dictionary['recommendation_size'] = data['recommendations']['size']
+    dictionary['recommendation_dates'] = data['recommendations']['dates']
     return dictionary
 
 

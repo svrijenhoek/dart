@@ -40,5 +40,26 @@
       "01-11-2017",
       "01-12-2017"
     ]
+  },
+  "schemas": {
+    "articles": {
+      "id": "id",
+      "title": "title",
+      "text": "text",
+      "doctype": "doctype",
+      "popularity": "popularity",
+      "publication_date": "publication_date",
+      "url": "url"
+    },
+    "users": {
+      "id": "id",
+      "reading_history": "reading_history"
+    },
+    "recommendations": {
+      "date": "date",
+      "user_id": "user_id",
+      "recommendation_type": "recommendation_type",
+      "article_id": "article_id"
+    }
   }
 }

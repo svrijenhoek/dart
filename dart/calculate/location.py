@@ -47,10 +47,13 @@ class AnalyzeLocations:
             if entity['label'] == 'LOC' and len(place) > 2 and '|' not in place and place.lower() != 'None'.lower():
                 # see if we have looked up this location before
                 if place not in self.known_locations:
-                    # retrieve the coordinates from OpenStreetMap
-                    lat, lon, country_code = self.openstreetmap.get_coordinates(place)
-                    self.known_locations[place] = [country_code, lat, lon]
-                    output.append([place, [country_code, lat, lon]])
+                    try:
+                        # retrieve the coordinates from OpenStreetMap
+                        lat, lon, country_code = self.openstreetmap.get_coordinates(str(place))
+                        self.known_locations[place] = [country_code, lat, lon]
+                        output.append([place, [country_code, lat, lon]])
+                    except TypeError:
+                        print(place)
                 else:
                     # do not add this location if we have no known coordinates for it
                     if not self.known_locations[place] == [0, 0, 0]:

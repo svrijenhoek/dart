@@ -97,11 +97,10 @@ class FindDutchPoliticians:
                         print("{}: {}".format(docid, checked_documents[docid]))
 
 
-
-def main(argv):
+def execute(argv=[]):
     run = FindDutchPoliticians()
     run.execute()
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    execute(sys.argv[1:])
