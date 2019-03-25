@@ -75,11 +75,3 @@ class AnalyzeLocations:
             self.analyze(df1)
             Util.write_to_json('../../output/known_locations.json', self.known_locations)
 
-
-def execute(argv):
-    run = AnalyzeLocations()
-    run.execute()
-
-
-if __name__ == "__main__":
-    execute(sys.argv[1:])

@@ -105,11 +105,3 @@ class Personalization:
         df = self.initialize()
         self.compare_recommendations(df)
 
-
-def main(argv):
-    run = Personalization()
-    run.execute()
-
-
-if __name__ == "__main__":
-    main(sys.argv[1:])

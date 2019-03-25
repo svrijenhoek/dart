@@ -113,11 +113,3 @@ class Occupations:
                                       'position', position, frequency)
 
 
-def main(argv):
-    run = Occupations()
-    run.execute()
-
-
-if __name__ == "__main__":
-    main(sys.argv[1:])
-

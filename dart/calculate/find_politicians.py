@@ -96,11 +96,3 @@ class FindDutchPoliticians:
                         print("Document already found")
                         print("{}: {}".format(docid, checked_documents[docid]))
 
-
-def execute(argv=[]):
-    run = FindDutchPoliticians()
-    run.execute()
-
-
-if __name__ == "__main__":
-    execute(sys.argv[1:])
