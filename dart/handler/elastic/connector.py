@@ -38,5 +38,7 @@ class Connector:
         self.clear_index('articles')
         self.clear_index('users')
         self.clear_index('recommendations')
+        self.clear_index('occupation')
+        self.clear_index('personalization')
 
 
