@@ -6,7 +6,7 @@ from dart.handler.elastic.article_handler import ArticleHandler
 from dart.handler.elastic.recommendation_handler import RecommendationHandler
 from dart.handler.elastic.connector import Connector
 import pandas as pd
-import json, sys
+import json
 
 
 class AggregateRecommendations:
@@ -42,12 +42,12 @@ class AggregateRecommendations:
     def calculate_average(df, column):
         return df.loc[:, column].mean()
 
-    def add_document(self, user_id, range, date, type, metrics):
+    def add_document(self, user_id, range, date, recommendation_type, metrics):
         doc = {
             'user': user_id,
             'range': range,
             'date': date,
-            'type': type,
+            'type': recommendation_type,
             'avg_popularity': metrics[0],
             'avg_complexity': metrics[1],
             'avg_nwords': metrics[2],

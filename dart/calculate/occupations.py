@@ -94,7 +94,7 @@ class Occupations:
             self.module_logger.info("Calculating 'occupations for "+recommendation_type)
             df1 = df[df.recommendation_type == recommendation_type]
             # iterate over each recommended article
-            for index, row in df1.iterrows():
+            for _, row in df1.iterrows():
                 # retrieve the actual document
                 document = Article(self.searcher.get_by_id(row.id))
                 occupations, parties, positions = self.analyze_document(document)

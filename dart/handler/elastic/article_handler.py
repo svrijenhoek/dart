@@ -1,4 +1,3 @@
-from datetime import datetime
 from dart.handler.elastic.base_handler import BaseHandler
 
 # Class dealing with all Elasticsearch Search operations. Contains the following queries:

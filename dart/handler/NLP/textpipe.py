@@ -1,4 +1,4 @@
-from textpipe import doc, pipeline
+from textpipe import pipeline
 
 
 class Textpipe:
