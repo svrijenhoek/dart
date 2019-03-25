@@ -1,10 +1,10 @@
 import sys
-import urllib
-import json
 import time
+import logging
 
 from dart.handler.elastic.connector import Connector
 from dart.handler.elastic.article_handler import ArticleHandler
+from dart.handler.other.facebook import RetrieveFacebook
 from dart.models.Article import Article
 
 
@@ -18,50 +18,39 @@ class PopularityQueue:
     request also counts as a request, the process sleeps for 1800 seconds whenever a block is encountered.
     """
 
-    facebook_graph_url = 'https://graph.facebook.com/?id='
-
     connector = Connector()
     searcher = ArticleHandler()
+    facebook_handler = RetrieveFacebook()
+    module_logging = logging.getLogger('popularity')
 
     def get_all_documents_without_popularity(self):
         return self.searcher.get_not_calculated('popularity.facebook_share')
 
-    def get_facebook_info(self, url):
-        page = urllib.request.urlopen(self.facebook_graph_url + url)
-        content = json.loads(page.read())
-        comments = content['share']['comment_count']
-        shares = content['share']['share_count']
-        return comments, shares
-
     def add_popularity(self, docid, share_count, comment_count):
-        print("Share count: %d, Comment count: %d" % (share_count, comment_count))
+        self.module_logging.info("Share count: %d, Comment count: %d" % (share_count, comment_count))
         body = {
             "doc": {"popularity": {"facebook_share": int(share_count), "facebook_comment": int(comment_count)}}}
         self.connector.update_document('articles', '_doc', docid, body)
 
-    def execute(self, documents):
-        for document in documents:
-            article = Article(document)
-            try:
-                comment_count, share_count = self.get_facebook_info(article.url)
-                self.add_popularity(article.id, share_count, comment_count)
-                time.sleep(2)
-            except KeyError:
-                print("URL not found")
-                continue
-            except urllib.error.HTTPError:
-                print("Graph API limit reached")
-                time.sleep(1800)
+    def execute(self):
+        documents = self.get_all_documents_without_popularity()
+        while len(documents) > 0:
+            for document in documents:
+                article = Article(document)
+                try:
+                    comment_count, share_count = self.facebook_handler.get_facebook_info(article.url)
+                    self.add_popularity(article.id, share_count, comment_count)
+                    time.sleep(2)
+                except KeyError:
+                    self.module_logging.error("URL not found; "+document.title)
+                    self.add_popularity(article.id, 0, 0)
+                    continue
+            documents = self.get_all_documents_without_popularity()
 
 
 def main(argv):
-    more_documents = True
-    while more_documents:
-        pq = PopularityQueue()
-        documents = pq.get_all_documents_without_popularity()
-        pq.execute(documents)
-        if len(documents) < 10000:
-            more_documents = False
+    pq = PopularityQueue()
+    pq.execute()
 
 
 if __name__ == "__main__":
