@@ -7,4 +7,4 @@ nltk~=3.4
 gensim~=3.7
 spacy~=2.0
 scikit-learn~=0.20
-textpipe~=0.6
+textpipe~=0.7
