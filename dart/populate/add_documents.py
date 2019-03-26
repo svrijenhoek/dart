@@ -5,7 +5,7 @@ import logging
 from dart.handler.elastic.connector import Connector
 from dart.handler.elastic.article_handler import ArticleHandler
 from dart.handler.NLP.annotator import Annotator
-from dart.handler.NLP.textpipe import Textpipe
+from dart.handler.NLP.textpipe_handler import Textpipe
 
 import dart.Util as Util
 
