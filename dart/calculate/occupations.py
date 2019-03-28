@@ -5,7 +5,6 @@ from dart.handler.elastic.connector import Connector
 from dart.handler.other.wikidata import WikidataHandler
 from collections import defaultdict
 import json
-import sys
 import elasticsearch
 import logging
 
@@ -17,6 +16,8 @@ class Occupations:
     'politicus' (Dutch politician), it will retrieve their parties and current position.
 
     Maintains a list of 'known entities' to save computation time.
+
+    Naive approach to names and their variations.
     """
 
     def __init__(self):
@@ -56,30 +57,35 @@ class Occupations:
         """
         Retrieve all the named entities of type Person in a document. Compare each to a list of known entities. If this
         entity is not yet known, retrieve its information from Wikidata.
+
+        >>> occupations = Occupations()
+        # >>> occupations.known_entities = []
+        # >>> occupations.analyze_document(Article({'entities': [{'label': 'PER', 'text': 'Mark Rutte'}]}))
+        # ['politicus'], ['VVD'], ['minister president']
         """
         all_occupations = all_parties = all_positions = defaultdict(int)
-        for entity in doc.entities:
-            if entity['label'] == 'PER':
-                name = entity['text']
-                # if we don't know the occupation of this entity yet, retrieve from Wikidata
-                if name not in self.known_entities:
-                    entity_occupations, entity_parties, entity_positions = self.analyze_entity(name)
-                    # add the newly retrieved information to the list of known entities
-                    self.known_entities[name] = {'occupations': entity_occupations, 'parties': entity_parties,
-                                                 'positions': entity_positions}
-                # if we do know the entity, update the frequency list with this information
-                else:
-                    entry = self.known_entities[name]
-                    entity_occupations = entry['occupations']
-                    entity_parties = entry['parties']
-                    entity_positions = entry['positions']
-                # update frequency lists
-                for occupation in entity_occupations:
-                    all_occupations[occupation] += 1
-                for party in entity_parties:
-                    all_parties[party] += 1
-                for position in entity_positions:
-                    all_positions[position] += 1
+        persons = filter(lambda x: x.label == 'PER', doc.entities)
+        for person in persons:
+            name = person['text']
+            # if we don't know the occupation of this entity yet, retrieve from Wikidata
+            if name not in self.known_entities:
+                entity_occupations, entity_parties, entity_positions = self.analyze_entity(name)
+                # add the newly retrieved information to the list of known entities
+                self.known_entities[name] = {'occupations': entity_occupations, 'parties': entity_parties,
+                                             'positions': entity_positions}
+            # if we do know the entity, update the frequency list with this information
+            else:
+                entry = self.known_entities[name]
+                entity_occupations = entry['occupations']
+                entity_parties = entry['parties']
+                entity_positions = entry['positions']
+            # update frequency lists
+            for occupation in entity_occupations:
+                all_occupations[occupation] += 1
+            for party in entity_parties:
+                all_parties[party] += 1
+            for position in entity_positions:
+                all_positions[position] += 1
         return all_occupations, all_parties, all_positions
 
     def execute(self):
