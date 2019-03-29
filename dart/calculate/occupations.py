@@ -58,10 +58,10 @@ class Occupations:
         Retrieve all the named entities of type Person in a document. Compare each to a list of known entities. If this
         entity is not yet known, retrieve its information from Wikidata.
 
-        >>> occupations = Occupations()
-        # >>> occupations.known_entities = []
-        # >>> occupations.analyze_document(Article({'entities': [{'label': 'PER', 'text': 'Mark Rutte'}]}))
-        # ['politicus'], ['VVD'], ['minister president']
+        occupations = Occupations()
+        occupations.known_entities = []
+        occupations.analyze_document(Article({'entities': [{'label': 'PER', 'text': 'Mark Rutte'}]}))
+        ['politicus'], ['VVD'], ['minister president']
         """
         all_occupations = all_parties = all_positions = defaultdict(int)
         persons = filter(lambda x: x.label == 'PER', doc.entities)

@@ -34,8 +34,5 @@ class Article(Document):
         except KeyError:
             self.recommended = []
 
-    def get_style_metric(self, metric):
-        return self.stylometrics[metric]
-
     def get(self, x):
         return self.source[x]

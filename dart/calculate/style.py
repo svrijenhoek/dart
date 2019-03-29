@@ -45,9 +45,8 @@ class AggregateRecommendations:
         """
         Calculates the average value for each relevant style column.
         TO DO: Add non-happy-path doctests
-        >>> data =  df = pd.DataFrame({'complexity': [80, 70], 'popularity': [200, 400], 'nwords': [1000, 3000], 'nsentences': [20, 40]})
-        >>> ar = AggregateRecommendations()
-        >>> ar.get_averages(df)
+        >>> df = pd.DataFrame({'complexity': [80, 70], 'popularity': [200, 400], 'nwords': [1000, 3000], 'nsentences': [20, 40]})
+        >>> AggregateRecommendations().get_averages(df)
         [300.0, 75.0, 2000.0, 30.0]
         """
         avg_complexity = self.calculate_average(df, 'complexity')
