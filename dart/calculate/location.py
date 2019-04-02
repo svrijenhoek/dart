@@ -1,41 +1,18 @@
-from dart.models.Article import Article
-from dart.handler.elastic.recommendation_handler import RecommendationHandler
-from dart.handler.elastic.article_handler import ArticleHandler
-from dart.handler.elastic.connector import Connector
 from dart.handler.other.openstreetmap import OpenStreetMap
 import dart.Util as Util
-import json, sys
 import string
 
 
-class AnalyzeLocations:
+class LocationCalculator:
 
-    def __init__(self):
-        self.connector = Connector()
-        self.rec_handler = RecommendationHandler()
-        self.article_handler = ArticleHandler()
-        self.recommendations = self.rec_handler.get_all_recommendations()
+    def __init__(self, handlers):
+        self.handlers = handlers
         self.openstreetmap = OpenStreetMap()
         self.printable = set(string.printable)
         try:
             self.known_locations = Util.read_json_file('../../output/known_locations.json')
         except FileNotFoundError:
             self.known_locations = {}
-
-    def add_document(self, title, date, recommendation_type, location):
-        doc = {
-            'title': title,
-            'date': date,
-            'type': recommendation_type,
-            'text': location[0],
-            'country_code': location[1][0],
-            'location': {
-                'lat': location[1][1],
-                'lon': location[1][2]
-            }
-        }
-        body = json.dumps(doc)
-        self.connector.add_document('locations', '_doc', body)
 
     def analyze_entities(self, entities):
         output = []
@@ -62,13 +39,14 @@ class AnalyzeLocations:
 
     def analyze(self, df):
         for _, recommendation in df.iterrows():
-            article = Article(self.article_handler.get_by_id(recommendation.id))
+            article = self.handlers['article_handler'].get_by_id(recommendation.id)
             locations = self.analyze_entities(article.entities)
             for location in locations:
-                self.add_document(article.title, article.publication_date, recommendation.recommendation_type, location)
+                self.handlers['output_handler'].add_location_document(article.title, article.publication_date,
+                                                                        recommendation.recommendation_type, location)
 
     def execute(self):
-        df = self.rec_handler.initialize()
+        df = self.handlers['recommendation_handler'].initialize()
         dates = df.date.unique()
         for date in dates:
             df1 = df[df.date == date]

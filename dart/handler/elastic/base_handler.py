@@ -1,11 +1,10 @@
-from dart.handler.elastic.connector import Connector
 import time
 
 
-class BaseHandler(Connector):
+class BaseHandler:
 
-    def __init__(self):
-        super(BaseHandler, self).__init__()
+    def __init__(self, connector):
+        self.connector = connector
 
     # gets a random document from a specified index
     def get_random(self, index):
@@ -23,7 +22,7 @@ class BaseHandler(Connector):
                      ]
                   }
             }}
-        return super(BaseHandler, self).execute_search(index, body)[0]
+        return self.connector.execute_search(index, body)[0]
 
     def get_by_docid(self, index, docid):
         body = {
@@ -37,7 +36,7 @@ class BaseHandler(Connector):
                 }
             }
         }
-        output = super(BaseHandler, self).execute_search(index, body)
+        output = self.connector.execute_search(index, body)
         return output[0]
 
     def get_all_documents(self, index):
@@ -47,10 +46,10 @@ class BaseHandler(Connector):
                 "match_all": {},
             }
         }
-        sid, scroll_size = super(BaseHandler, self).execute_search_with_scroll(index, body)
+        sid, scroll_size = self.connector.execute_search_with_scroll(index, body)
         # Start retrieving documents
         while scroll_size > 0:
-            result = super(BaseHandler, self).scroll(sid, '2m')
+            result = self.connector.scroll(sid, '2m')
             sid = result['_scroll_id']
             scroll_size = len(result['hits']['hits'])
             for hit in result['hits']['hits']:

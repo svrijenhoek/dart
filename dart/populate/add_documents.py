@@ -2,7 +2,7 @@ import json
 import os
 import logging
 
-from dart.handler.elastic.connector import Connector
+from dart.handler.elastic.connector import ElasticsearchConnector
 from dart.handler.elastic.article_handler import ArticleHandler
 from dart.handler.NLP.annotator import Annotator
 from dart.handler.NLP.textpipe_handler import Textpipe
@@ -22,7 +22,7 @@ class AddDocuments:
 
     def __init__(self, folder):
         self.root = folder
-        self.connector = Connector()
+        self.connector = ElasticsearchConnector()
         self.searcher = ArticleHandler()
         self.annotator = Annotator()
         self.textpipe = Textpipe()

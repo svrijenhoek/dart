@@ -1,9 +1,13 @@
 from dart.handler.elastic.base_handler import BaseHandler
+from dart.models.User import User
 
 
 class UserHandler(BaseHandler):
-    def __init__(self):
-        super(UserHandler, self).__init__()
+    def __init__(self, connector):
+        super(UserHandler, self).__init__(connector)
+        self.all_users = None
 
     def get_all_users(self):
-        return super(UserHandler, self).get_all_documents('users')
+        if self.all_users is None:
+            self.all_users = [User(i) for i in super(UserHandler, self).get_all_documents('users')]
+        return self.all_users

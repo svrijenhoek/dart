@@ -1,19 +1,32 @@
 from dart.handler.elastic.base_handler import BaseHandler
-
-# Class dealing with all Elasticsearch Search operations. Contains the following queries:
-# - most popular documents
-# - random document
-# - similar document
-# - all documents in timerange
+from dart.models.Article import Article
 
 
 class ArticleHandler(BaseHandler):
-    def __init__(self):
-        super(ArticleHandler, self).__init__()
 
-    # returns the articles that have a certain field not populated. This is used for example when calculating the
-    # popularity of articles.
+    """
+    Data handler for all articles. Returns lists of Articles, and adds documents to Elasticsearch.
+    Standard queries for:
+    - random document
+    - all documents (with scroll, should be managed from calculation classes
+    - documents where certain fields are still empty
+    ....
+    """
+
+    def __init__(self, connector):
+        super(ArticleHandler, self).__init__(connector)
+        self.connector = connector
+
+    def add_field(self, docid, field, value):
+        body = {
+            "doc": {field: value}}
+        self.connector.update_document('articles', '_doc', docid, body)
+
     def get_not_calculated(self, field):
+        """
+        returns the articles that have a certain field not populated. This is used for example when calculating the
+        popularity of articles.
+        """
         body = {
             "size": 1000,
             "query": {
@@ -26,39 +39,13 @@ class ArticleHandler(BaseHandler):
                 }
             }
         }
-        return super(ArticleHandler, self).execute_search('articles', body)
+        response = self.connector.execute_search('articles', body)
+        return [Article(i) for i in response]
 
-    # search with query
-    def search_with_query(self, query, size):
-        body = {
-            "size": size,
-            "query": {
-                "match": {
-                    "text": query
-                }
-            }
-        }
-        return super(ArticleHandler, self).execute_search('articles', body)
-
-    # gets all the documents for which a popularity score has been defined
-    def get_popularity_calculated_with_offset(self, offset):
-        body = {
-            "size": 1000,
-            "from": offset,
-            "query": {
-                "bool": {
-                    "must": {
-                        "exists": {
-                            "field": "popularity.facebook_share"
-                            }
-                    }
-                }
-            }
-        }
-        return super(ArticleHandler, self).execute_search('articles', body)
-
-    # returns all articles that have been shared on Facebook most often
     def get_most_popular(self, size):
+        """
+        returns all articles that have been shared on Facebook most often
+        """
         body = {
             "size": size,
             "sort": [
@@ -67,15 +54,20 @@ class ArticleHandler(BaseHandler):
             "query": {
                 "match_all": {},
             }}
-        return super(ArticleHandler, self).execute_search('articles', body)
+        response = self.connector.execute_search('articles', body)
+        return [Article(i) for i in response]
 
-    # gets a random document from a specified index
     def get_random_article(self):
-        return super(ArticleHandler, self).get_random('articles')
+        """
+        Returns a random article
+        """
+        return Article(super(ArticleHandler, self).get_random('articles'))
 
-    # given a document id, retrieve the documents that are most similar to it according to Elastic's
-    # More Like This functionality.
     def get_similar_documents(self, docid, size):
+        """
+        given a document id, retrieve the documents that are most similar to it according to Elastic's
+        More Like This functionality.
+        """
         body = {
             'size': size,
             'query': {"more_like_this": {
@@ -86,8 +78,10 @@ class ArticleHandler(BaseHandler):
                         "_id": docid,
                     },
                 ],
-        }}}
-        return super(ArticleHandler, self).execute_search('articles', body)
+            }}
+        }
+        response = self.connector.execute_search('articles', body)
+        return [Article(i) for i in response]
 
     def get_all_in_timerange(self, l, u):
         lower = l.strftime('%Y-%m-%dT%H:%M:%S')
@@ -102,19 +96,19 @@ class ArticleHandler(BaseHandler):
             }
             }
         }
-        sid, scroll_size = super(ArticleHandler, self).execute_search_with_scroll('articles', body)
+        sid, scroll_size = self.connector.execute_search_with_scroll('articles', body)
         # Start retrieving documents
         while scroll_size > 0:
-            result = super(ArticleHandler, self).scroll(sid, '2m')
+            result = self.connector.scroll(sid, '2m')
             sid = result['_scroll_id']
             scroll_size = len(result['hits']['hits'])
             for hit in result['hits']['hits']:
                 docs.append(hit)
-        return docs
+        return [Article(i) for i in docs]
 
     # get elastic entry by id
     def get_by_id(self, docid):
-        return super(ArticleHandler, self).get_by_docid('articles', docid)
+        return Article(super(ArticleHandler, self).get_by_docid('articles', docid))
 
     def get_by_url(self, index, url):
         body = {
@@ -124,22 +118,26 @@ class ArticleHandler(BaseHandler):
                 }
             }
         }
-        output = super(ArticleHandler, self).execute_search(index, body)
-        return output[0]
+        output = self.connector.execute_search(index, body)
+        return Article(output[0])
 
     def get_field_with_value(self, index, field, value):
         body = {
             "size": 10000,
-             "query": {
+            "query": {
                 "match": {
                     field: value
                 }
              }
         }
-        return super(ArticleHandler, self).execute_search(index, body)
+        response = self.connector.execute_search('articles', body)
+        return [Article(i) for i in response]
 
-    # used in the 'more like this' recommendation generator. Finds more articles based on the users reading history
     def more_like_this_history(self, reading_history, upper, lower):
+        """
+        used in the 'more like this' recommendation generator. Finds more articles based on the users reading history
+        """
+
         like_query = [{"_index": "articles", "_id": doc} for doc in reading_history]
         body = {
             'query': {
@@ -161,4 +159,5 @@ class ArticleHandler(BaseHandler):
                 }
             }
         }
-        return super(ArticleHandler, self).execute_search('articles', body)
+        response = self.connector.execute_search('articles', body)
+        return [Article(i) for i in response]

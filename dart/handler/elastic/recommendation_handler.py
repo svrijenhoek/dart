@@ -4,11 +4,16 @@ import pandas as pd
 
 
 class RecommendationHandler(BaseHandler):
-    def __init__(self):
-        super(RecommendationHandler, self).__init__()
+    def __init__(self, connector):
+        super(RecommendationHandler, self).__init__(connector)
+        self.connector = connector
+        self.all_recommendations = None
 
     def get_all_recommendations(self):
-        return super(RecommendationHandler, self).get_all_documents('recommendations')
+        if self.all_recommendations is None:
+            recommendations = super(RecommendationHandler, self).get_all_documents('recommendations')
+            self.all_recommendations = [Recommendation(i) for i in recommendations]
+        return self.all_recommendations
 
     def get_recommendations_to_user(self, user_id):
         body = {
@@ -18,7 +23,8 @@ class RecommendationHandler(BaseHandler):
                 }
             }
         }
-        return super(RecommendationHandler, self).execute_search('recommendations', body)
+        response = self.connector.execute_search('recommendations', body)
+        return [Recommendation(i) for i in response]
 
     # common method for going through all articles in the articles index
     def get_recommendation_types(self):
@@ -31,7 +37,7 @@ class RecommendationHandler(BaseHandler):
                 },
             }
         }
-        output = super(RecommendationHandler, self).execute_search('recommendations', body)
+        output = self.connector.execute_search('recommendations', body)
         return [entry['_source']['recommendations'] for entry in output]
 
     # retrieves all recommendations found in the elasticsearch index
@@ -42,8 +48,7 @@ class RecommendationHandler(BaseHandler):
         """
         recommendations = self.get_all_recommendations()
         table = []
-        for entry in recommendations:
-            recommendation = Recommendation(entry)
+        for recommendation in recommendations:
             table.append([recommendation.user, recommendation.date, recommendation.type, recommendation.article['id']])
         columns = ['user_id', 'date', 'recommendation_type', 'id']
         return pd.DataFrame(table, columns=columns)

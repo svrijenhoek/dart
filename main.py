@@ -6,6 +6,9 @@ import dart.Util
 import dart.populate.add_documents
 import dart.populate.simulate_users
 import dart.populate.generate_recommendations
+import dart.handler.elastic.article_handler
+import dart.handler.elastic.recommendation_handler
+import dart.handler.elastic.user_handler
 import dart.calculate.style
 import dart.calculate.location
 import dart.calculate.occupations
@@ -18,7 +21,7 @@ def main(argv):
     logging.basicConfig(filename='dart.log', level=logging.INFO,
                         format='%(asctime)s - %(name)s - %(threadName)s -  %(levelname)s - %(message)s')
     module_logger = logging.getLogger('main')
-    elastic_connector = dart.handler.elastic.connector.Connector()
+    elastic_connector = dart.handler.elastic.connector.ElasticsearchConnector()
 
     # step 0: load config file
     config = dart.Util.read_full_config_file()
@@ -66,23 +69,31 @@ def main(argv):
         dart.populate.generate_recommendations.execute(config)
 
     # step 4: do analyses
+    article_handler = dart.handler.elastic.article_handler.ArticleHandler(elastic_connector)
+    user_handler = dart.handler.elastic.user_handler.UserHandler(elastic_connector)
+    recommendation_handler = dart.handler.elastic.recommendation_handler.RecommendationHandler(elastic_connector)
+    handlers = [article_handler, user_handler, recommendation_handler]
+
     metrics = config['metrics']
     if 'length' or 'complexity' or 'popularity' in metrics:
         module_logger.info("Calculating style metrics")
-        ar = dart.calculate.style.AggregateRecommendations()
+        ar = dart.calculate.style.AggregateRecommendations(handlers)
         ar.execute()
     if 'personalization' in metrics:
         module_logger.info("Calculating personalization metrics")
-        p = dart.calculate.personalization.Personalization()
+        p = dart.calculate.personalization.PersonalizationCalculator(handlers)
         p.execute()
     if 'locations' in metrics:
         module_logger.info("Calculating location metrics")
-        loc = dart.calculate.location.AnalyzeLocations()
+        loc = dart.calculate.location.LocationCalculator(handlers)
         loc.execute()
     if 'occupations' in metrics:
         module_logger.info("Calculating occupation metrics")
-        occ = dart.calculate.occupations.Occupations()
+        occ = dart.calculate.occupations.OccupationCalculator(handlers)
         occ.execute()
+
+    # step 5: do some hackety work to get nice Kibana visualizations
+    # TO DO
 
 
 if __name__ == "__main__":

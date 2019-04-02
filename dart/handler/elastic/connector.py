@@ -4,9 +4,9 @@ from elasticsearch import Elasticsearch
 # the need arises.
 
 
-class Connector:
-
-    es = Elasticsearch()
+class ElasticsearchConnector:
+    def __init__(self, *args, **kwargs):
+        self.es = Elasticsearch(*args, *kwargs)
 
     def execute_search(self, index, body):
         response = self.es.search(index=index, body=body)

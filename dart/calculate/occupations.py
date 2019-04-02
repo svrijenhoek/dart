@@ -1,15 +1,9 @@
-from dart.models.Article import Article
-from dart.handler.elastic.article_handler import ArticleHandler
-from dart.handler.elastic.recommendation_handler import RecommendationHandler
-from dart.handler.elastic.connector import Connector
 from dart.handler.other.wikidata import WikidataHandler
 from collections import defaultdict
-import json
-import elasticsearch
 import logging
 
 
-class Occupations:
+class OccupationCalculator:
 
     """
     Class that retrieves the occupations of all entities of type 'Person' from Wikidata. If this returns a
@@ -20,27 +14,11 @@ class Occupations:
     Naive approach to names and their variations.
     """
 
-    def __init__(self):
+    def __init__(self, handlers):
         self.known_entities = {}
-        self.searcher = ArticleHandler()
-        self.recommendation_handler = RecommendationHandler()
-        self.connector = Connector()
         self.wikidata = WikidataHandler()
         self.module_logger = logging.getLogger('occupations')
-
-    def add_document(self, doctype, user, date, doc_id, key, label, frequency):
-        doc = {
-            'type': doctype,
-            'date': date,
-            'user': user,
-            'article_id': doc_id,
-            key: {'name': label, 'frequency': frequency}
-        }
-        body = json.dumps(doc)
-        try:
-            self.connector.add_document('occupations', '_doc', body)
-        except elasticsearch.exceptions.RequestError:
-            self.module_logger.error('Retrieving Wikidata information failed')
+        self.handlers = handlers
 
     def analyze_entity(self, label):
         # get list of all entity's known occupations
@@ -64,7 +42,7 @@ class Occupations:
         ['politicus'], ['VVD'], ['minister president']
         """
         all_occupations = all_parties = all_positions = defaultdict(int)
-        persons = filter(lambda x: x.label == 'PER', doc.entities)
+        persons = filter(lambda x: x['label'] == 'PER', doc.entities)
         for person in persons:
             name = person['text']
             # if we don't know the occupation of this entity yet, retrieve from Wikidata
@@ -94,7 +72,7 @@ class Occupations:
         are retrieved. An overview with the frequencies of each occupation is constructed and stored in Elasticsearch.
         """
         # data frame with information about each recommended article
-        df = self.recommendation_handler.initialize()
+        df = self.handlers['recommendation_handler'].initialize()
         # for each type of recommendation
         for recommendation_type in df.recommendation_type.unique():
             self.module_logger.info("Calculating 'occupations for "+recommendation_type)
@@ -102,20 +80,18 @@ class Occupations:
             # iterate over each recommended article
             for _, row in df1.iterrows():
                 # retrieve the actual document
-                document = Article(self.searcher.get_by_id(row.id))
+                document = self.handlers['article_handler'].get_by_id(row.id)
                 occupations, parties, positions = self.analyze_document(document)
                 # store how many times the user has seen a particular occupation/party/position in each recommendation
                 for occupation in occupations:
                     frequency = occupations[occupation]
-                    self.add_document(recommendation_type, row.user_id, row.date, row.id,
+                    self.handlers['output_handler'].add_occupation_document(recommendation_type, row.user_id, row.date, row.id,
                                       'occupation', occupation, frequency)
                 for party in parties:
                     frequency = parties[party]
-                    self.add_document(recommendation_type, row.user_id, row.date, row.id,
+                    self.handlers['output_handler'].add_occupation_document(recommendation_type, row.user_id, row.date, row.id,
                                       'party', party, frequency)
                 for position in positions:
                     frequency = positions[position]
-                    self.add_document(recommendation_type, row.user_id, row.date, row.id,
+                    self.handlers['output_handler'].add_occupation_document(recommendation_type, row.user_id, row.date, row.id,
                                       'position', position, frequency)
-
-

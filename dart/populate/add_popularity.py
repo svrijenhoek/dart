@@ -2,10 +2,9 @@ import sys
 import time
 import logging
 
-from dart.handler.elastic.connector import Connector
+from dart.handler.elastic.connector import ElasticsearchConnector
 from dart.handler.elastic.article_handler import ArticleHandler
 from dart.handler.other.facebook import RetrieveFacebook
-from dart.models.Article import Article
 
 
 class PopularityQueue:
@@ -18,8 +17,8 @@ class PopularityQueue:
     request also counts as a request, the process sleeps for 1800 seconds whenever a block is encountered.
     """
 
-    connector = Connector()
-    searcher = ArticleHandler()
+    connector = ElasticsearchConnector()
+    searcher = ArticleHandler(connector)
     facebook_handler = RetrieveFacebook()
     module_logging = logging.getLogger('popularity')
 
@@ -35,14 +34,13 @@ class PopularityQueue:
     def execute(self):
         documents = self.get_all_documents_without_popularity()
         while len(documents) > 0:
-            for document in documents:
-                article = Article(document)
+            for article in documents:
                 try:
                     comment_count, share_count = self.facebook_handler.get_facebook_info(article.url)
                     self.add_popularity(article.id, share_count, comment_count)
                     time.sleep(2)
                 except KeyError:
-                    self.module_logging.error("URL not found; "+document.title)
+                    self.module_logging.error("URL not found; "+article.title)
                     self.add_popularity(article.id, 0, 0)
                     continue
             documents = self.get_all_documents_without_popularity()

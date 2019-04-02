@@ -1,25 +1,17 @@
-from dart.handler.elastic.recommendation_handler import RecommendationHandler
-from dart.handler.elastic.user_handler import UserHandler
-from dart.handler.elastic.connector import Connector
-from dart.models.Recommendation import Recommendation
-from dart.models.User import User
 import pandas as pd
 import numpy as np
 import difflib
-import json
 
 
-class Personalization:
+class PersonalizationCalculator:
 
     """
     Class to calculate the overall personalisation for each individual user
     Retrieves all recommendations made, and calculates the similarity between them per date
     """
 
-    def __init__(self):
-        self.searcher = RecommendationHandler()
-        self.user_searcher = UserHandler()
-        self.connector = Connector()
+    def __init__(self, handlers):
+        self.handlers = handlers
 
     # retrieves all recommendations found in the elasticsearch index
     def initialize(self):
@@ -27,10 +19,9 @@ class Personalization:
         Retrieves all recommendations in Elasticsearch
         Returns a Dataframe
         """
-        recommendations = self.searcher.get_all_recommendations()
+        recommendations = self.handlers['recommendation_handler'].get_all_recommendations()
         table = []
-        for entry in recommendations:
-            recommendation = Recommendation(entry)
+        for recommendation in recommendations:
             table.append([recommendation.user, recommendation.date, recommendation.type, recommendation.article['id']])
         columns = ['user_id', 'date', 'recommendation_type', 'id']
         return pd.DataFrame(table, columns=columns)
@@ -45,7 +36,7 @@ class Personalization:
             # filter by recommendation type
             for rec_type in df.recommendation_type.unique():
                 # get all users
-                users = [User(entry) for entry in self.user_searcher.get_all_users()]
+                users = self.handlers['user_handler'].get_all_users()
                 dfx = df[(df.date == date) & (df.recommendation_type == rec_type)]
                 # compare each user to all other users
                 for user1 in users:
@@ -59,7 +50,7 @@ class Personalization:
                         similarity = self.calculate_similarity(articles1, articles2)
                         similarities.append(similarity)
                     mean = self.calculate_mean(similarities)
-                    self.add_document(user1.id, rec_type, mean)
+                    self.handlers['output_handler'].add_personalization_document(user1.id, rec_type, mean)
 
     @staticmethod
     def calculate_similarity(x, y):
@@ -69,9 +60,9 @@ class Personalization:
         Input: two lists of docids
         Output: float
 
-        >>> Personalization.calculate_similarity([0, 1, 2, 3], [0, 1, 2, 3])
+        >>> PersonalizationCalculator.calculate_similarity([0, 1, 2, 3], [0, 1, 2, 3])
         1.0
-        >>> Personalization.calculate_similarity([0, 1, 2, 3], [2])
+        >>> PersonalizationCalculator.calculate_similarity([0, 1, 2, 3], [2])
         0.4
         """
         sm = difflib.SequenceMatcher(None, x, y)
@@ -82,25 +73,15 @@ class Personalization:
         """
         Calculate the mean value of a list
         Returns float
-        >>> Personalization.calculate_mean([0.8, 0.2, 0.0])
+        >>> PersonalizationCalculator.calculate_mean([0.8, 0.2, 0.0])
         0.3333333333333333
         """
         return np.mean(a)
-
-    def add_document(self, user, header, mean):
-        """
-        construct the json document that can be added to the elasticsearch index
-        """
-        doc = {
-            'user': user,
-            'type': header,
-            'mean': mean,
-        }
-        body = json.dumps(doc)
-        self.connector.add_document('personalization', '_doc', body)
 
     def execute(self):
         # retrieve all recommendations
         df = self.initialize()
         self.compare_recommendations(df)
+
+
 
