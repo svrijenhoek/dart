@@ -39,14 +39,14 @@ class LocationCalculator:
 
     def analyze(self, df):
         for _, recommendation in df.iterrows():
-            article = self.handlers['article_handler'].get_by_id(recommendation.id)
+            article = self.handlers.articles.get_by_id(recommendation.id)
             locations = self.analyze_entities(article.entities)
             for location in locations:
-                self.handlers['output_handler'].add_location_document(article.title, article.publication_date,
+                self.handlers.output.add_location_document(article.title, article.publication_date,
                                                                         recommendation.recommendation_type, location)
 
     def execute(self):
-        df = self.handlers['recommendation_handler'].initialize()
+        df = self.handlers.recommendations.initialize()
         dates = df.date.unique()
         for date in dates:
             df1 = df[df.date == date]

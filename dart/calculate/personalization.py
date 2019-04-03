@@ -19,7 +19,7 @@ class PersonalizationCalculator:
         Retrieves all recommendations in Elasticsearch
         Returns a Dataframe
         """
-        recommendations = self.handlers['recommendation_handler'].get_all_recommendations()
+        recommendations = self.handlers.recommendations.get_all_recommendations()
         table = []
         for recommendation in recommendations:
             table.append([recommendation.user, recommendation.date, recommendation.type, recommendation.article['id']])
@@ -36,7 +36,7 @@ class PersonalizationCalculator:
             # filter by recommendation type
             for rec_type in df.recommendation_type.unique():
                 # get all users
-                users = self.handlers['user_handler'].get_all_users()
+                users = self.handlers.users.get_all_users()
                 dfx = df[(df.date == date) & (df.recommendation_type == rec_type)]
                 # compare each user to all other users
                 for user1 in users:
@@ -50,7 +50,7 @@ class PersonalizationCalculator:
                         similarity = self.calculate_similarity(articles1, articles2)
                         similarities.append(similarity)
                     mean = self.calculate_mean(similarities)
-                    self.handlers['output_handler'].add_personalization_document(user1.id, rec_type, mean)
+                    self.handlers.output.add_personalization_document(user1.id, rec_type, mean)
 
     @staticmethod
     def calculate_similarity(x, y):

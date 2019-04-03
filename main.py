@@ -6,14 +6,11 @@ import dart.Util
 import dart.populate.add_documents
 import dart.populate.simulate_users
 import dart.populate.generate_recommendations
-import dart.handler.elastic.article_handler
-import dart.handler.elastic.recommendation_handler
-import dart.handler.elastic.user_handler
 import dart.calculate.style
 import dart.calculate.location
 import dart.calculate.occupations
 import dart.calculate.personalization
-import dart.handler.elastic.connector
+import dart.models.Handlers
 
 
 def main(argv):
@@ -69,11 +66,7 @@ def main(argv):
         dart.populate.generate_recommendations.execute(config)
 
     # step 4: do analyses
-    article_handler = dart.handler.elastic.article_handler.ArticleHandler(elastic_connector)
-    user_handler = dart.handler.elastic.user_handler.UserHandler(elastic_connector)
-    recommendation_handler = dart.handler.elastic.recommendation_handler.RecommendationHandler(elastic_connector)
-    handlers = [article_handler, user_handler, recommendation_handler]
-
+    handlers = Handlers(elastic_connector)
     metrics = config['metrics']
     if 'length' or 'complexity' or 'popularity' in metrics:
         module_logger.info("Calculating style metrics")

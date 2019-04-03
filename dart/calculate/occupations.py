@@ -72,7 +72,7 @@ class OccupationCalculator:
         are retrieved. An overview with the frequencies of each occupation is constructed and stored in Elasticsearch.
         """
         # data frame with information about each recommended article
-        df = self.handlers['recommendation_handler'].initialize()
+        df = self.handlers.recommendations.initialize()
         # for each type of recommendation
         for recommendation_type in df.recommendation_type.unique():
             self.module_logger.info("Calculating 'occupations for "+recommendation_type)
@@ -80,18 +80,18 @@ class OccupationCalculator:
             # iterate over each recommended article
             for _, row in df1.iterrows():
                 # retrieve the actual document
-                document = self.handlers['article_handler'].get_by_id(row.id)
+                document = self.handlers.articles.get_by_id(row.id)
                 occupations, parties, positions = self.analyze_document(document)
                 # store how many times the user has seen a particular occupation/party/position in each recommendation
                 for occupation in occupations:
                     frequency = occupations[occupation]
-                    self.handlers['output_handler'].add_occupation_document(recommendation_type, row.user_id, row.date, row.id,
+                    self.handlers.output.add_occupation_document(recommendation_type, row.user_id, row.date, row.id,
                                       'occupation', occupation, frequency)
                 for party in parties:
                     frequency = parties[party]
-                    self.handlers['output_handler'].add_occupation_document(recommendation_type, row.user_id, row.date, row.id,
+                    self.handlers.output.add_occupation_document(recommendation_type, row.user_id, row.date, row.id,
                                       'party', party, frequency)
                 for position in positions:
                     frequency = positions[position]
-                    self.handlers['output_handler'].add_occupation_document(recommendation_type, row.user_id, row.date, row.id,
+                    self.handlers.output.add_occupation_document(recommendation_type, row.user_id, row.date, row.id,
                                       'position', position, frequency)

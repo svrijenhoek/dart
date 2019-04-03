@@ -20,7 +20,7 @@ class AggregateRecommendations:
         columns = ["id", "date", "recommendation_type", "popularity", "complexity", "nwords", "nsentences"]
         table = []
         for recommendation in recommended_articles:
-            article = self.handlers['article_handler'].get_by_id(recommendation.article['id'])
+            article = self.handlers.articles.get_by_id(recommendation.article['id'])
             row = [article.id, recommendation.date, recommendation.type, article.popularity, article.complexity,
                    article.nwords, article.nsentences]
             table.append(row)
@@ -54,8 +54,8 @@ class AggregateRecommendations:
 
     def execute(self):
         # iterate over all recommendations generated for all users
-        for user in self.handlers['user_handler'].get_all_users():
-            recommended_articles = self.handlers['recommendation_handler'].get_recommendations_to_user(user.id)
+        for user in self.handlers.users.get_all_users():
+            recommended_articles = self.handlers.recommendations.get_recommendations_to_user(user.id)
             df = self.make_dataframe(recommended_articles)
             recommendation_types = df.recommendation_type.unique()
             # do for all recommendation types separately
@@ -63,12 +63,12 @@ class AggregateRecommendations:
                 articles = df[(df.recommendation_type == recommendation_type)]
                 # calculate yearly averages
                 averages = self.get_averages(articles)
-                self.handlers['output_handler'].add_aggregated_document(
+                self.handlers.output.add_aggregated_document(
                     user.id, 'year', '31-12-2017', recommendation_type, averages)
                 # calculate monthly averages
                 dates = articles.date.unique()
                 for date in dates:
                     articles_per_date = articles[(articles.date == date)]
                     averages = self.get_averages(articles_per_date)
-                    self.handlers['output_handler'].add_aggregated_document(
+                    self.handlers.output.add_aggregated_document(
                         user.id, 'month', date, recommendation_type, averages)
