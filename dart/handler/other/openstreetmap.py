@@ -1,5 +1,6 @@
 import urllib
 import json
+import time
 
 
 class OpenStreetMap:
@@ -13,6 +14,7 @@ class OpenStreetMap:
             lat = content['lat']
             lon = content['lon']
             country_code = content['address']['country_code'].upper()
+            time.sleep(1)
             return lat, lon, country_code
         except (IndexError, KeyError, TypeError):
             return 0, 0, 0

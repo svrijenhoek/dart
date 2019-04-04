@@ -14,6 +14,28 @@ class InitializeIndex:
             self.es.indices.delete(index=index)
         self.es.indices.create(index=index, body=mapping)
 
+    def initialize_articles(self):
+        index_name = 'articles'
+        mapping = {
+            "mappings": {
+                "_doc": {
+                    "properties": {
+                        "publication_date": {
+                            "type": "date"
+                        },
+                        "entities.country_code": {
+                            "type": "keyword"
+                        },
+                        "entities.location": {
+                            "type": "geo_point"
+                        },
+                    }
+                }
+            }
+        }
+        self.remove_and_initialize(index_name, mapping)
+
+
     def initialize_aggregated(self):
         index_name = 'aggregated_recommendations'
         mapping = {
@@ -153,6 +175,7 @@ class InitializeIndex:
         self.remove_and_initialize(index_name, mapping)
 
     def initialize_all(self):
+        self.initialize_articles()
         self.initialize_aggregated()
         self.initialize_locations()
         self.initialize_occupations()

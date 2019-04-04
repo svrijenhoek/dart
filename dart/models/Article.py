@@ -9,7 +9,10 @@ class Article(Document):
         self.title = self.source['title']
         self.publication_date = self.source['publication_date']
         self.doctype = self.source['doctype']
-        self.entities = self.source['entities']
+        try:
+            self.entities = self.source['entities']
+        except KeyError:
+            self.entities = ''
         try:
             self.tags = self.source['tags']
         except KeyError:
@@ -23,7 +26,9 @@ class Article(Document):
             self.nwords = self.source['nwords']
             self.nsentences = self.source['nsentences']
         except KeyError:
-            pass
+            self.complexity = ''
+            self.nwords = ''
+            self.nsentences = ''
         self.url = self.source['url']
         try:
             self.popularity = self.source['popularity']['facebook_share']

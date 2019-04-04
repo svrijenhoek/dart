@@ -4,9 +4,6 @@ import logging
 
 from dart.handler.elastic.connector import ElasticsearchConnector
 from dart.handler.elastic.article_handler import ArticleHandler
-from dart.handler.NLP.annotator import Annotator
-from dart.handler.NLP.textpipe_handler import Textpipe
-
 import dart.Util as Util
 
 module_logger = logging.getLogger('add_documents')
@@ -23,9 +20,7 @@ class AddDocuments:
     def __init__(self, folder):
         self.root = folder
         self.connector = ElasticsearchConnector()
-        self.searcher = ArticleHandler()
-        self.annotator = Annotator()
-        self.textpipe = Textpipe()
+        self.searcher = ArticleHandler(self.connector)
 
         self.count_total = 0
         self.count_fault = 0
@@ -35,7 +30,15 @@ class AddDocuments:
         # see if the user has specified their own id. If this is the case, use this in Elasticsearch,
         # otherwise generate a new one based on the title and publication date
         # TO DO: see if this is necessary!
-        del doc['htmlsource']
+
+        try:
+            doc['text']
+        except KeyError:
+            return -1
+        try:
+            del doc['htmlsource']
+        except KeyError:
+            pass
 
         if 'id' not in doc:
             try:
@@ -43,24 +46,11 @@ class AddDocuments:
                 doc['id'] = doc_id
             except KeyError:
                 return -1
-        # add NLP annotation if this wasn't done already
-        if 'entities' or 'dependencies' not in doc:
-            try:
-                _, entities, tags = self.annotator.annotate(doc["text"])
-                doc['entities'] = entities
-                doc['tags'] = tags
-            except KeyError:
-                return -1
 
         # add popularity metrics
         if 'popularity' not in doc:
             doc['popularity'] = {'calculated': 'no'}
 
-        if 'complexity' or 'nsentences' or 'nwords' not in doc:
-            nwords, nsentences, complexity = self.textpipe.analyze(doc['text'])
-            doc['nwords'] = nwords
-            doc['nsentences'] = nsentences
-            doc['complexity'] = complexity
         body = json.dumps(doc)
         module_logger.info('Added document: '+doc['title'])
         self.connector.add_document('articles', '_doc', body)

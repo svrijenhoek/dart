@@ -66,7 +66,7 @@ def main(argv):
         dart.populate.generate_recommendations.execute(config)
 
     # step 4: do analyses
-    handlers = Handlers(elastic_connector)
+    handlers = dart.models.Handlers.Handlers(elastic_connector)
     metrics = config['metrics']
     if 'length' or 'complexity' or 'popularity' in metrics:
         module_logger.info("Calculating style metrics")

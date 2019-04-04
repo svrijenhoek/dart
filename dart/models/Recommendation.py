@@ -9,3 +9,4 @@ class Recommendation(Document):
         self.user = self.source['recommendation']['user_id']
         self.type = self.source['recommendation']['type']
         self.article = self.source['article']
+        self.article_id = self.article['id']

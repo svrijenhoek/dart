@@ -51,5 +51,5 @@ class LocationCalculator:
         for date in dates:
             df1 = df[df.date == date]
             self.analyze(df1)
-            Util.write_to_json('../../output/known_locations.json', self.known_locations)
+            Util.write_to_json('output/known_locations.json', self.known_locations)
 
