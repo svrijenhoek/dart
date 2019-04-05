@@ -15,11 +15,22 @@ class RecommendationHandler(BaseHandler):
             self.all_recommendations = [Recommendation(i) for i in recommendations]
         return self.all_recommendations
 
-    def get_recommendations_to_user(self, user_id):
+    def get_recommendations_to_user(self, user_id, recommendation_type):
         body = {
             "query": {
-                "match": {
-                    'recommendation.user_id': user_id
+                "bool": {
+                    "must": [
+                        {
+                            "match": {
+                                "recommendation.user_id": user_id
+                            }
+                        },
+                        {
+                            "match": {
+                                "recommendation.type": recommendation_type
+                            }
+                        }
+                    ]
                 }
             }
         }
@@ -32,13 +43,13 @@ class RecommendationHandler(BaseHandler):
             "aggs": {
                "values": {
                  "cardinality": {
-                   "field": 'recommendations.keyword'
+                   "field": 'recommendation.type.keyword'
                  }
                 },
             }
         }
         output = self.connector.execute_search('recommendations', body)
-        return [entry['_source']['recommendations'] for entry in output]
+        return [entry['_source']['recommendation']['type'] for entry in output]
 
     # retrieves all recommendations found in the elasticsearch index
     def initialize(self):

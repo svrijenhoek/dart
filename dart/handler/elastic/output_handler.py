@@ -7,20 +7,19 @@ class OutputHandler(BaseHandler):
     def __init__(self, connector):
         self.connector = connector
 
-    def add_aggregated_document(self, user_id, range, date, recommendation_type, metrics):
+    def add_aggregated_document(self, user_id, recommendation_type, style, personalization):
         """
         Adds the final result in the Elasticsearch database.
         TO DO: Mock ES and assert ES is called once
         """
         doc = {
             'user': user_id,
-            'range': range,
-            'date': date,
             'type': recommendation_type,
-            'avg_popularity': metrics[0],
-            'avg_complexity': metrics[1],
-            'avg_nwords': metrics[2],
-            'avg_nsentences': metrics[3]
+            'avg_popularity': style[0],
+            'avg_complexity': style[1],
+            'avg_nwords': style[2],
+            'avg_nsentences': style[3],
+            'personalization': personalization
         }
         body = json.dumps(doc)
         self.connector.add_document('aggregated_recommendations', '_doc', body)

@@ -16,6 +16,7 @@ class RetrieveFacebook:
         except urllib.error.HTTPError:
             self.module_logging.error("Graph API max reached")
             time.sleep(1800)
+            content = self.make_request(url)
         return content
 
     def get_facebook_info(self, url):
