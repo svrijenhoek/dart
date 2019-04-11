@@ -1,4 +1,4 @@
-from dart.handler.elastic.connector import Connector
+from dart.handler.elastic.connector import ElasticsearchConnector
 import math
 
 
@@ -6,7 +6,7 @@ import math
 # document-similarity-analysis-using-elasticsearch-and-python
 class CosineSimilarity:
 
-    connector = Connector()
+    connector = ElasticsearchConnector()
 
     @staticmethod
     def create_dictionary(doc):
