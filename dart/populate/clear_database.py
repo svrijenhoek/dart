@@ -1,6 +1,6 @@
 import sys
 import getopt
-from dart.handler.elastic.connector import Connector
+from dart.handler.elastic.connector import ElasticsearchConnector
 
 # this script van be executed to clear all generated data. Use parameters in the following way:
 # --documents Y/N --users Y/N --popularity Y/N --recommendations Y/N
@@ -13,7 +13,7 @@ def main(argv):
     except getopt.GetoptError:
         print('clear_database.py -d <Y/N> -u <Y/N> -p <Y/N -r <Y/N>')
         sys.exit(2)
-    connector = Connector()
+    connector = ElasticsearchConnector()
     for opt, _ in opts:
         if opt == '-h':
             print('clear_database.py -d <Y/N> -u <Y/N> -p <Y/N -r <Y/N>')
