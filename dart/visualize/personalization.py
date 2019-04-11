@@ -36,9 +36,9 @@ class Personalization:
         Input: two lists of docids
         Output: float
 
-        >>> PersonalizationCalculator.calculate_similarity([0, 1, 2, 3], [0, 1, 2, 3])
+        >>> Personalization.calculate_similarity([0, 1, 2, 3], [0, 1, 2, 3])
         1.0
-        >>> PersonalizationCalculator.calculate_similarity([0, 1, 2, 3], [2])
+        >>> Personalization.calculate_similarity([0, 1, 2, 3], [2])
         0.4
         """
         sm = difflib.SequenceMatcher(None, x, y)
@@ -49,7 +49,7 @@ class Personalization:
         """
         Calculate the mean value of a list
         Returns float
-        >>> PersonalizationCalculator.calculate_mean([0.8, 0.2, 0.0])
+        >>> Personalization.calculate_mean([0.8, 0.2, 0.0])
         0.3333333333333333
         """
         return np.mean(a)
