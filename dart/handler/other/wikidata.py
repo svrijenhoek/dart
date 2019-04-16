@@ -1,5 +1,6 @@
 import requests
 import json
+import time
 
 
 class WikidataHandler:
@@ -24,6 +25,30 @@ class WikidataHandler:
             data = response.json()
             return [x[label]['value'] for x in data['results']['bindings']]
         except json.decoder.JSONDecodeError:
+            return []
+
+    @staticmethod
+    def read_response_list(response):
+        try:
+            data = response.json()
+            entry = data['results']['bindings'][0]
+            try:
+                givenname = entry['givenlabel']['value']
+            except IndexError:
+                givenname = ''
+            try:
+                familylabel = entry['familylabel']['value']
+            except IndexError:
+                familylabel = ''
+            try:
+                genderlabel = entry['genderlabel']['value']
+            except IndexError:
+                genderlabel = ''
+
+            return {'givenlabel': givenname, 'familylabel': familylabel, 'genderlabel': genderlabel}
+        except json.decoder.JSONDecodeError:
+            return []
+        except IndexError:
             return []
 
     def get_occupations(self, label):
@@ -65,3 +90,23 @@ class WikidataHandler:
             """
         r = self.execute_query(query)
         return self.read_response(r, 'position_label')
+
+    def get_person_data(self, label):
+        query = """
+            SELECT DISTINCT ?givenlabel ?familylabel ?genderlabel where {
+              ?person rdfs:label '"""+label+"""'@nl .
+              OPTIONAL{?person wdt:P734 ?familyname .
+                      ?familyname rdfs:label ?familylabel .}
+              OPTIONAL{?person wdt:P735  ?givenname .
+                      ?givenname rdfs:label ?givenlabel .}
+              OPTIONAL{?person wdt:P21 ?gender .
+                      ?gender rdfs:label ?genderlabel}
+              FILTER(LANG(?genderlabel) = "" || LANGMATCHES(LANG(?genderlabel), "en"))
+              FILTER(LANG(?givenlabel) = "" || LANGMATCHES(LANG(?givenlabel), "nl"))
+              FILTER(LANG(?familylabel) = "" || LANGMATCHES(LANG(?familylabel), "en"))
+            } 
+            ORDER BY ?familyname
+            LIMIT 1
+        """
+        r = self.execute_query(query)
+        return self.read_response_list(r)

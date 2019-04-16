@@ -14,6 +14,7 @@ import dart.models.Handlers
 import dart.populate.enrich_articles
 import dart.handler.elastic.initialize
 import dart.visualize.aggregate_by_user
+import dart.visualize.emotive_content
 
 
 def main(argv):
@@ -46,7 +47,7 @@ def main(argv):
     # else:
     #     module_logger.info("Schema interpretation to be implemented")
     #
-    # # step 2: simulate users
+    # step 2: simulate users
     # if es.indices.exists(index="users") and config["append"] == "N":
     #     # delete index
     #     elastic_connector.clear_index('users')
@@ -71,9 +72,11 @@ def main(argv):
     #     dart.populate.generate_recommendations.execute(config)
 
     # step 4: enrich data of recommended articles
-    # dart.populate.enrich_articles.Enricher(handlers).enrich_all()
-
-    dart.visualize.aggregate_by_user.AggregateRecommendations(handlers).execute()
+    dart.populate.enrich_articles.Enricher(handlers).enrich_all()
+    # dart.visualize.emotive_content.IdentifyEmotiveContent(handlers).execute()
+    # dart.visualize.aggregate_by_user.AggregateRecommendations(handlers).execute()
+    dart.handler.elastic.initialize.InitializeIndex().initialize_locations()
+    dart.visualize.location.LocationVisualizer(handlers).execute()
 
     # # step 5: do analyses
     # metrics = config['metrics']

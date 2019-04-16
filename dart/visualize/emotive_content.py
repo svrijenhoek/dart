@@ -1,38 +1,34 @@
-from dart.handler.elastic.article_handler import ArticleHandler
-from dart.models.Article import Article
 import pandas as pd
-import spacy
 
 
 class IdentifyEmotiveContent:
 
-    def __init__(self):
-        self.searcher = ArticleHandler()
-        self.nlp = spacy.load('nl_core_news_sm', disable=['parser', 'ner'])
+    def __init__(self, handlers):
+        self.handlers = handlers
         self.spacy_tags = ['DET', 'ADP', 'PRON']
 
-    def calculate(self, s):
+    def calculate(self, df):
         """
         calculates for each tag specified its representation in the selected article
         """
-        counts = s.value_counts()
+        counts = df.tag.value_counts()
         result = {}
         for tag in self.spacy_tags:
             try:
                 count = counts[tag]
-                percentage = count / len(s)
+                percentage = count / len(df)
                 result[tag] = percentage
             except KeyError:
                 result[tag] = 0
         return result
 
     def execute(self):
-        # TO DO: REWRITE FOR ALL RECOMMENDATIONS
-        for _ in range(0, 100):
-            document = Article(self.searcher.get_random_article())
+        recommendations = self.handlers.recommendations.get_all_recommendations()
+        for recommendation in recommendations:
+            docid = recommendation.article_id
+            document = self.handlers.articles.get_by_id(docid)
             tags = document.tags
-            s = pd.Series(tags)
-            percentages = self.calculate(s)
-            # TO DO: implement adding to Elasticsearch
-            print(percentages)
+            df = pd.DataFrame.from_dict(tags)
+            percentages = self.calculate(df)
+            self.handlers.articles.add_field(docid, 'tag_percentages', percentages)
 

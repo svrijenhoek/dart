@@ -24,16 +24,15 @@ class OutputHandler(BaseHandler):
         body = json.dumps(doc)
         self.connector.add_document('aggregated_recommendations', '_doc', body)
 
-    def add_location_document(self, title, date, recommendation_type, location):
+    def add_location_document(self, date, recommendation_type, location):
         doc = {
-            'title': title,
             'date': date,
             'type': recommendation_type,
             'text': location[0],
             'country_code': location[1][0],
             'location': {
-                'lat': location[1][1],
-                'lon': location[1][2]
+                'lat': location[1][1]['lat'],
+                'lon': location[1][1]['lon']
             }
         }
         body = json.dumps(doc)

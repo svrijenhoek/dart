@@ -1,4 +1,6 @@
 import string
+from ethnicolr import pred_wiki_name
+import pandas as pd
 
 import dart.handler.NLP.annotator
 import dart.handler.NLP.textpipe_handler
@@ -32,7 +34,8 @@ class Enricher:
 
     def retrieve_occupation(self, entity):
         name = entity['text']
-        parties = positions = []
+        parties = []
+        positions = []
         if name not in self.known_persons:
             # get list of all entity's known occupations
             occupations = self.wikidata.get_occupations(name)
@@ -51,6 +54,29 @@ class Enricher:
                 entity['parties'] = parties
             if positions:
                 entity['positions'] = positions
+        return entity
+
+    def retrieve_ethnicity(self, entity):
+        name = entity['text']
+        try:
+            entity['ethnicity'] = self.known_persons[name]['ethnicity']
+            entity['gender'] = self.known_persons[name]['gender']
+        except KeyError:
+            person_data = self.wikidata.get_person_data(name)
+            if not person_data:
+                split = name.split(" ")
+                if len(split) > 1:
+                    person_data = {'givenlabel': split[0], 'familylabel': split[-1], 'genderlabel': 'unknown'}
+                else:
+                    person_data = {'givenlabel': '', 'familylabel': name, 'genderlabel': 'unknown'}
+                df = pd.DataFrame([person_data])
+                ethnicity = pred_wiki_name(df, lname_col='familylabel', fname_col='givenlabel')
+                race = ethnicity.iloc[0]['race']
+                entity['ethnicity'] = race.split(",")[-1]
+                entity['gender'] = person_data['genderlabel']
+
+                self.known_persons[name]['ethnicity'] = entity['ethnicity']
+                self.known_persons[name]['gender'] = entity['gender']
         return entity
 
     def retrieve_geolocation(self, entity):
@@ -76,6 +102,7 @@ class Enricher:
         for entity in entities:
             if entity['label'] == 'PER':
                 entity = self.retrieve_occupation(entity)
+                entity = self.retrieve_ethnicity(entity)
             if entity['label'] == 'LOC':
                 entity = self.retrieve_geolocation(entity)
             annotated_entities.append(entity)
@@ -88,9 +115,12 @@ class Enricher:
             print(article.title)
             if not article.entities:
                 doc, entities, tags = self.annotator.annotate(article.text)
-                enriched_entities = self.annotate_entities(entities)
-                self.handlers.articles.update(article.id, 'tags', tags)
-                self.handlers.articles.update(article.id, 'entities', enriched_entities)
+            else:
+                entities = article.entities
+                tags = article.tags
+            enriched_entities = self.annotate_entities(entities)
+            self.handlers.articles.update(article.id, 'tags', tags)
+            self.handlers.articles.update(article.id, 'entities', enriched_entities)
             if not article.nsentences or not article.nwords or not article.complexity:
                 # rewrite
                 nwords, nsentences, complexity = self.textpipe.analyze(article.text)

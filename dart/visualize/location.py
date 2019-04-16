@@ -1,55 +1,21 @@
-from dart.handler.other.openstreetmap import OpenStreetMap
-import dart.Util as Util
-import string
-
-
-class LocationCalculator:
+class LocationVisualizer:
 
     def __init__(self, handlers):
         self.handlers = handlers
-        self.openstreetmap = OpenStreetMap()
-        self.printable = set(string.printable)
-        try:
-            self.known_locations = Util.read_json_file('../../output/known_locations.json')
-        except FileNotFoundError:
-            self.known_locations = {}
-
-    def analyze_entities(self, entities):
-        output = []
-        for entity in entities:
-            s = entity['text']
-            # filter out special characters that would throw off a URL
-            place = ''.join(filter(lambda x: x in self.printable, s))
-            # filter for entities of type Location and filter out wrongly detected entities
-            if entity['label'] == 'LOC' and len(place) > 2 and '|' not in place and place.lower() != 'None'.lower():
-                # see if we have looked up this location before
-                if place not in self.known_locations:
-                    try:
-                        # retrieve the coordinates from OpenStreetMap
-                        lat, lon, country_code = self.openstreetmap.get_coordinates(str(place))
-                        self.known_locations[place] = [country_code, lat, lon]
-                        output.append([place, [country_code, lat, lon]])
-                    except TypeError:
-                        print(place)
-                else:
-                    # do not add this location if we have no known coordinates for it
-                    if not self.known_locations[place] == [0, 0, 0]:
-                        output.append([place, self.known_locations[place]])
-        return output
-
-    def analyze(self, df):
-        for _, recommendation in df.iterrows():
-            article = self.handlers.articles.get_by_id(recommendation.id)
-            locations = self.analyze_entities(article.entities)
-            for location in locations:
-                self.handlers.output.add_location_document(article.title, article.publication_date,
-                                                                        recommendation.recommendation_type, location)
 
     def execute(self):
-        df = self.handlers.recommendations.initialize()
-        dates = df.date.unique()
-        for date in dates:
-            df1 = df[df.date == date]
-            self.analyze(df1)
-            Util.write_to_json('output/known_locations.json', self.known_locations)
+        recommendations = self.handlers.recommendations.get_all_recommendations()
+        for recommendation in recommendations:
+            docid = recommendation.article_id
+            document = self.handlers.articles.get_by_id(docid)
+            entities = document.entities
+            for entity in entities:
+                if entity['label'] == 'LOC':
+                    try:
+                        location = [entity['text'], [entity['country_code'], entity['location']]]
+                        self.handlers.output.add_location_document(document.publication_date,
+                                                                   recommendation.type, location)
+                    except KeyError:
+                        print(entity)
+
 

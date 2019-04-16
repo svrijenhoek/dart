@@ -35,7 +35,7 @@ class ElasticsearchConnector:
         self.es.indices.delete(index=index, ignore=[400, 404])
 
     def clear_all(self):
-        self.clear_index('articles')
+        self.clear_index('aggregate_articles')
         self.clear_index('users')
         self.clear_index('recommendations')
         self.clear_index('occupation')
