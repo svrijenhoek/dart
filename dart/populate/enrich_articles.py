@@ -18,6 +18,7 @@ class Enricher:
         self.openstreetmap = dart.handler.other.openstreetmap.OpenStreetMap()
         self.wikidata = dart.handler.other.wikidata.WikidataHandler()
         self.printable = set(string.printable)
+        self.spacy_tags = ['DET', 'ADP', 'PRON']
 
         try:
             self.known_locations = dart.Util.read_json_file('../../output/known_locations.json')
@@ -101,32 +102,58 @@ class Enricher:
         annotated_entities = []
         for entity in entities:
             if entity['label'] == 'PER':
-                entity = self.retrieve_occupation(entity)
-                entity = self.retrieve_ethnicity(entity)
+                if 'occupation' not in entity:
+                    entity = self.retrieve_occupation(entity)
+                if 'ethnicity' not in entity:
+                    entity = self.retrieve_ethnicity(entity)
             if entity['label'] == 'LOC':
-                entity = self.retrieve_geolocation(entity)
+                if 'country_code' not in entity:
+                    entity = self.retrieve_geolocation(entity)
             annotated_entities.append(entity)
         return annotated_entities
+
+    def calculate_tags(self, tags):
+        """
+        calculates for each tag specified its representation in the selected article
+        """
+        df = pd.DataFrame.from_dict(tags)
+        counts = df.tag.value_counts()
+        result = {}
+        for tag in self.spacy_tags:
+            try:
+                count = counts[tag]
+                percentage = count / len(df)
+                result[tag] = percentage
+            except KeyError:
+                result[tag] = 0
+        return result
 
     def enrich_all(self):
         recommendations = self.handlers.recommendations.get_all_recommendations()
         for recommendation in recommendations:
             article = self.handlers.articles.get_by_id(recommendation.article_id)
             print(article.title)
-            if not article.entities:
-                doc, entities, tags = self.annotator.annotate(article.text)
-            else:
-                entities = article.entities
-                tags = article.tags
-            enriched_entities = self.annotate_entities(entities)
-            self.handlers.articles.update(article.id, 'tags', tags)
-            self.handlers.articles.update(article.id, 'entities', enriched_entities)
-            if not article.nsentences or not article.nwords or not article.complexity:
-                # rewrite
-                nwords, nsentences, complexity = self.textpipe.analyze(article.text)
-                self.handlers.articles.update(article.id, 'nwords', nwords)
-                self.handlers.articles.update(article.id, 'nsentences', nsentences)
-                self.handlers.articles.update(article.id, 'complexity', complexity)
+            if article.annotated == 'N':
+                doc = {}
+                if not article.entities:
+                    _, entities, tags = self.annotator.annotate(article.text)
+                else:
+                    entities = article.entities
+                    tags = article.tags
+                enriched_entities = self.annotate_entities(entities)
+                doc['entities'] = enriched_entities
+                doc['tags'] = tags
+                if not article.nsentences or not article.nwords or not article.complexity:
+                    # rewrite
+                    nwords, nsentences, complexity = self.textpipe.analyze(article.text)
+                    doc['nwords'] = nwords
+                    doc['nsentences'] = nsentences
+                    doc['complexity'] = complexity
+                if not article.tag_percentages:
+                    percentages = self.calculate_tags(tags)
+                    doc['tag_percentages'] = percentages
+                self.handlers.articles.update_doc(article.id, doc)
+                self.handlers.articles.update(article.id, 'annotated', 'Y')
         self.save_known_entities()
 
 

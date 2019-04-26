@@ -23,6 +23,12 @@ class ArticleHandler(BaseHandler):
         }
         self.connector.update_document('articles', '_doc', docid, body)
 
+    def update_doc(self, docid, doc):
+        body = {
+            "doc": doc
+        }
+        self.connector.update_document('articles', '_doc', docid, body)
+
     def add_field(self, docid, field, value):
         body = {
             "doc": {field: value}}

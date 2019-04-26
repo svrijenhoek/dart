@@ -38,6 +38,14 @@ class Article(Document):
             self.recommended = self.source['recommended']
         except KeyError:
             self.recommended = []
+        try:
+            self.tag_percentages = self.source['tag_percentages']
+        except KeyError:
+            self.tag_percentages = []
+        try:
+            self.annotated = self.source['annotated']
+        except KeyError:
+            self.annotated = 'N'
 
     def get(self, x):
         return self.source[x]
