@@ -20,4 +20,5 @@ class AggregateRecommendations:
             for user in self.handlers.users.get_all_users():
                 style = self.style_calculator.get_metrics(user.id, recommendation_type)
                 personalization = self.personalization_calculator.get_personalization(user.id, recommendation_type)
-                self.handlers.output.add_aggregated_document(user.id, recommendation_type, style, personalization)
+                if not style == [0, 0, 0, 0, {}]:
+                    self.handlers.output.add_aggregated_document(user.id, recommendation_type, style, personalization)
