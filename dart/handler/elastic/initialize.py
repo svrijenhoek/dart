@@ -76,6 +76,9 @@ class InitializeIndex:
                         "location": {
                             "type": "geo_point"
                         },
+                        "country_code": {
+                            "type": "keyword"
+                        },
                     }
                 }
             }
