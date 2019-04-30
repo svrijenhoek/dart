@@ -25,10 +25,10 @@ class PopularityQueue:
     def get_all_documents_without_popularity(self):
         return self.searcher.get_not_calculated('popularity.facebook_share')
 
-    def add_popularity(self, docid, share_count, comment_count):
-        self.module_logging.info("Share count: %d, Comment count: %d" % (share_count, comment_count))
+    def add_popularity(self, docid, share_count):
+        self.module_logging.info("Share count: %d" % share_count)
         body = {
-            "doc": {"popularity": {"facebook_share": int(share_count), "facebook_comment": int(comment_count)}}}
+            "doc": {"popularity": {"facebook_share": int(share_count)}}}
         self.connector.update_document('articles', '_doc', docid, body)
 
     def execute(self):
@@ -36,8 +36,8 @@ class PopularityQueue:
         while len(documents) > 0:
             for article in documents:
                 try:
-                    comment_count, share_count = self.facebook_handler.get_facebook_info(article.url)
-                    self.add_popularity(article.id, share_count, comment_count)
+                    share_count = self.facebook_handler.get_facebook_info(article.url)
+                    self.add_popularity(article.id, share_count)
                     time.sleep(2)
                 except KeyError:
                     self.module_logging.error("URL not found; "+article.title)
