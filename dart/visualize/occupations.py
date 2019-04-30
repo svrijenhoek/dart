@@ -1,4 +1,3 @@
-from dart.handler.other.wikidata import WikidataHandler
 from collections import defaultdict
 import logging
 
@@ -15,55 +14,38 @@ class OccupationCalculator:
     """
 
     def __init__(self, handlers):
-        self.known_entities = {}
-        self.wikidata = WikidataHandler()
         self.module_logger = logging.getLogger('occupations')
         self.handlers = handlers
 
-    def analyze_entity(self, label):
-        # get list of all entity's known occupations
-        entity_occupations = self.wikidata.get_occupations(label)
-        # if one of the occupations is 'politicus', retrieve party and position
-        if 'politicus' in entity_occupations:
-            entity_parties = self.wikidata.get_party(label)
-            entity_positions = self.wikidata.get_positions(label)
-        else:
-            entity_parties = entity_positions = {}
-        return entity_occupations, entity_parties, entity_positions
-
-    def analyze_document(self, doc):
+    @staticmethod
+    def count_occupations(entities):
         """
-        Retrieve all the named entities of type Person in a document. Compare each to a list of known entities. If this
-        entity is not yet known, retrieve its information from Wikidata.
-
-        occupations = Occupations()
-        occupations.known_entities = []
-        occupations.analyze_document(Article({'entities': [{'label': 'PER', 'text': 'Mark Rutte'}]}))
-        ['politicus'], ['VVD'], ['minister president']
+        count all occupations, and in case of politicians the parties and positions they hold
+        >>> entities = [{"label": "PER", "parties": ["Democratische Partij"], "positions": ["president van de Verenigde Staten"], "occupations": ["staatsman", "politicus"]}]
+        >>> OccupationCalculator.count_occupations(entities)
+        (defaultdict(<class 'int'>, {'staatsman': 1, 'politicus': 1}), defaultdict(<class 'int'>, {'Democratische Partij': 1}), defaultdict(<class 'int'>, {'president van de Verenigde Staten': 1}))
         """
-        all_occupations = all_parties = all_positions = defaultdict(int)
-        persons = filter(lambda x: x['label'] == 'PER', doc.entities)
+        all_occupations = defaultdict(int)
+        all_parties = defaultdict(int)
+        all_positions = defaultdict(int)
+        persons = filter(lambda x: x['label'] == 'PER', entities)
         for person in persons:
-            name = person['text']
-            # if we don't know the occupation of this entity yet, retrieve from Wikidata
-            if name not in self.known_entities:
-                entity_occupations, entity_parties, entity_positions = self.analyze_entity(name)
-                # add the newly retrieved information to the list of known entities
-                self.known_entities[name] = {'occupations': entity_occupations, 'parties': entity_parties,
-                                             'positions': entity_positions}
-            # if we do know the entity, update the frequency list with this information
-            else:
-                entry = self.known_entities[name]
-                entity_occupations = entry['occupations']
-                entity_parties = entry['parties']
-                entity_positions = entry['positions']
             # update frequency lists
-            for occupation in entity_occupations:
-                all_occupations[occupation] += 1
-            for party in entity_parties:
-                all_parties[party] += 1
-            for position in entity_positions:
-                all_positions[position] += 1
+            try:
+                for occupation in person['occupations']:
+                    all_occupations[occupation] += 1
+            except KeyError:
+                pass
+            try:
+                for party in person['parties']:
+                    all_parties[party] += 1
+            except KeyError:
+                pass
+            try:
+                for position in person['positions']:
+                    all_positions[position] += 1
+            except KeyError:
+                pass
         return all_occupations, all_parties, all_positions
 
     def execute(self):
@@ -81,17 +63,18 @@ class OccupationCalculator:
             for _, row in df1.iterrows():
                 # retrieve the actual document
                 document = self.handlers.articles.get_by_id(row.id)
-                occupations, parties, positions = self.analyze_document(document)
+                occupations, parties, positions = self.count_occupations(document.entities)
+
                 # store how many times the user has seen a particular occupation/party/position in each recommendation
                 for occupation in occupations:
                     frequency = occupations[occupation]
                     self.handlers.output.add_occupation_document(recommendation_type, row.user_id, row.date, row.id,
-                                      'occupation', occupation, frequency)
+                                                                 'occupation', occupation, frequency)
                 for party in parties:
                     frequency = parties[party]
                     self.handlers.output.add_occupation_document(recommendation_type, row.user_id, row.date, row.id,
-                                      'party', party, frequency)
+                                                                 'party', party, frequency)
                 for position in positions:
                     frequency = positions[position]
                     self.handlers.output.add_occupation_document(recommendation_type, row.user_id, row.date, row.id,
-                                      'position', position, frequency)
+                                                                 'position', position, frequency)

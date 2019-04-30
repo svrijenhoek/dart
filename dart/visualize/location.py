@@ -1,3 +1,5 @@
+from elasticsearch import RequestError
+
 class LocationVisualizer:
 
     def __init__(self, handlers):
