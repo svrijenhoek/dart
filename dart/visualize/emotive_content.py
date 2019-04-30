@@ -12,12 +12,12 @@ class IdentifyEmotiveContent:
         calculates for each tag specified its representation in the selected article
         """
         counts = df.tag.value_counts()
-        result = {}
+        result = []
         for tag in self.spacy_tags:
             try:
                 count = counts[tag]
                 percentage = count / len(df)
-                result[tag] = percentage
+                result.append({'tag': tag, 'percentage': percentage})
             except KeyError:
                 result[tag] = 0
         return result

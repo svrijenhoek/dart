@@ -12,6 +12,7 @@ class OutputHandler(BaseHandler):
         Adds the final result in the Elasticsearch database.
         TO DO: Mock ES and assert ES is called once
         """
+        percentages = style[4]
         doc = {
             'user': user_id,
             'type': recommendation_type,
@@ -19,6 +20,9 @@ class OutputHandler(BaseHandler):
             'avg_complexity': style[1],
             'avg_nwords': style[2],
             'avg_nsentences': style[3],
+            'avg_det': percentages['DET'],
+            'avg_pron': percentages['PRON'],
+            'avg_adp': percentages['ADP'],
             'personalization': personalization
         }
         body = json.dumps(doc)

@@ -8,6 +8,8 @@ import dart.handler.other.openstreetmap
 import dart.handler.other.wikidata
 import dart.Util
 
+import sys
+
 
 class Enricher:
 
@@ -21,11 +23,11 @@ class Enricher:
         self.spacy_tags = ['DET', 'ADP', 'PRON']
 
         try:
-            self.known_locations = dart.Util.read_json_file('../../output/known_locations.json')
+            self.known_locations = dart.Util.read_json_file('output/known_locations.json')
         except FileNotFoundError:
             self.known_locations = {}
         try:
-            self.known_persons = dart.Util.read_json_file('../../output/known_persons.json')
+            self.known_persons = dart.Util.read_json_file('output/known_persons.json')
         except FileNotFoundError:
             self.known_persons = {}
 
@@ -129,31 +131,37 @@ class Enricher:
         return result
 
     def enrich_all(self):
-        recommendations = self.handlers.recommendations.get_all_recommendations()
-        for recommendation in recommendations:
-            article = self.handlers.articles.get_by_id(recommendation.article_id)
-            print(article.title)
-            if article.annotated == 'N':
-                doc = {}
-                if not article.entities:
-                    _, entities, tags = self.annotator.annotate(article.text)
-                else:
-                    entities = article.entities
-                    tags = article.tags
-                enriched_entities = self.annotate_entities(entities)
-                doc['entities'] = enriched_entities
-                doc['tags'] = tags
-                if not article.nsentences or not article.nwords or not article.complexity:
-                    # rewrite
-                    nwords, nsentences, complexity = self.textpipe.analyze(article.text)
-                    doc['nwords'] = nwords
-                    doc['nsentences'] = nsentences
-                    doc['complexity'] = complexity
-                if not article.tag_percentages:
-                    percentages = self.calculate_tags(tags)
-                    doc['tag_percentages'] = percentages
-                self.handlers.articles.update_doc(article.id, doc)
-                self.handlers.articles.update(article.id, 'annotated', 'Y')
+        try:
+            recommendations = self.handlers.recommendations.get_all_recommendations()
+            for recommendation in recommendations:
+                article = self.handlers.articles.get_by_id(recommendation.article_id)
+                print(article.title)
+                if article.annotated == 'N':
+                    doc = {}
+                    if not article.entities:
+                        _, entities, tags = self.annotator.annotate(article.text)
+                    else:
+                        entities = article.entities
+                        tags = article.tags
+                    enriched_entities = self.annotate_entities(entities)
+                    doc['entities'] = enriched_entities
+                    doc['tags'] = tags
+
+                    if not article.nsentences or not article.nwords or not article.complexity:
+                        # rewrite
+                        nwords, nsentences, complexity = self.textpipe.analyze(article.text)
+                        doc['nwords'] = nwords
+                        doc['nsentences'] = nsentences
+                        doc['complexity'] = complexity
+                    if not article.tag_percentages:
+                        percentages = self.calculate_tags(tags)
+                        doc['tag_percentages'] = percentages
+                    self.handlers.articles.update_doc(article.id, doc)
+                    self.handlers.articles.update(article.id, 'annotated', 'Y')
+        except ConnectionError:
+            self.save_known_entities()
+            print("Connection error!")
+            sys.exit()
         self.save_known_entities()
 
 
