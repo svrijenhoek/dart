@@ -135,7 +135,7 @@ class ArticleHandler(BaseHandler):
         output = self.connector.execute_search(index, body)
         return Article(output[0])
 
-    def get_field_with_value(self, index, field, value):
+    def get_field_with_value(self, field, value):
         body = {
             "size": 10000,
             "query": {

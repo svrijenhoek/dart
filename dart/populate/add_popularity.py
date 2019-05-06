@@ -1,6 +1,7 @@
 import sys
 import time
 import logging
+import csv
 
 from dart.handler.elastic.connector import ElasticsearchConnector
 from dart.handler.elastic.article_handler import ArticleHandler
@@ -45,10 +46,20 @@ class PopularityQueue:
                     continue
             documents = self.get_all_documents_without_popularity()
 
+    def read_from_file(self, file):
+        with open(file, mode='r') as csv_file:
+            next(csv_file)
+            csv_reader = csv.reader(csv_file, delimiter=';')
+            for row in csv_reader:
+                title = row[3]
+                popularity = row[2].replace(',', '')
+                article = self.searcher.get_field_with_value('title', title)[0]
+                self.searcher.update(article.id, 'popularity.facebook_share', int(popularity))
+
 
 def main(argv):
     pq = PopularityQueue()
-    pq.execute()
+    pq.read_from_file()
 
 
 if __name__ == "__main__":

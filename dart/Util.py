@@ -18,6 +18,7 @@ def read_full_config_file():
     dictionary['metrics'] = data['metrics']
     dictionary['articles_folder'] = data['articles']['folder']
     dictionary['articles_schema'] = data['articles']['alternative_schema']
+    dictionary['popularity_file'] = data['articles']['popularity_file']
 
     dictionary['user_folder'] = data['user']['folder']
     dictionary['user_load'] = data['user']['load']

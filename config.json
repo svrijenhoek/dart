@@ -14,7 +14,8 @@
     "folder": "data\\articles\\",
     "alternative_schema": "N",
     "schema": "..\\data\\schemas\\articles.json",
-    "preprocessing": "stemming"
+    "preprocessing": "stemming",
+    "popularity_file": "C:\\Users\\Sanne\\Downloads\\popularity.csv"
   },
   "user": {
     "load": "N",

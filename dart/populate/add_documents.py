@@ -47,10 +47,6 @@ class AddDocuments:
             except KeyError:
                 return -1
 
-        # add popularity metrics
-        if 'popularity' not in doc:
-            doc['popularity'] = {'calculated': 'no'}
-
         body = json.dumps(doc)
         module_logger.info('Added document: '+doc['title'])
         self.connector.add_document('articles', '_doc', body)
