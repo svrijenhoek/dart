@@ -29,6 +29,10 @@ class InitializeIndex:
                         "entities.location": {
                             "type": "geo_point"
                         },
+                        "text": {
+                            "type": "text",
+                            "term_vector": "with_positions_offsets",
+                        }
                     }
                 }
             }
