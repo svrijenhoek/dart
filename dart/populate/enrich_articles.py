@@ -1,5 +1,5 @@
 import string
-from ethnicolr import pred_wiki_name
+from ethnicolr import pred_census_ln
 import pandas as pd
 
 import dart.handler.NLP.annotator
@@ -13,8 +13,9 @@ import sys
 
 class Enricher:
 
-    def __init__(self, handlers):
+    def __init__(self, handlers, metrics):
         self.handlers = handlers
+        self.metrics = metrics
         self.annotator = dart.handler.NLP.annotator.Annotator()
         self.textpipe = dart.handler.NLP.textpipe_handler.Textpipe()
         self.openstreetmap = dart.handler.other.openstreetmap.OpenStreetMap()
@@ -73,9 +74,11 @@ class Enricher:
                 else:
                     person_data = {'givenlabel': '', 'familylabel': name, 'genderlabel': 'unknown'}
                 df = pd.DataFrame([person_data])
-                ethnicity = pred_wiki_name(df, lname_col='familylabel', fname_col='givenlabel')
+                # ethnicity = pred_wiki_name(df, lname_col='familylabel', fname_col='givenlabel')
+                ethnicity = pred_census_ln(df, 'familylabel')
                 race = ethnicity.iloc[0]['race']
-                entity['ethnicity'] = race.split(",")[-1]
+                # entity['ethnicity'] = race.split(",")[0]
+                entity['ethnicity'] = race
                 entity['gender'] = person_data['genderlabel']
 
                 self.known_persons[name]['ethnicity'] = entity['ethnicity']
@@ -87,30 +90,41 @@ class Enricher:
         place = ''.join(filter(lambda x: x in self.printable, name))
         if len(place) > 2 and '|' not in place and place.lower() != 'None'.lower():
             if place not in self.known_locations:
-                try:
-                    # retrieve the coordinates from OpenStreetMap
-                    lat, lon, country_code = self.openstreetmap.get_coordinates(str(place))
+                # retrieve the coordinates from OpenStreetMap
+                lat, lon, country_code = self.openstreetmap.get_coordinates(place)
+                if not lat == 0 or not lon == 0 or not country_code == 0:
                     self.known_locations[place] = [country_code, lat, lon]
                     entity['location'] = {
                         'lat': lat,
                         'lon': lon
                     }
                     entity['country_code'] = country_code
-                except TypeError:
-                    print(place)
+                else:
+                    entity['calculated'] = 'Y'
+            else:
+                location = self.known_locations[place]
+                entity['location'] = {
+                    'lat': location[1],
+                    'lon': location[2]
+                }
+                entity['country_code'] = location[0]
         return entity
 
     def annotate_entities(self, entities):
         annotated_entities = []
-        for entity in entities:
-            if entity['label'] == 'PER':
-                if 'occupation' not in entity:
-                    entity = self.retrieve_occupation(entity)
-                if 'ethnicity' not in entity:
-                    entity = self.retrieve_ethnicity(entity)
-            if entity['label'] == 'LOC':
-                if 'country_code' not in entity:
-                    entity = self.retrieve_geolocation(entity)
+        for entity in (entity for entity in entities if 'annotated' not in entity or entity['annotated'] == 'N'):
+            try:
+                if entity['label'] == 'PER':
+                    if 'occupation' in self.metrics and 'occupation' not in entity:
+                        entity = self.retrieve_occupation(entity)
+                    if 'ethnicity' in self.metrics and 'ethnicity' not in entity:
+                        entity = self.retrieve_ethnicity(entity)
+                if 'location' in self.metrics and entity['label'] == 'LOC':
+                    if 'country_code' not in entity:
+                        entity = self.retrieve_geolocation(entity)
+                entity['annotated'] = 'Y'
+            except (IndexError, TypeError):
+                entity['annotated'] = 'Y'
             annotated_entities.append(entity)
         return annotated_entities
 
@@ -135,29 +149,28 @@ class Enricher:
             recommendations = self.handlers.recommendations.get_all_recommendations()
             for recommendation in recommendations:
                 article = self.handlers.articles.get_by_id(recommendation.article_id)
-                print(article.title)
-                if article.annotated == 'N':
-                    doc = {}
-                    if not article.entities:
-                        _, entities, tags = self.annotator.annotate(article.text)
-                    else:
-                        entities = article.entities
-                        tags = article.tags
-                    enriched_entities = self.annotate_entities(entities)
-                    doc['entities'] = enriched_entities
-                    doc['tags'] = tags
+                doc = {}
+                if not article.entities:
+                    _, entities, tags = self.annotator.annotate(article.text)
+                else:
+                    entities = article.entities
+                    tags = article.tags
+                enriched_entities = self.annotate_entities(entities)
+                doc['entities'] = enriched_entities
+                doc['tags'] = tags
 
+                if 'length' or 'complexity' in self.metrics:
                     if not article.nsentences or not article.nwords or not article.complexity:
                         # rewrite
                         nwords, nsentences, complexity = self.textpipe.analyze(article.text)
                         doc['nwords'] = nwords
                         doc['nsentences'] = nsentences
                         doc['complexity'] = complexity
-                    if not article.tag_percentages:
-                        percentages = self.calculate_tags(tags)
-                        doc['tag_percentages'] = percentages
-                    self.handlers.articles.update_doc(article.id, doc)
-                    self.handlers.articles.update(article.id, 'annotated', 'Y')
+                if 'emotive' in self.metrics and not article.tag_percentages:
+                    percentages = self.calculate_tags(tags)
+                    doc['tag_percentages'] = percentages
+                self.handlers.articles.update_doc(article.id, doc)
+                self.handlers.articles.update(article.id, 'annotated', 'Y')
         except ConnectionError:
             self.save_known_entities()
             print("Connection error!")

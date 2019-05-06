@@ -32,7 +32,7 @@ class AddDocuments:
         # TO DO: see if this is necessary!
 
         try:
-            doc['text']
+            doc['text'] = doc['text'].replace('|', ' ')
         except KeyError:
             return -1
         try:

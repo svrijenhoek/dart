@@ -1,5 +1,14 @@
 {
-  "metrics": ["length", "complexity", "popularity", "locations","occupations","source","personalization"],
+  "metrics": [
+    "length",
+    "complexity",
+    "popularity",
+    "location",
+    "occupation",
+    "source",
+    "personalization",
+    "ethnicity",
+    "emotive"],
   "append": "N",
   "articles": {
     "folder": "data\\articles\\",

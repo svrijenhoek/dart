@@ -1,5 +1,3 @@
-from elasticsearch import RequestError
-
 class LocationVisualizer:
 
     def __init__(self, handlers):
@@ -14,10 +12,11 @@ class LocationVisualizer:
             for entity in entities:
                 if entity['label'] == 'LOC':
                     try:
-                        location = [entity['text'], [entity['country_code'], entity['location']]]
-                        self.handlers.output.add_location_document(document.publication_date,
-                                                                   recommendation.type, location)
+                        if not entity['location']['lat'] == 0 and not entity['location']['lon'] == 0:
+                            location = [entity['text'], [entity['country_code'], entity['location']]]
+                            self.handlers.output.add_location_document(document.publication_date,
+                                                                       recommendation.type, location)
                     except KeyError:
-                        print(entity)
+                        pass
 
 

@@ -92,21 +92,24 @@ class WikidataHandler:
         return self.read_response(r, 'position_label')
 
     def get_person_data(self, label):
-        query = """
-            SELECT DISTINCT ?givenlabel ?familylabel ?genderlabel where {
-              ?person rdfs:label '"""+label+"""'@nl .
-              OPTIONAL{?person wdt:P734 ?familyname .
-                      ?familyname rdfs:label ?familylabel .}
-              OPTIONAL{?person wdt:P735  ?givenname .
-                      ?givenname rdfs:label ?givenlabel .}
-              OPTIONAL{?person wdt:P21 ?gender .
-                      ?gender rdfs:label ?genderlabel}
-              FILTER(LANG(?genderlabel) = "" || LANGMATCHES(LANG(?genderlabel), "en"))
-              FILTER(LANG(?givenlabel) = "" || LANGMATCHES(LANG(?givenlabel), "nl"))
-              FILTER(LANG(?familylabel) = "" || LANGMATCHES(LANG(?familylabel), "en"))
-            } 
-            ORDER BY ?familyname
-            LIMIT 1
-        """
-        r = self.execute_query(query)
-        return self.read_response_list(r)
+        try:
+            query = """
+                SELECT DISTINCT ?givenlabel ?familylabel ?genderlabel where {
+                  ?person rdfs:label '"""+label+"""'@nl .
+                  OPTIONAL{?person wdt:P734 ?familyname .
+                          ?familyname rdfs:label ?familylabel .}
+                  OPTIONAL{?person wdt:P735  ?givenname .
+                          ?givenname rdfs:label ?givenlabel .}
+                  OPTIONAL{?person wdt:P21 ?gender .
+                          ?gender rdfs:label ?genderlabel}
+                  FILTER(LANG(?genderlabel) = "" || LANGMATCHES(LANG(?genderlabel), "en"))
+                  FILTER(LANG(?givenlabel) = "" || LANGMATCHES(LANG(?givenlabel), "nl"))
+                  FILTER(LANG(?familylabel) = "" || LANGMATCHES(LANG(?familylabel), "en"))
+                } 
+                ORDER BY ?familyname
+                LIMIT 1
+            """
+            r = self.execute_query(query)
+            return self.read_response_list(r)
+        except ConnectionAbortedError:
+            return []

@@ -9,3 +9,4 @@ spacy~=2.0
 scikit-learn~=0.20
 textpipe~=0.8
 ethnicolr~=0.2
+minimock
