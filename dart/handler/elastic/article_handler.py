@@ -105,8 +105,10 @@ class ArticleHandler(BaseHandler):
                     "lt": upper,
                     "gte": lower
                 }
-            }
-            }
+            }},
+            "sort": [
+                {"popularity.facebook_share": {"order": "desc", "mode": "max", "unmapped_type": "long"}}
+            ]
         }
         sid, scroll_size = self.connector.execute_search_with_scroll('articles', body)
         # Start retrieving documents
