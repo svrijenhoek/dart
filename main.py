@@ -44,31 +44,31 @@ def main():
     #     module_logger.info("Schema interpretation to be implemented")
 
     # step 1.5: load popularity data from file, most likely entirely irrelevant
-    dart.populate.add_popularity.PopularityQueue().read_from_file(config['popularity_file'])
-
-    # step 2: simulate users
-    if es.indices.exists(index="users") and config["append"] == "N":
-        elastic_connector.clear_index('users')
-        module_logger.info("User index removed")
-    if config['user_load'] == "Y":
-        module_logger.warning("Loading user data to be implemented")
-    else:
-        module_logger.info("Simulating user data")
-        dart.populate.simulate_users.execute(config)
-
-    # step 3: simulate recommendations
-    if es.indices.exists(index="recommendations") and config["append"] == "N":
-        # delete index
-        elastic_connector.clear_index('recommendations')
-        module_logger.info("Recommendations index removed")
-    if config['recommendations_load'] == 'Y':
-        module_logger.warning("Loading recommendation data to be implemented")
-    if not config['baseline_recommendations'] == []:
-        module_logger.info("Generating baseline recommendations")
-        dart.populate.generate_recommendations.execute(config)
+    # dart.populate.add_popularity.PopularityQueue().read_from_file(config['popularity_file'])
+    #
+    # # step 2: simulate users
+    # if es.indices.exists(index="users") and config["append"] == "N":
+    #     elastic_connector.clear_index('users')
+    #     module_logger.info("User index removed")
+    # if config['user_load'] == "Y":
+    #     module_logger.warning("Loading user data to be implemented")
+    # else:
+    #     module_logger.info("Simulating user data")
+    #     dart.populate.simulate_users.execute(config)
+    #
+    # # step 3: simulate recommendations
+    # if es.indices.exists(index="recommendations") and config["append"] == "N":
+    #     # delete index
+    #     elastic_connector.clear_index('recommendations')
+    #     module_logger.info("Recommendations index removed")
+    # if config['recommendations_load'] == 'Y':
+    #     module_logger.warning("Loading recommendation data to be implemented")
+    # if not config['baseline_recommendations'] == []:
+    #     module_logger.info("Generating baseline recommendations")
+    #     dart.populate.generate_recommendations.execute(config)
 
     # step 4: enrich data of recommended articles
-    dart.populate.enrich_articles.Enricher(handlers, metrics).enrich_all()
+    # dart.populate.enrich_articles.Enricher(handlers, metrics).enrich_all()
 
     # step 5: make visualizations
     print("Start aggregating")
