@@ -4,9 +4,9 @@ from elasticsearch import Elasticsearch
 # the need arises.
 
 
-class Connector:
-
-    es = Elasticsearch()
+class ElasticsearchConnector:
+    def __init__(self, *args, **kwargs):
+        self.es = Elasticsearch(*args, *kwargs)
 
     def execute_search(self, index, body):
         response = self.es.search(index=index, body=body)
@@ -35,8 +35,10 @@ class Connector:
         self.es.indices.delete(index=index, ignore=[400, 404])
 
     def clear_all(self):
-        self.clear_index('articles')
+        self.clear_index('aggregate_articles')
         self.clear_index('users')
         self.clear_index('recommendations')
+        self.clear_index('occupation')
+        self.clear_index('personalization')
 
 

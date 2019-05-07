@@ -9,23 +9,26 @@ class Article(Document):
         self.title = self.source['title']
         self.publication_date = self.source['publication_date']
         self.doctype = self.source['doctype']
-        self.entities = self.source['entities']
-        self.dependencies = self.source['dependencies']
+        try:
+            self.entities = self.source['entities']
+        except KeyError:
+            self.entities = ''
         try:
             self.tags = self.source['tags']
         except KeyError:
             self.tags = ''
-        self.stylometrics = self.source['stylometrics']
         try:
             self.author = self.source['byline']
         except KeyError:
             self.author = ''
         try:
-            self.complexity = self.stylometrics['complexity']
-            self.nwords = self.stylometrics['nwords']
-            self.nsentences = self.stylometrics['nsentences']
+            self.complexity = self.source['complexity']
+            self.nwords = self.source['nwords']
+            self.nsentences = self.source['nsentences']
         except KeyError:
-            pass
+            self.complexity = ''
+            self.nwords = ''
+            self.nsentences = ''
         self.url = self.source['url']
         try:
             self.popularity = self.source['popularity']['facebook_share']
@@ -35,9 +38,14 @@ class Article(Document):
             self.recommended = self.source['recommended']
         except KeyError:
             self.recommended = []
-
-    def get_style_metric(self, metric):
-        return self.stylometrics[metric]
+        try:
+            self.tag_percentages = self.source['tag_percentages']
+        except KeyError:
+            self.tag_percentages = []
+        try:
+            self.annotated = self.source['annotated']
+        except KeyError:
+            self.annotated = 'N'
 
     def get(self, x):
         return self.source[x]

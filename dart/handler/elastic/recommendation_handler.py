@@ -4,30 +4,38 @@ import pandas as pd
 
 
 class RecommendationHandler(BaseHandler):
-    def __init__(self):
-        super(RecommendationHandler, self).__init__()
-
-    @staticmethod
-    def make_dataframe(docs):
-        recommendations = [Recommendation(doc) for doc in docs]
-        table = []
-        for rec in recommendations:
-            table.append(rec.date, rec.user, rec.recommendations)
-        df = pd.DataFrame(table, columns=['date', 'user', 'recommendations'])
-        return df
+    def __init__(self, connector):
+        super(RecommendationHandler, self).__init__(connector)
+        self.connector = connector
+        self.all_recommendations = None
 
     def get_all_recommendations(self):
-        return super(RecommendationHandler, self).get_all_documents('recommendations')
+        if self.all_recommendations is None:
+            recommendations = super(RecommendationHandler, self).get_all_documents('recommendations')
+            self.all_recommendations = [Recommendation(i) for i in recommendations]
+        return self.all_recommendations
 
-    def get_recommendations_to_user(self, user_id):
+    def get_recommendations_to_user(self, user_id, recommendation_type):
         body = {
             "query": {
-                "match": {
-                    'recommendation.user_id': user_id
+                "bool": {
+                    "must": [
+                        {
+                            "match": {
+                                "recommendation.user_id": user_id
+                            }
+                        },
+                        {
+                            "match": {
+                                "recommendation.type": recommendation_type
+                            }
+                        }
+                    ]
                 }
             }
         }
-        return super(RecommendationHandler, self).execute_search('recommendations', body)
+        response = self.connector.execute_search('recommendations', body)
+        return [Recommendation(i) for i in response]
 
     # common method for going through all articles in the articles index
     def get_recommendation_types(self):
@@ -35,11 +43,24 @@ class RecommendationHandler(BaseHandler):
             "aggs": {
                "values": {
                  "cardinality": {
-                   "field": 'recommendations.keyword'
+                   "field": 'recommendation.type.keyword'
                  }
                 },
             }
         }
-        output = super(RecommendationHandler, self).execute_search('recommendations', body)
-        return [entry['_source']['recommendations'] for entry in output]
+        output = self.connector.execute_search('recommendations', body)
+        return [entry['_source']['recommendation']['type'] for entry in output]
+
+    # retrieves all recommendations found in the elasticsearch index
+    def initialize(self):
+        """
+        Retrieves all recommendations in Elasticsearch
+        Returns a Dataframe
+        """
+        recommendations = self.get_all_recommendations()
+        table = []
+        for recommendation in recommendations:
+            table.append([recommendation.user, recommendation.date, recommendation.type, recommendation.article['id']])
+        columns = ['user_id', 'date', 'recommendation_type', 'id']
+        return pd.DataFrame(table, columns=columns)
 
