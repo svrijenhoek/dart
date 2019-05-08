@@ -1,11 +1,5 @@
 from datetime import datetime, timedelta
-
 import numpy as np
-import json
-
-from dart.handler.elastic.connector import ElasticsearchConnector
-from dart.handler.elastic.article_handler import ArticleHandler
-from dart.handler.elastic.user_handler import UserHandler
 
 
 class RecommendationGenerator:
@@ -19,10 +13,10 @@ class RecommendationGenerator:
 
     """
 
-    def __init__(self, documents, size, connector):
+    def __init__(self, documents, size, handlers):
         self.documents = documents
         self.size = size
-        self.searcher = ArticleHandler(connector)
+        self.handlers = handlers
 
     def generate_random(self):
         random_numbers = np.random.choice(len(self.documents), self.size, False)
@@ -33,22 +27,19 @@ class RecommendationGenerator:
 
     def generate_more_like_this(self, user, upper, lower):
         reading_history = user.reading_history
-        results = self.searcher.more_like_this_history(reading_history, upper, lower)
+        results = self.handlers.articles.more_like_this_history(reading_history, upper, lower)
         return [results[i].id for i in range(min(int(self.size), len(results)))]
 
 
 class RunRecommendations:
 
-    def __init__(self, configuration):
-        self.connector = ElasticsearchConnector()
-        self.searcher = ArticleHandler(self.connector)
-        self.user_handler = UserHandler(self.connector)
+    def __init__(self, config, handlers):
+        self.handlers = handlers
+        self.timerange = config["recommendation_range"]
+        self.size = config["recommendation_size"]
+        self.dates = config["recommendation_dates"]
 
-        self.timerange = configuration["recommendation_range"]
-        self.size = configuration["recommendation_size"]
-        self.dates = configuration["recommendation_dates"]
-
-        self.users = self.user_handler.get_all_users()
+        self.users = self.handlers.users.get_all_users()
 
     @staticmethod
     def create_json_doc(user_id, date, recommendation_type, article):
@@ -70,13 +61,26 @@ class RunRecommendations:
         }
         return doc
 
-    def add_to_index(self, json_doc):
-        body = json.dumps(json_doc)
-        self.connector.add_document('recommendations', doc_type='_doc', body=body)
-
     def add_document(self, date, user_id, rec_type, article):
         doc = self.create_json_doc(user_id, date, rec_type, article)
-        self.add_to_index(doc)
+        self.handlers.recommendations.add_recommendation(doc)
+
+    def generate_recommendations(self, user, date, upper, lower, generator):
+        # generate random selection
+        random_recommendation = generator.generate_random()
+        for docid in random_recommendation:
+            article = self.handlers.articles.get_by_id(docid)
+            self.add_document(date, user.id, 'random', article)
+        # select most popular
+        most_popular_recommendation = generator.generate_most_popular()
+        for docid in most_popular_recommendation:
+            article = self.handlers.articles.get_by_id(docid)
+            self.add_document(date, user.id, 'most_popular', article)
+        # get more like the user has previously read
+        more_like_this_recommendation = generator.generate_more_like_this(user, upper, lower)
+        for docid in more_like_this_recommendation:
+            article = self.handlers.articles.get_by_id(docid)
+            self.add_document(date, user.id, 'more_like_this', article)
 
     def execute(self):
         # go over every date specified in the config file
@@ -86,37 +90,17 @@ class RunRecommendations:
             upper = datetime.strptime(date, '%d-%m-%Y')
             lower = upper - timedelta(days=self.timerange)
             # retrieve all the documents that are relevant for this date
-            documents = self.searcher.get_all_in_timerange(lower, upper)
+            documents = self.handlers.articles.get_all_in_timerange(lower, upper)
             # to account for a very sparse index
             recommendation_size = min(len(documents), self.size)
-
-            rg = RecommendationGenerator(documents, recommendation_size, self.connector)
+            rg = RecommendationGenerator(documents, recommendation_size, self.handlers)
             count = 0
             for user in self.users:
                 try:
-                    count = count+1
-                    # generate random selection
-                    random_recommendation = rg.generate_random()
-                    for docid in random_recommendation:
-                        article = self.searcher.get_by_id(docid)
-                        self.add_document(date, user.id, 'random', article)
-                    # select most popular
-                    most_popular_recommendation = rg.generate_most_popular()
-                    for docid in most_popular_recommendation:
-                        article = self.searcher.get_by_id(docid)
-                        self.add_document(date, user.id, 'most_popular', article)
-                    # get more like the user has previously read
-                    more_like_this_recommendation = rg.generate_more_like_this(user, upper, lower)
-                    for docid in more_like_this_recommendation:
-                        article = self.searcher.get_by_id(docid)
-                        self.add_document(date, user.id, 'more_like_this', article)
+                    count = count + 1
+                    self.generate_recommendations(user, date, upper, lower, rg)
                 except KeyError:
                     print("Help, a Key Error occurred!")
                     continue
             print(count)
-
-
-def execute(configuration):
-    run = RunRecommendations(configuration)
-    run.execute()
 

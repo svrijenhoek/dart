@@ -9,6 +9,9 @@ class RecommendationHandler(BaseHandler):
         self.connector = connector
         self.all_recommendations = None
 
+    def add_recommendation(self, doc):
+        self.connector.add_document('recommendations', '_doc', doc)
+
     def get_all_recommendations(self):
         if self.all_recommendations is None:
             recommendations = super(RecommendationHandler, self).get_all_documents('recommendations')
