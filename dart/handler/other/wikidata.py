@@ -1,6 +1,5 @@
 import requests
 import json
-import time
 
 
 class WikidataHandler:
@@ -12,12 +11,15 @@ class WikidataHandler:
         self.url = 'https://query.wikidata.org/sparql'
 
     def execute_query(self, query):
-        """
-        Sends a SPARQL query to Wikidata.
-        TO DO: Write tests
-        """
-        r = requests.get(self.url, params={'format': 'json', 'query': query})
-        return r
+        try:
+            """
+            Sends a SPARQL query to Wikidata.
+            TO DO: Write tests
+            """
+            r = requests.get(self.url, params={'format': 'json', 'query': query})
+            return r
+        except ConnectionAbortedError:
+            return
 
     @staticmethod
     def read_response(response, label):

@@ -13,7 +13,6 @@ import dart.visualize.personalization
 import dart.models.Handlers
 import dart.populate.enrich_articles
 import dart.handler.elastic.initialize
-import dart.visualize.aggregate_by_user
 
 
 def main():
