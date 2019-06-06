@@ -8,7 +8,9 @@
     "source",
     "personalization",
     "ethnicity",
-    "emotive"],
+    "emotive",
+    "classify",
+    "organization"],
   "append": "N",
   "articles": {
     "folder": "data\\articles\\",

@@ -30,7 +30,7 @@ class WikidataHandler:
             return []
 
     @staticmethod
-    def read_response_list(response):
+    def read_person_response_list(response):
         try:
             data = response.json()
             entry = data['results']['bindings'][0]
@@ -48,6 +48,31 @@ class WikidataHandler:
                 genderlabel = ''
 
             return {'givenlabel': givenname, 'familylabel': familylabel, 'genderlabel': genderlabel}
+        except json.decoder.JSONDecodeError:
+            return []
+        except IndexError:
+            return []
+
+    @staticmethod
+    def read_company_response_list(response):
+        try:
+            data = response.json()
+            output = []
+            for entry in data['results']['bindings']:
+                try:
+                    industry = entry['industryLabel']['value']
+                except KeyError:
+                    industry = ''
+                try:
+                    instance = entry['instanceLabel']['value']
+                except KeyError:
+                    instance = ''
+                try:
+                    country = entry['countryLabel']['value']
+                except KeyError:
+                    country = ''
+                output.append({'industry': industry, 'instance': instance, 'country': country})
+            return output
         except json.decoder.JSONDecodeError:
             return []
         except IndexError:
@@ -112,6 +137,23 @@ class WikidataHandler:
                 LIMIT 1
             """
             r = self.execute_query(query)
-            return self.read_response_list(r)
+            return self.read_person_response_list(r)
+        except ConnectionAbortedError:
+            return []
+
+    def get_company_data(self, label):
+        try:
+            query = """
+            SELECT DISTINCT ?instanceLabel ?industryLabel ?countryLabel WHERE { 
+                ?s rdfs:label '"""+label+"""'@nl .
+                ?s wdt:P571 ?inception .
+                OPTIONAL {?s wdt:P31 ?instance . }
+                OPTIONAL {?s wdt:P452 ?industry . }
+                OPTIONAL {?s wdt:P17 ?country }
+                SERVICE wikibase:label { bd:serviceParam wikibase:language "nl". }
+            }            
+            """
+            r = self.execute_query(query)
+            return self.read_company_response_list(r)
         except ConnectionAbortedError:
             return []

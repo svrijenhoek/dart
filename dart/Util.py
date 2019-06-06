@@ -3,6 +3,8 @@ import hashlib
 import numpy as np
 import random
 import string
+import csv
+import pandas
 
 
 def read_config_file():
@@ -59,5 +61,10 @@ def write_to_json(file, s):
 def read_json_file(file):
     with open(file) as F:
         return json.load(F)
+
+
+def read_csv(file):
+    df = pandas.read_csv(file, sep=';', encoding="ISO-8859-1")
+    return df
 
 

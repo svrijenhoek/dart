@@ -29,22 +29,22 @@ def main():
     es = Elasticsearch()
 
     # step 1: load articles
-    # if es.indices.exists(index="articles") and config["append"] == "N":
-    #     # delete index
-    #     elastic_connector.clear_index('articles')
-    #     module_logger.info("Index removed")
-    # if not es.indices.exists(index="articles"):
-    #     module_logger.info("Index created")
-    #     dart.handler.elastic.initialize.InitializeIndex().initialize_articles()
-    # if config['articles_schema'] == "N":
-    #     module_logger.info("Started adding documents")
-    #     dart.populate.add_documents.AddDocuments(config['articles_folder']).execute()
-    # else:
-    #     module_logger.info("Schema interpretation to be implemented")
+    if es.indices.exists(index="articles") and config["append"] == "N":
+        # delete index
+        elastic_connector.clear_index('articles')
+        module_logger.info("Index removed")
+    if not es.indices.exists(index="articles"):
+        module_logger.info("Index created")
+        dart.handler.elastic.initialize.InitializeIndex().initialize_articles()
+    if config['articles_schema'] == "N":
+        module_logger.info("Started adding documents")
+        dart.populate.add_documents.AddDocuments(config['articles_folder']).execute()
+    else:
+        module_logger.info("Schema interpretation to be implemented")
 
     # step 1.5: load popularity data from file, most likely entirely irrelevant
-    # dart.populate.add_popularity.PopularityQueue().read_from_file(config['popularity_file'])
-    #
+    dart.populate.add_popularity.PopularityQueue().read_from_file(config['popularity_file'])
+
     # step 2: simulate users
     if es.indices.exists(index="users") and config["append"] == "N":
         elastic_connector.clear_index('users')
