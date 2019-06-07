@@ -10,12 +10,16 @@ class RetrieveFacebook:
     facebook_graph_url = 'https://graph.facebook.com/?fields=engagement{share_count}&id='
     module_logging = logging.getLogger('popularity')
 
+    def __init__(self, metrics):
+        self.client_id = metrics["facebook_client_id"]
+        self.client_secret = metrics["facebook_client_secret"]
+
     def get_access_token(self):
         url = 'https://graph.facebook.com/oauth/access_token'
         payload = {
             'grant_type': 'client_credentials',
-            'client_id': '',
-            'client_secret': ''
+            'client_id': self.client_id,
+            'client_secret': self.client_secret
         }
         response = requests.post(url, params=payload)
         return response.json()['access_token']

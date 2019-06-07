@@ -1,14 +1,15 @@
 import json
-import hashlib
 import numpy as np
 import random
 import string
-import csv
 import pandas
+import os
 
+ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
+BASE_DIR = os.path.dirname(ROOT_DIR)
 
 def read_config_file():
-    with open('config.json') as json_data_file:
+    with open(os.path.join(BASE_DIR, 'config.json')) as json_data_file:
         data = json.load(json_data_file)
     return data
 
@@ -16,6 +17,8 @@ def read_config_file():
 def read_full_config_file():
     data = read_config_file()
     dictionary = {}
+    dictionary['facebook_client_id'] = data['facebook']['client_id']
+    dictionary['facebook_client_secret'] = data['facebook']['client_secret']
     dictionary['append'] = data['append']
     dictionary['metrics'] = data['metrics']
     dictionary['articles_folder'] = data['articles']['folder']
@@ -47,10 +50,6 @@ def random_string(N):
 
 def get_random_number(mean, sdev):
     return int(np.random.normal(mean, sdev))
-
-
-def generate_hash(s):
-    return hashlib.sha1(s.encode('utf-8')).hexdigest()
 
 
 def write_to_json(file, s):

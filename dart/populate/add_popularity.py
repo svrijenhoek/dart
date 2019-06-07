@@ -6,6 +6,7 @@ import csv
 from dart.handler.elastic.connector import ElasticsearchConnector
 from dart.handler.elastic.article_handler import ArticleHandler
 from dart.handler.other.facebook import RetrieveFacebook
+import dart.Util
 
 
 class PopularityQueue:
@@ -17,10 +18,10 @@ class PopularityQueue:
     Facebook limits the Graph API at 200 requests per half hour, so this process takes a long time. Since every blocked
     request also counts as a request, the process sleeps for 1800 seconds whenever a block is encountered.
     """
-
+    metrics = dart.Util.read_full_config_file()
     connector = ElasticsearchConnector()
     searcher = ArticleHandler(connector)
-    facebook_handler = RetrieveFacebook()
+    facebook_handler = RetrieveFacebook(metrics)
     module_logging = logging.getLogger('popularity')
 
     def get_all_documents_without_popularity(self):
@@ -42,7 +43,7 @@ class PopularityQueue:
                     time.sleep(2)
                 except KeyError:
                     self.module_logging.error("URL not found; "+article.title)
-                    self.add_popularity(article.id, 0, 0)
+                    self.add_popularity(article.id, 0)
                     continue
             documents = self.get_all_documents_without_popularity()
 
@@ -59,7 +60,7 @@ class PopularityQueue:
 
 def main(argv):
     pq = PopularityQueue()
-    pq.read_from_file()
+    pq.execute()
 
 
 if __name__ == "__main__":
