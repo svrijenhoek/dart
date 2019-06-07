@@ -1,4 +1,8 @@
 {
+  "facebook": {
+    "client_id": "xxx",
+    "client_secret": "xxx"
+  },
   "metrics": [
     "length",
     "complexity",
