@@ -7,6 +7,6 @@ nltk~=3.4
 gensim~=3.7
 spacy~=2.1
 scikit-learn~=0.21
-textpipe~=0.9
+textpipe~=0.10
 ethnicolr~=0.2
 minimock
