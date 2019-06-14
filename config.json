@@ -24,7 +24,7 @@
     "popularity_file": "C:\\Users\\Sanne\\Downloads\\popularity.csv"
   },
   "user": {
-    "load": "N",
+    "load": "Y",
     "append": "N",
     "folder": "data\\users\\",
     "alternative_schema": "Y",
@@ -34,7 +34,7 @@
     "average_spread_per_interest": 15,
     "size_popular_stories": 100,
     "size_random": 20,
-    "sticks_to_source": 0.7
+    "reading_history_based_on": "title"
   },
   "recommendations": {
     "load": "N",
