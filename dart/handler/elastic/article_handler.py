@@ -26,6 +26,9 @@ class ArticleHandler(BaseHandler):
         }
         self.connector.update_document('articles', '_doc', docid, body)
 
+    def update_bulk(self, docs):
+        self.connector.update_bulk('articles', docs)
+
     def update_doc(self, docid, doc):
         body = {
             "doc": doc

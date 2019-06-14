@@ -31,7 +31,7 @@ class Article(Document):
             self.nsentences = ''
         self.url = self.source['url']
         try:
-            self.popularity = self.source['popularity']['facebook_share']
+            self.popularity = self.source['popularity']
         except KeyError:
             self.popularity = 0
         try:

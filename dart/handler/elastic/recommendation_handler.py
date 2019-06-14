@@ -12,6 +12,9 @@ class RecommendationHandler(BaseHandler):
     def add_recommendation(self, doc):
         self.connector.add_document('recommendations', '_doc', doc)
 
+    def add_bulk(self, docs):
+        self.connector.add_bulk('recommendations', '_doc', docs)
+
     def get_all_recommendations(self):
         if self.all_recommendations is None:
             recommendations = super(RecommendationHandler, self).get_all_documents('recommendations')

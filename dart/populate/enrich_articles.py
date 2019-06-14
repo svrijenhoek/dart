@@ -50,35 +50,36 @@ class Enricher:
             recommendations = self.handlers.recommendations.get_all_recommendations()
             for recommendation in recommendations:
                 article = self.handlers.articles.get_by_id(recommendation.article_id)
-                doc = {}
-                if not article.entities:
-                    _, entities, tags = self.annotator.annotate(article.text)
-                else:
-                    entities = article.entities
-                    tags = article.tags
-                enriched_entities = self.annotate_entities(entities)
-                doc['entities'] = enriched_entities
-                doc['tags'] = tags
-
-                if 'length' or 'complexity' in self.metrics:
-                    if not article.nsentences or not article.nwords or not article.complexity:
-                        # rewrite
-                        nwords, nsentences, complexity = self.textpipe.analyze(article.text)
-                        doc['nwords'] = nwords
-                        doc['nsentences'] = nsentences
-                        doc['complexity'] = complexity
-                if 'emotive' in self.metrics and not article.tag_percentages:
-                    percentages = self.calculate_tags(tags)
-                    doc['tag_percentages'] = percentages
-                if 'classify' in self.metrics:
-                    if 'entities' not in doc:
-                        classification = 'Onbekend'
+                if not article.annotated == 'Y':
+                    doc = {'id': article.id}
+                    if not article.entities:
+                        _, entities, tags = self.annotator.annotate(article.text)
                     else:
-                        classification = self.classifier.classify(doc['entities'])
-                    doc['classification'] = classification
-                self.handlers.articles.update_doc(article.id, doc)
-                self.handlers.articles.update(article.id, 'annotated', 'Y')
-            self.enricher.save()
+                        entities = article.entities
+                        tags = article.tags
+                    enriched_entities = self.annotate_entities(entities)
+                    doc['entities'] = enriched_entities
+                    doc['tags'] = tags
+
+                    if 'length' or 'complexity' in self.metrics:
+                        if not article.nsentences or not article.nwords or not article.complexity:
+                            # rewrite
+                            nwords, nsentences, complexity = self.textpipe.analyze(article.text)
+                            doc['nwords'] = nwords
+                            doc['nsentences'] = nsentences
+                            doc['complexity'] = complexity
+                    if 'emotive' in self.metrics and not article.tag_percentages:
+                        percentages = self.calculate_tags(tags)
+                        doc['tag_percentages'] = percentages
+                    if 'classify' in self.metrics:
+                        if 'entities' not in doc:
+                            classification = 'Onbekend'
+                        else:
+                            classification = self.classifier.classify(doc['entities'])
+                        doc['classification'] = classification
+                    doc['annotated'] = 'Y'
+                    self.handlers.articles.update_doc(article.id, doc)
+                    self.enricher.save()
         except ConnectionError:
             self.enricher.save()
             print("Connection error!")

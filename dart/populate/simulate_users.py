@@ -1,12 +1,23 @@
 import json
+import os
 import dart.Util as Util
 
 
 class UserSimulator:
 
     def __init__(self, config, handlers):
-        self.config = config
         self.handlers = handlers
+
+        self.n_topics = config["user_topics"]
+        self.n_spread = config["user_spread"]
+        self.mean_popular = config["user_popular"]
+        self.mean_random = config["user_random"]
+        self.n_users = config["user_number"]
+        self.load_users = config["user_load"]
+        if self.load_users == "Y":
+            self.alternative_schema = config["user_alternative_schema"]
+            self.folder = config["user_folder"]
+            self.schema = Util.read_json_file(config['user_schema'])
 
     def simulate_similar_to_topic(self, n_topics, n_spread):
         reading_history = []
@@ -37,24 +48,34 @@ class UserSimulator:
             reading_history.append(article.id)
         return reading_history
 
+    def simulate_reading_history(self):
+        # generate reading history
+        similar_to_topic = self.simulate_similar_to_topic(self.n_topics, self.n_spread)
+        popular_articles = self.simulate_popular_stories(self.mean_popular)
+        random_articles = self.simulate_random(self.mean_random)
+        reading_history = similar_to_topic + popular_articles + random_articles
+        return reading_history
+
     def execute(self):
-        n_topics = self.config["user_topics"]
-        n_spread = self.config["user_spread"]
-        mean_popular = self.config["user_popular"]
-        mean_random = self.config["user_random"]
-        n_users = self.config["user_number"]
-
-        for _ in range(0, n_users):
-            # generate reading history
-            similar_to_topic = self.simulate_similar_to_topic(n_topics, n_spread)
-            popular_articles = self.simulate_popular_stories(mean_popular)
-            random_articles = self.simulate_random(mean_random)
-            reading_history = similar_to_topic + popular_articles + random_articles
-
-            json_doc = {
-                "reading_history": reading_history
-            }
-
-            body = json.dumps(json_doc)
-            self.handlers.users.add_user(body)
+        if self.load_users == "Y":
+            for path, _, files in os.walk(self.folder):
+                for name in files:
+                    # assumes all files are json-l, change this to something more robust!
+                    for line in open((os.path.join(path, name))):
+                        json_doc = json.loads(line)
+                        if self.alternative_schema == "Y":
+                            json_doc = Util.transform(json_doc, self.schema)
+                            if 'reading_history' not in json_doc:
+                                json_doc['reading_history'] = self.simulate_reading_history()
+                        body = json.dumps(json_doc)
+                        self.handlers.users.add_user(body)
+        else:
+            # simulate user data
+            for _ in range(0, self.n_users):
+                reading_history = self.simulate_reading_history()
+                json_doc = {
+                    "reading_history": reading_history
+                }
+                body = json.dumps(json_doc)
+                self.handlers.users.add_user(body)
 

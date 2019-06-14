@@ -1,4 +1,5 @@
 import logging
+import datetime
 from elasticsearch import Elasticsearch
 
 import dart.Util
@@ -29,6 +30,7 @@ def main():
     es = Elasticsearch()
 
     # step 1: load articles
+    print(str(datetime.datetime.now())+"\tloading articles")
     if es.indices.exists(index="articles") and config["append"] == "N":
         # delete index
         elastic_connector.clear_index('articles')
@@ -36,16 +38,11 @@ def main():
     if not es.indices.exists(index="articles"):
         module_logger.info("Index created")
         dart.handler.elastic.initialize.InitializeIndex().initialize_articles()
-    if config['articles_schema'] == "N":
         module_logger.info("Started adding documents")
-        dart.populate.add_documents.AddDocuments(config['articles_folder']).execute()
-    else:
-        module_logger.info("Schema interpretation to be implemented")
-
-    # step 1.5: load popularity data from file, most likely entirely irrelevant
-    dart.populate.add_popularity.PopularityQueue().read_from_file(config['popularity_file'])
+    dart.populate.add_documents.AddDocuments(config).execute()
 
     # step 2: simulate users
+    print(str(datetime.datetime.now())+"\tloading users")
     if es.indices.exists(index="users") and config["append"] == "N":
         elastic_connector.clear_index('users')
         module_logger.info("User index removed")
@@ -56,6 +53,7 @@ def main():
         dart.populate.simulate_users.UserSimulator(config, handlers).execute()
 
     # step 3: simulate recommendations
+    print(str(datetime.datetime.now())+"\tloading recommendations")
     if es.indices.exists(index="recommendations") and config["append"] == "N":
         # delete index
         elastic_connector.clear_index('recommendations')
@@ -67,20 +65,21 @@ def main():
         dart.populate.generate_recommendations.RunRecommendations(config, handlers).execute()
 
     # step 4: enrich data of recommended articles
+    print(str(datetime.datetime.now())+"\tenriching articles")
     dart.populate.enrich_articles.Enricher(handlers, metrics).enrich_all()
 
     # step 5: make visualizations
-    print("Start aggregating")
+    print(str(datetime.datetime.now())+"\taggregating data")
     if 'length' or 'complexity' or 'popularity' or 'personalization' in metrics:
         module_logger.info("Visualizing user aggregations")
         dart.handler.elastic.initialize.InitializeIndex().initialize_aggregated()
         dart.visualize.aggregate_by_user.AggregateRecommendations(handlers).execute()
-    print("Start locations")
+    print(str(datetime.datetime.now())+"\t\tlocations")
     if 'location' in metrics:
         module_logger.info("Visualizing location metrics")
         dart.handler.elastic.initialize.InitializeIndex().initialize_locations()
         dart.visualize.location.LocationVisualizer(handlers).execute()
-    print("Start occupations")
+    print(str(datetime.datetime.now())+"\t\toccupations")
     if 'occupation' in metrics:
         module_logger.info("Visualizing occupation metrics")
         dart.handler.elastic.initialize.InitializeIndex().initialize_occupations()

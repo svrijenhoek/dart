@@ -4,6 +4,7 @@ import random
 import string
 import pandas
 import os
+import sys
 
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 BASE_DIR = os.path.dirname(ROOT_DIR)
@@ -23,10 +24,12 @@ def read_full_config_file():
     dictionary['metrics'] = data['metrics']
     dictionary['articles_folder'] = data['articles']['folder']
     dictionary['articles_schema'] = data['articles']['alternative_schema']
+    dictionary['articles_schema_location'] = data['articles']['schema']
     dictionary['popularity_file'] = data['articles']['popularity_file']
 
     dictionary['user_folder'] = data['user']['folder']
     dictionary['user_load'] = data['user']['load']
+    dictionary['user_alternative_schema'] = data['user']['alternative_schema']
     dictionary['user_schema'] = data['user']['schema']
     dictionary['user_number'] = data['user']['number_of_users']
     dictionary['user_topics'] = data['user']['average_topical_interest']
@@ -65,5 +68,15 @@ def read_json_file(file):
 def read_csv(file):
     df = pandas.read_csv(file, sep=';', encoding="ISO-8859-1")
     return df
+
+
+def transform(doc, schema):
+    try:
+        for key, value in schema.items():
+            if value:
+                doc[key] = doc.pop(value)
+        return doc
+    except KeyError:
+        pass
 
 

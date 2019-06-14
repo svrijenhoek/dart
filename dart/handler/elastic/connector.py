@@ -1,4 +1,5 @@
 from elasticsearch import Elasticsearch
+from elasticsearch import helpers
 
 # Class responsible for interacting with the Elasticsearch database. Supports CRUD operations. Might be split up if
 # the need arises.
@@ -22,6 +23,33 @@ class ElasticsearchConnector:
     # add document to the specified elastic index
     def add_document(self, index, doc_type, body):
         self.es.index(index=index, doc_type=doc_type, body=body)
+
+    # add multiple documents at once
+    def add_bulk(self, index, doc_type, bodies):
+        actions = [
+            {
+                "_index": index,
+                "_type": doc_type,
+                "_source": body
+            }
+            for body in bodies
+        ]
+
+        helpers.bulk(self.es, actions)
+
+    def update_bulk(self, index, bodies):
+        actions = [
+            {
+                "_id": body['id'],
+                "_index": index,
+                "_type": '_doc',
+                "_source": {'doc': body},
+                '_op_type': 'update'
+            }
+            for body in bodies
+        ]
+
+        helpers.bulk(self.es, actions)
 
     # update a small part of the given document
     def update_document(self, index, doc_type, docid, body):

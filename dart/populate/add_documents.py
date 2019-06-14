@@ -17,20 +17,19 @@ class AddDocuments:
     By default, if no popularity metric is specified, it is set to 'no'.
     """
 
-    def __init__(self, folder):
-        self.root = folder
+    def __init__(self, config):
+        self.root = config['articles_folder']
         self.connector = ElasticsearchConnector()
         self.searcher = ArticleHandler(self.connector)
-
-        self.count_total = 0
-        self.count_fault = 0
-        self.count_success = 0
+        self.alternative_schema = config["articles_schema"]
+        if self.alternative_schema == "Y":
+            self.schema = Util.read_json_file(config["articles_schema_location"])
+        self.queue = []
 
     def add_document(self, doc):
         # see if the user has specified their own id. If this is the case, use this in Elasticsearch,
         # otherwise generate a new one based on the title and publication date
         # TO DO: see if this is necessary!
-
         try:
             doc['text'] = doc['text'].replace('|', ' ')
         except KeyError:
@@ -40,17 +39,8 @@ class AddDocuments:
         except KeyError:
             pass
 
-        if 'id' not in doc:
-            try:
-                doc_id = Util.generate_hash(doc['title'] + doc['publication_date'])
-                doc['id'] = doc_id
-            except KeyError:
-                return -1
-
         body = json.dumps(doc)
-        module_logger.info('Added document: '+doc['title'])
-        self.connector.add_document('articles', '_doc', body)
-        return 1
+        self.queue.append(body)
 
     def execute(self):
         # iterate over all the files in the data folder
@@ -58,15 +48,13 @@ class AddDocuments:
             for name in files:
                 # assumes all files are json-l, change this to something more robust!
                 for line in open((os.path.join(path, name))):
-                    self.count_total += 1
                     json_doc = json.loads(line)
-                    success = self.add_document(json_doc)
-                    self.count_total += 1
-                    if success == 1:
-                        self.count_success += 1
-                    else:
-                        self.count_fault += 1
-
-        module_logger.info("Total number of documents: "+str(self.count_total))
-        module_logger.info("Errors: "+str(self.count_fault))
-        module_logger.info("Success: "+str(self.count_success))
+                    if self.alternative_schema == "Y":
+                        json_doc = Util.transform(json_doc, self.schema)
+                    if json_doc:
+                        self.add_document(json_doc)
+                    if len(self.queue) > 0 and len(self.queue) % 200 == 0:
+                        self.connector.add_bulk('articles', '_doc', self.queue)
+                        self.queue = []
+        if self.queue:
+            self.connector.add_bulk('articles', '_doc', self.queue)

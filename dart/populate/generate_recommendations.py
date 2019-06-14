@@ -41,6 +41,8 @@ class RunRecommendations:
 
         self.users = self.handlers.users.get_all_users()
 
+        self.queue = []
+
     @staticmethod
     def create_json_doc(user_id, date, recommendation_type, article):
         doc = {
@@ -63,7 +65,9 @@ class RunRecommendations:
 
     def add_document(self, date, user_id, rec_type, article):
         doc = self.create_json_doc(user_id, date, rec_type, article)
-        self.handlers.recommendations.add_recommendation(doc)
+        self.queue.append(doc)
+        if len(self.queue) % 100 == 0:
+            self.handlers.recommendations.add_bulk(self.queue)
 
     def generate_recommendations(self, user, date, upper, lower, generator):
         # generate random selection
@@ -85,7 +89,6 @@ class RunRecommendations:
     def execute(self):
         # go over every date specified in the config file
         for date in self.dates:
-            print(date)
             # define the timerange for retrieving documents
             upper = datetime.strptime(date, '%d-%m-%Y')
             lower = upper - timedelta(days=self.timerange)
@@ -102,5 +105,6 @@ class RunRecommendations:
                 except KeyError:
                     print("Help, a Key Error occurred!")
                     continue
-            print(count)
+        if len(self.queue) > 0:
+            self.handlers.recommendations.add_bulk(self.queue)
 

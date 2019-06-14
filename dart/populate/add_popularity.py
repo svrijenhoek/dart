@@ -55,7 +55,7 @@ class PopularityQueue:
                 title = row[3]
                 popularity = row[2].replace(',', '')
                 article = self.searcher.get_field_with_value('title', title)[0]
-                self.searcher.update(article.id, 'popularity.facebook_share', int(popularity))
+                self.searcher.update(article.id, 'popularity', int(popularity))
 
 
 def main(argv):

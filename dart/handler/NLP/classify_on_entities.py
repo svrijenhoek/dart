@@ -16,8 +16,7 @@ class Classifier:
         try:
             return df1.iloc[0].classification
         except IndexError:
-            print(occupation)
-            return 'Onbekend'
+            return 'onbekend'
 
     def classify(self, entities):
         people_types = defaultdict(int)
