@@ -25,11 +25,11 @@
   },
   "user": {
     "load": "Y",
-    "append": "N",
+    "append": "Y",
     "folder": "data\\users\\",
     "alternative_schema": "Y",
     "schema": "data\\schemas\\user.json",
-    "number_of_users": 50,
+    "number_of_users": 10,
     "average_topical_interest": 3,
     "average_spread_per_interest": 15,
     "size_popular_stories": 100,
@@ -37,10 +37,10 @@
     "reading_history_based_on": "title"
   },
   "recommendations": {
-    "load": "N",
+    "load": "Y",
     "append": "N",
-    "folder": "..\\data\\recommendations\\",
-    "schema": "..\\data\\schemas\\recommendation.json",
+    "folder": "data\\recommendations\\",
+    "schema": "data\\schemas\\recommendation.json",
     "baseline_recommendations": ["random", "most_popular", "more_like_this"],
     "range": 3,
     "size": 8,
@@ -57,26 +57,5 @@
       "01-11-2017",
       "01-12-2017"
     ]
-  },
-  "schemas": {
-    "articles": {
-      "id": "id",
-      "title": "title",
-      "text": "text",
-      "doctype": "doctype",
-      "popularity": "popularity",
-      "publication_date": "publication_date",
-      "url": "url"
-    },
-    "users": {
-      "id": "id",
-      "reading_history": "reading_history"
-    },
-    "recommendations": {
-      "date": "date",
-      "user_id": "user_id",
-      "recommendation_type": "recommendation_type",
-      "article_id": "article_id"
-    }
   }
 }

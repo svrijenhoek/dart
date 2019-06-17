@@ -80,13 +80,13 @@ class UserSimulator:
                                 json_doc['reading_history'] = self.simulate_reading_history()
                         body = json.dumps(json_doc)
                         self.handlers.users.add_user(body)
-        else:
-            # simulate user data
-            for _ in range(0, self.n_users):
-                reading_history = self.simulate_reading_history()
-                json_doc = {
-                    "reading_history": reading_history
-                }
-                body = json.dumps(json_doc)
-                self.handlers.users.add_user(body)
+        # else:
+        # simulate user data
+        for _ in range(0, self.n_users):
+            reading_history = self.simulate_reading_history()
+            json_doc = {
+                "reading_history": reading_history
+            }
+            body = json.dumps(json_doc)
+            self.handlers.users.add_user(body)
 
