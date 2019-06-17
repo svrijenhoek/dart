@@ -46,7 +46,9 @@ class BaseHandler:
                 "match_all": {},
             }
         }
-        sid, scroll_size = self.connector.execute_search_with_scroll(index, body)
+        sid, scroll_size, result = self.connector.execute_search_with_scroll(index, body)
+        for hit in result['hits']['hits']:
+            docs.append(hit)
         # Start retrieving documents
         while scroll_size > 0:
             result = self.connector.scroll(sid, '2m')

@@ -116,7 +116,9 @@ class ArticleHandler(BaseHandler):
                 {"popularity.facebook_share": {"order": "desc", "mode": "max", "unmapped_type": "long"}}
             ]
         }
-        sid, scroll_size = self.connector.execute_search_with_scroll('articles', body)
+        sid, scroll_size, result = self.connector.execute_search_with_scroll('articles', body)
+        for hit in result['hits']['hits']:
+            docs.append(hit)
         # Start retrieving documents
         while scroll_size > 0:
             result = self.connector.scroll(sid, '2m')

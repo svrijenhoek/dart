@@ -4,10 +4,10 @@ import random
 import string
 import pandas
 import os
-import sys
 
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 BASE_DIR = os.path.dirname(ROOT_DIR)
+
 
 def read_config_file():
     with open(os.path.join(BASE_DIR, 'config.json')) as json_data_file:
