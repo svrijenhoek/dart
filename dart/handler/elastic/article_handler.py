@@ -113,7 +113,7 @@ class ArticleHandler(BaseHandler):
                 }
             }},
             "sort": [
-                {"popularity.facebook_share": {"order": "desc", "mode": "max", "unmapped_type": "long"}}
+                {"popularity": {"order": "desc", "mode": "max", "unmapped_type": "long"}}
             ]
         }
         sid, scroll_size, result = self.connector.execute_search_with_scroll('articles', body)

@@ -32,6 +32,9 @@ class InitializeIndex:
                         "text": {
                             "type": "text",
                             "term_vector": "with_positions_offsets",
+                        },
+                        "popularity": {
+                            "type": "integer"
                         }
                     }
                 }
