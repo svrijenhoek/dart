@@ -4,10 +4,10 @@ import random
 import string
 import pandas
 import os
-import sys
 
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 BASE_DIR = os.path.dirname(ROOT_DIR)
+
 
 def read_config_file():
     with open(os.path.join(BASE_DIR, 'config.json')) as json_data_file:
@@ -36,6 +36,7 @@ def read_full_config_file():
     dictionary['user_spread'] = data['user']['average_spread_per_interest']
     dictionary['user_popular'] = data['user']['size_popular_stories']
     dictionary['user_random'] = data['user']['size_random']
+    dictionary['user_reading_history_based_on'] = data['user']['reading_history_based_on']
 
     dictionary['recommendations_folder'] = data['recommendations']['folder']
     dictionary['recommendations_load'] = data['recommendations']['load']

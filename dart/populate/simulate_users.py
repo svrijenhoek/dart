@@ -18,6 +18,7 @@ class UserSimulator:
             self.alternative_schema = config["user_alternative_schema"]
             self.folder = config["user_folder"]
             self.schema = Util.read_json_file(config['user_schema'])
+            self.user_reading_history_based_on = config["user_reading_history_based_on"]
 
     def simulate_similar_to_topic(self, n_topics, n_spread):
         reading_history = []
@@ -56,6 +57,13 @@ class UserSimulator:
         reading_history = similar_to_topic + popular_articles + random_articles
         return reading_history
 
+    def reading_history_to_ids(self, titles):
+        ids = []
+        for title in titles:
+            article = self.handlers.articles.get_field_with_value('title', title)[0]
+            ids.append(article.id)
+        return ids
+
     def execute(self):
         if self.load_users == "Y":
             for path, _, files in os.walk(self.folder):
@@ -65,17 +73,20 @@ class UserSimulator:
                         json_doc = json.loads(line)
                         if self.alternative_schema == "Y":
                             json_doc = Util.transform(json_doc, self.schema)
-                            if 'reading_history' not in json_doc:
+                            if 'reading_history' in json_doc:
+                                if self.user_reading_history_based_on == "title":
+                                    json_doc['reading_history'] = self.reading_history_to_ids(json_doc['reading_history'])
+                            else:
                                 json_doc['reading_history'] = self.simulate_reading_history()
                         body = json.dumps(json_doc)
                         self.handlers.users.add_user(body)
-        else:
-            # simulate user data
-            for _ in range(0, self.n_users):
-                reading_history = self.simulate_reading_history()
-                json_doc = {
-                    "reading_history": reading_history
-                }
-                body = json.dumps(json_doc)
-                self.handlers.users.add_user(body)
+        # else:
+        # simulate user data
+        for _ in range(0, self.n_users):
+            reading_history = self.simulate_reading_history()
+            json_doc = {
+                "reading_history": reading_history
+            }
+            body = json.dumps(json_doc)
+            self.handlers.users.add_user(body)
 

@@ -46,11 +46,8 @@ def main():
     if es.indices.exists(index="users") and config["append"] == "N":
         elastic_connector.clear_index('users')
         module_logger.info("User index removed")
-    if config['user_load'] == "Y":
-        module_logger.warning("Loading user data to be implemented")
-    else:
-        module_logger.info("Simulating user data")
-        dart.populate.simulate_users.UserSimulator(config, handlers).execute()
+    module_logger.info("Simulating user data")
+    dart.populate.simulate_users.UserSimulator(config, handlers).execute()
 
     # step 3: simulate recommendations
     print(str(datetime.datetime.now())+"\tloading recommendations")
@@ -58,11 +55,8 @@ def main():
         # delete index
         elastic_connector.clear_index('recommendations')
         module_logger.info("Recommendations index removed")
-    if config['recommendations_load'] == 'Y':
-        module_logger.warning("Loading recommendation data to be implemented")
-    if not config['baseline_recommendations'] == []:
-        module_logger.info("Generating baseline recommendations")
-        dart.populate.generate_recommendations.RunRecommendations(config, handlers).execute()
+    module_logger.info("Generating baseline recommendations")
+    dart.populate.generate_recommendations.RunRecommendations(config, handlers).execute()
 
     # step 4: enrich data of recommended articles
     print(str(datetime.datetime.now())+"\tenriching articles")

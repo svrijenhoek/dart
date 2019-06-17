@@ -14,8 +14,8 @@ class ElasticsearchConnector:
         return response['hits']['hits']
 
     def execute_search_with_scroll(self, index, body):
-        response = self.es.search(index=index, scroll='1m', body=body)
-        return response['_scroll_id'], response['hits']['total']
+        response = self.es.search(index=index, scroll='2m', body=body)
+        return response['_scroll_id'], response['hits']['total'], response
 
     def scroll(self, sid, scroll):
         return self.es.scroll(scroll_id=sid, scroll=scroll)
