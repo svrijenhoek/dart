@@ -79,7 +79,7 @@ class Enricher:
                         doc['classification'] = classification
                     doc['annotated'] = 'Y'
                     self.handlers.articles.update_doc(article.id, doc)
-                    self.enricher.save()
+            self.enricher.save()
         except ConnectionError:
             self.enricher.save()
             print("Connection error!")

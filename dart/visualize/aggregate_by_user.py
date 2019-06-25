@@ -18,9 +18,11 @@ class AggregateRecommendations:
 
     def execute(self):
         # iterate over all recommendations generated for all users
-        for recommendation_type in self.handlers.recommendations.get_recommendation_types():
+        types = self.handlers.recommendations.get_recommendation_types()
+        for recommendation_type in types:
             for user in self.handlers.users.get_all_users():
-                style = self.style_calculator.get_metrics(user.id, recommendation_type)
+                recommendations = self.handlers.recommendations.get_recommendations_to_user(user.id, recommendation_type)
+                style = self.style_calculator.get_metrics(recommendations)
                 personalization = self.personalization_calculator.get_personalization(user.id, recommendation_type)
                 cosine = self.cosine_calculator.calculate(user.id, recommendation_type)
                 if not style == [0, 0, 0, 0, {}]:

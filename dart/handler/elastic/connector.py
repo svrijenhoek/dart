@@ -1,5 +1,6 @@
 from elasticsearch import Elasticsearch
 from elasticsearch import helpers
+import json
 
 # Class responsible for interacting with the Elasticsearch database. Supports CRUD operations. Might be split up if
 # the need arises.
@@ -26,14 +27,22 @@ class ElasticsearchConnector:
 
     # add multiple documents at once
     def add_bulk(self, index, doc_type, bodies):
-        actions = [
-            {
-                "_index": index,
-                "_type": doc_type,
-                "_source": body
-            }
-            for body in bodies
-        ]
+        actions = []
+        for body in bodies:
+            dump = json.dumps(body)
+            if 'id' in body:
+                actions.append({
+                        "_id": body['id'],
+                        "_index": index,
+                        "_type": doc_type,
+                        "_source": dump
+                })
+            else:
+                actions.append({
+                        "_index": index,
+                        "_type": doc_type,
+                        "_source": body
+                    })
 
         helpers.bulk(self.es, actions)
 

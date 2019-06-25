@@ -13,8 +13,7 @@ class Style:
         except TypeError:
             return 0
 
-    def get_metrics(self, user_id, recommendation_type):
-        recommendations = self.handlers.recommendations.get_recommendations_to_user(user_id, recommendation_type)
+    def get_metrics(self, recommendations):
         popularity = []
         nwords = []
         nsentences = []
@@ -25,7 +24,7 @@ class Style:
             nwords.append(article.nwords)
             nsentences.append(article.nsentences)
             complexity.append(article.complexity)
-            popularity.append(article.popularity)
+            popularity.append(float(article.popularity))
             for tag in article.tag_percentages:
                 if tag in tags:
                     tags[tag].append(article.tag_percentages[tag])

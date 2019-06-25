@@ -23,6 +23,7 @@ class RecommendationHandler(BaseHandler):
 
     def get_recommendations_to_user(self, user_id, recommendation_type):
         body = {
+            "size": 10000,
             "query": {
                 "bool": {
                     "must": [
@@ -46,16 +47,22 @@ class RecommendationHandler(BaseHandler):
     # common method for going through all articles in the articles index
     def get_recommendation_types(self):
         body = {
-            "aggs": {
-               "values": {
-                 "cardinality": {
-                   "field": 'recommendation.type.keyword'
-                 }
-                },
+              "query": {
+                "match_all": {}
+              },
+              "aggregations": {
+                "label_agg": {
+                  "terms": {
+                    "field": "recommendation.type",
+                    "size": 100
+                  }
+                }
+              }
             }
-        }
-        output = self.connector.execute_search('recommendations', body)
-        return [entry['_source']['recommendation']['type'] for entry in output]
+        response = self.connector.execute_search('recommendations', body)
+        output = [entry['_source']['recommendation']['type'] for entry in response]
+        output_set = set(output)
+        return list(output_set)
 
     # retrieves all recommendations found in the elasticsearch index
     def initialize(self):

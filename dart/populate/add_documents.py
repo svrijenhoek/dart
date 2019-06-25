@@ -38,9 +38,7 @@ class AddDocuments:
             del doc['htmlsource']
         except KeyError:
             pass
-
-        body = json.dumps(doc)
-        self.queue.append(body)
+        self.queue.append(doc)
 
     def execute(self):
         # iterate over all the files in the data folder

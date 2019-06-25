@@ -67,7 +67,7 @@ class ArticleHandler(BaseHandler):
         body = {
             "size": size,
             "sort": [
-                {"popularity.facebook_share": {"order": "desc", "mode": "max", "unmapped_type": "long"}}
+                {"popularity": {"order": "desc", "mode": "max", "unmapped_type": "long"}}
             ],
             "query": {
                 "match_all": {},
