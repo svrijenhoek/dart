@@ -18,7 +18,7 @@ class Classifier:
         except IndexError:
             return 'onbekend'
 
-    def classify(self, entities):
+    def classify_type(self, entities):
         people_types = defaultdict(int)
         for entity in (entity for entity in entities if entity['label'] == 'PER'):
             types = defaultdict(int)
@@ -42,3 +42,26 @@ class Classifier:
             return max(people_types.items(), key=lambda a: a[1])[0]
         else:
             return 'onbekend'
+
+    @staticmethod
+    def classify_scope(entities):
+        loc = 0
+        glob = 0
+        for entity in (entity for entity in entities if entity['label'] == 'LOC'):
+            if 'country_code' in entity:
+                if entity['country_code'] == 'NL':
+                    loc += 1
+                else:
+                    glob += 1
+        if loc == 0 and glob == 0:
+            return 'onbekend'
+        elif loc >= glob:
+            return 'local'
+        else:
+            return 'global'
+
+    def classify(self, entities):
+        classification = self.classify_type(entities)
+        scope = self.classify_scope(entities)
+        return classification, scope
+

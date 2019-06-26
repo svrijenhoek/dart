@@ -75,10 +75,12 @@ class Enricher:
                         if 'entities' not in doc:
                             classification = 'Onbekend'
                         else:
-                            classification = self.classifier.classify(doc['entities'])
+                            classification, scope = self.classifier.classify(doc['entities'])
                         doc['classification'] = classification
+                        doc['scope'] = scope
                     doc['annotated'] = 'Y'
                     self.handlers.articles.update_doc(article.id, doc)
+                    self.handlers.recommendations.update_doc(article.id, doc)
             self.enricher.save()
         except ConnectionError:
             self.enricher.save()
