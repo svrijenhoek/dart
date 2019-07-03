@@ -1,6 +1,8 @@
 from dart.handler.elastic.base_handler import BaseHandler
 from dart.models.Article import Article
 
+from datetime import datetime
+
 
 class ArticleHandler(BaseHandler):
 
@@ -115,6 +117,29 @@ class ArticleHandler(BaseHandler):
             "sort": [
                 {"popularity": {"order": "desc", "mode": "max", "unmapped_type": "long"}}
             ]
+        }
+        sid, scroll_size, result = self.connector.execute_search_with_scroll('articles', body)
+        for hit in result['hits']['hits']:
+            docs.append(hit)
+        # Start retrieving documents
+        while scroll_size > 0:
+            result = self.connector.scroll(sid, '2m')
+            sid = result['_scroll_id']
+            scroll_size = len(result['hits']['hits'])
+            for hit in result['hits']['hits']:
+                docs.append(hit)
+        return [Article(i) for i in docs]
+
+    def get_articles_before(self, d):
+        date = datetime.strptime(d, '%d-%m-%Y')
+        full_date = date.strftime('%Y-%m-%dT%H:%M:%S')
+        docs = []
+        body = {
+            'query': {"range": {
+                "publication_date": {
+                    "lt": full_date,
+                }
+            }}
         }
         sid, scroll_size, result = self.connector.execute_search_with_scroll('articles', body)
         for hit in result['hits']['hits']:

@@ -45,6 +45,7 @@ def read_full_config_file():
     dictionary['recommendation_range'] = data['recommendations']['range']
     dictionary['recommendation_size'] = data['recommendations']['size']
     dictionary['recommendation_dates'] = data['recommendations']['dates']
+    dictionary['reading_history_date'] = data['recommendations']['reading_history_date']
     return dictionary
 
 

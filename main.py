@@ -31,16 +31,20 @@ def main():
     es = Elasticsearch()
 
     # step 1: load articles
-    print(str(datetime.datetime.now())+"\tloading articles")
-    if es.indices.exists(index="articles") and config["append"] == "N":
-        # delete index
-        elastic_connector.clear_index('articles')
-        module_logger.info("Index removed")
-    if not es.indices.exists(index="articles"):
-        module_logger.info("Index created")
-        dart.handler.elastic.initialize.InitializeIndex().initialize_articles()
-        module_logger.info("Started adding documents")
-    dart.populate.add_documents.AddDocuments(config).execute()
+    # print(str(datetime.datetime.now())+"\tloading articles")
+    # if es.indices.exists(index="articles") and config["append"] == "N":
+    #     # delete index
+    #     elastic_connector.clear_index('articles')
+    #     module_logger.info("Index removed")
+    # if not es.indices.exists(index="articles"):
+    #     module_logger.info("Index created")
+    #     dart.handler.elastic.initialize.InitializeIndex().initialize_articles()
+    #     module_logger.info("Started adding documents")
+    # dart.populate.add_documents.AddDocuments(config).execute()
+
+    # step 1.5: annotate reading history
+    print(str(datetime.datetime.now())+"\tenriching base articles")
+    dart.populate.enrich_articles.Enricher(handlers, config).enrich_base()
 
     # step 2: simulate users
     print(str(datetime.datetime.now())+"\tloading users")
