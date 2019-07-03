@@ -21,6 +21,14 @@ class RecommendationHandler(BaseHandler):
             self.all_recommendations = [Recommendation(i) for i in recommendations]
         return self.all_recommendations
 
+    def update_doc(self, article_id, doc):
+        recommendations = self.find_recommendations_with_article(article_id)
+        for recommendation in recommendations:
+            body = {
+                "doc": doc
+            }
+            self.connector.update_document('recommendations', '_doc', recommendation.id, body)
+
     def get_recommendations_to_user(self, user_id, recommendation_type):
         body = {
             "size": 10000,
@@ -63,6 +71,18 @@ class RecommendationHandler(BaseHandler):
         output = [entry['_source']['recommendation']['type'] for entry in response]
         output_set = set(output)
         return list(output_set)
+
+    def find_recommendations_with_article(self, article_id):
+        body = {
+            "size": 10000,
+            "query": {
+                "match": {
+                    'article.id': article_id
+                }
+             }
+        }
+        response = self.connector.execute_search('recommendations', body)
+        return [Recommendation(i) for i in response]
 
     # retrieves all recommendations found in the elasticsearch index
     def initialize(self):

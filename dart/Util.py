@@ -76,6 +76,8 @@ def transform(doc, schema):
         for key, value in schema.items():
             if value:
                 doc[key] = doc.pop(value)
+        if 'teaser' in doc and doc['teaser'] not in doc['text']:
+            doc['text'] = doc['teaser'] + '\n' + doc['text']
         return doc
     except KeyError:
         pass

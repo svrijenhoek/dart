@@ -1,5 +1,6 @@
 import logging
 import datetime
+import time
 from elasticsearch import Elasticsearch
 
 import dart.Util
@@ -53,10 +54,11 @@ def main():
     print(str(datetime.datetime.now())+"\tloading recommendations")
     if es.indices.exists(index="recommendations") and config["append"] == "N":
         # delete index
-        elastic_connector.clear_index('recommendations')
+        dart.handler.elastic.initialize.InitializeIndex().initialize_recommendations()
         module_logger.info("Recommendations index removed")
     module_logger.info("Generating baseline recommendations")
     dart.populate.generate_recommendations.RunRecommendations(config, handlers).execute()
+    time.sleep(5)
 
     # step 4: enrich data of recommended articles
     print(str(datetime.datetime.now())+"\tenriching articles")
@@ -67,7 +69,7 @@ def main():
     if 'length' or 'complexity' or 'popularity' or 'personalization' in metrics:
         module_logger.info("Visualizing user aggregations")
         dart.handler.elastic.initialize.InitializeIndex().initialize_aggregated()
-        dart.visualize.aggregate_by_user.AggregateRecommendations(handlers).execute()
+        dart.visualize.aggregate_by_user.Aggregator(handlers).execute()
     print(str(datetime.datetime.now())+"\t\tlocations")
     if 'location' in metrics:
         module_logger.info("Visualizing location metrics")
@@ -80,6 +82,7 @@ def main():
         dart.visualize.occupations.OccupationCalculator(handlers).execute()
 
     # TO DO: ethnicity, source, emotive
+    print(str(datetime.datetime.now()) + "\tdone")
 
 
 if __name__ == "__main__":

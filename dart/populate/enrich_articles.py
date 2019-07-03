@@ -80,6 +80,7 @@ class Enricher:
                         doc['scope'] = scope
                     doc['annotated'] = 'Y'
                     self.handlers.articles.update_doc(article.id, doc)
+                    del doc['tags']
                     self.handlers.recommendations.update_doc(article.id, doc)
             self.enricher.save()
         except ConnectionError:
