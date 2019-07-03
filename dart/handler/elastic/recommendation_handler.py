@@ -8,12 +8,14 @@ class RecommendationHandler(BaseHandler):
         super(RecommendationHandler, self).__init__(connector)
         self.connector = connector
         self.all_recommendations = None
+        self.queue = []
 
     def add_recommendation(self, doc):
         self.connector.add_document('recommendations', '_doc', doc)
 
-    def add_bulk(self, docs):
-        self.connector.add_bulk('recommendations', '_doc', docs)
+    def add_bulk(self):
+        self.connector.add_bulk('recommendations', '_doc', self.queue)
+        self.queue = []
 
     def get_all_recommendations(self):
         if self.all_recommendations is None:
@@ -96,4 +98,28 @@ class RecommendationHandler(BaseHandler):
             table.append([recommendation.user, recommendation.date, recommendation.type, recommendation.article['id']])
         columns = ['user_id', 'date', 'recommendation_type', 'id']
         return pd.DataFrame(table, columns=columns)
+
+    @staticmethod
+    def create_json_doc(user_id, date, recommendation_type, article):
+        doc = {
+            "recommendation": {
+                "user_id": user_id,
+                "date": date,
+                "type": recommendation_type
+            },
+            "article": {
+                "id": article.id,
+                "source": article.doctype,
+                "popularity": int(article.popularity),
+                "publication_date": article.publication_date,
+                "text": article.text,
+                "title": article.title,
+                "url": article.url
+            }
+        }
+        return doc
+
+    def add_to_queue(self, date, user_id, rec_type, article):
+        doc = self.create_json_doc(user_id, date, rec_type, article)
+        self.queue.append(doc)
 

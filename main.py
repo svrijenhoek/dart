@@ -53,6 +53,7 @@ def main():
         module_logger.info("User index removed")
     module_logger.info("Simulating user data")
     dart.populate.simulate_users.UserSimulator(config, handlers).execute()
+    time.sleep(5)
 
     # step 3: simulate recommendations
     print(str(datetime.datetime.now())+"\tloading recommendations")
@@ -66,7 +67,7 @@ def main():
 
     # step 4: enrich data of recommended articles
     print(str(datetime.datetime.now())+"\tenriching articles")
-    dart.populate.enrich_articles.Enricher(handlers, metrics).enrich_all()
+    dart.populate.enrich_articles.Enricher(handlers, config).enrich_all()
 
     # step 5: make visualizations
     print(str(datetime.datetime.now())+"\taggregating data")
