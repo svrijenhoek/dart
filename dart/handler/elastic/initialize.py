@@ -23,7 +23,11 @@ class InitializeIndex:
                         "recommendation.type": {
                             "type": "text",
                             "fielddata": True
-                        }
+                        },
+                        "recommendation.date": {
+                            "type": "date",
+                            "format": "dd-MM-YYYY"
+                        },
                     }
                 }
             }

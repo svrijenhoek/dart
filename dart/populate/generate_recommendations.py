@@ -28,12 +28,12 @@ class RecommendationGenerator:
         return [self.documents[i].id for i in range(int(self.size))]
 
     def generate_more_like_this(self, user, upper, lower):
-        if 'more_like_this' in user.reading_history:
-            reading_history = user.reading_history['more_like_this']
-        else:
-            reading_history = user.reading_history['base']
-        results = self.handlers.articles.more_like_this_history(reading_history, upper, lower)
+        results = self.handlers.articles.more_like_this_history(user, upper, lower)
         return [results[i].id for i in range(min(int(self.size), len(results)))]
+
+    def generate_political(self, user, upper, lower):
+        political_documents = self.handlers.articles.get_political(user, upper, lower)
+        return [political_documents[i].id for i in range(int(self.size))]
 
 
 class RunRecommendations:
@@ -54,24 +54,23 @@ class RunRecommendations:
         # generate random selection
         if 'random' in self.baseline_recommendations:
             random_recommendation = generator.generate_random()
-            for docid in random_recommendation:
-                article = self.handlers.articles.get_by_id(docid)
-                self.handlers.recommendations.add_to_queue(date, user.id, 'random', article)
-            user = self.handlers.users.update_reading_history(user, random_recommendation, 'random')
+            self.handlers.recommendations.add_to_queue(date, user.id, 'random', random_recommendation)
+            user = self.handlers.users.update_reading_history(user, random_recommendation, 'random', date)
         # select most popular
         if 'most_popular' in self.baseline_recommendations:
             most_popular_recommendation = generator.generate_most_popular()
-            for docid in most_popular_recommendation:
-                article = self.handlers.articles.get_by_id(docid)
-                self.handlers.recommendations.add_to_queue(date, user.id, 'most_popular', article)
-            user = self.handlers.users.update_reading_history(user, most_popular_recommendation, 'most_popular')
+            self.handlers.recommendations.add_to_queue(date, user.id, 'most_popular', most_popular_recommendation)
+            user = self.handlers.users.update_reading_history(user, most_popular_recommendation, 'most_popular', date)
         # get more like the user has previously read
         if 'more_like_this' in self.baseline_recommendations:
             more_like_this_recommendation = generator.generate_more_like_this(user, upper, lower)
-            for docid in more_like_this_recommendation:
-                article = self.handlers.articles.get_by_id(docid)
-                self.handlers.recommendations.add_to_queue(date, user.id, 'more_like_this', article)
-            user = self.handlers.users.update_reading_history(user, more_like_this_recommendation, 'more_like_this')
+            self.handlers.recommendations.add_to_queue(date, user.id, 'more_like_this', more_like_this_recommendation)
+            user = self.handlers.users.update_reading_history(user, more_like_this_recommendation, 'more_like_this', date)
+        # get more like the user has previously read
+        if 'political' in self.baseline_recommendations:
+            political_recommendation = generator.generate_political(user, upper, lower)
+            self.handlers.recommendations.add_to_queue(date, user.id, 'political', political_recommendation)
+            user = self.handlers.users.update_reading_history(user, political_recommendation, 'political', date)
         self.handlers.users.update_user(user)
         self.handlers.recommendations.add_bulk()
 

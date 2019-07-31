@@ -16,7 +16,7 @@
     "organization"],
   "append": "N",
   "articles": {
-    "folder": "data\\articles\\with_popularity\\",
+    "folder": "data\\articles\\",
     "alternative_schema": "Y",
     "schema": "data\\schemas\\article.json",
     "preprocessing": "stemming",
@@ -28,7 +28,7 @@
     "folder": "data\\users\\",
     "alternative_schema": "N",
     "schema": "data\\schemas\\user.json",
-    "number_of_users": 50,
+    "number_of_users": 1000,
     "average_topical_interest": 3,
     "average_spread_per_interest": 15,
     "size_popular_stories": 100,
@@ -40,7 +40,7 @@
     "append": "N",
     "folder": "data\\recommendations\\",
     "schema": "data\\schemas\\recommendation.json",
-    "baseline_recommendations": ["random", "most_popular", "more_like_this"],
+    "baseline_recommendations": ["random", "most_popular", "more_like_this", "political"],
     "reading_history_date": "30-06-2017",
     "range": 7,
     "size": 8,
@@ -72,6 +72,29 @@
       "17-12-2017",
       "24-12-2017",
       "31-12-2017"
+    ],
+    "dates_month": [
+      "15-07-2017",
+      "15-08-2017",
+      "15-09-2017",
+      "15-10-2017",
+      "15-11-2017",
+      "15-12-2017"
     ]
-  }
+  },
+  "political_parties": [
+            ["CDA", "Christen-Democratisch Appèl"],
+            ["CU", "ChristenUnie"],
+            ["D66", "Democraten66"],
+            ["FVD", "Forum voor Democratie"],
+            ["GL", "GroenLinks"],
+            ["PvdA", "Partij van de Arbeid"],
+            ["PvdD", "Partij voor de Dieren"],
+            ["PVV", "Partij voor de Vrijheid"],
+            ["SGP", "Staatkundig Gereformeerde Partij"],
+            ["SP", "Socialistische Partij"],
+            ["VVD", "Volkspartij voor Vrijheid en Democratie"],
+            ["50+", "50Plus"],
+            ["Denk", "DENK"]
+        ]
 }

@@ -1,5 +1,6 @@
 from elasticsearch import Elasticsearch
 from elasticsearch import helpers
+from elasticsearch import exceptions
 import json
 
 # Class responsible for interacting with the Elasticsearch database. Supports CRUD operations. Might be split up if
@@ -11,8 +12,21 @@ class ElasticsearchConnector:
         self.es = Elasticsearch(*args, *kwargs)
 
     def execute_search(self, index, body):
+        try:
+            response = self.es.search(index=index, body=body)
+            return response['hits']['hits']
+        except exceptions.RequestError:
+            print("Request error")
+            print(body)
+            return []
+
+    def execute_multiget(self, index, body):
+        response = self.es.mget(index=index, body=body)
+        return response['docs']
+
+    def execute_aggregation(self, index, body, aggregation):
         response = self.es.search(index=index, body=body)
-        return response['hits']['hits']
+        return response['aggregations'][aggregation]
 
     def execute_search_with_scroll(self, index, body):
         response = self.es.search(index=index, scroll='2m', body=body)

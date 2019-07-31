@@ -30,7 +30,7 @@ class PopularityQueue:
     def add_popularity(self, docid, share_count):
         self.module_logging.info("Share count: %d" % share_count)
         body = {
-            "doc": {"popularity": {"facebook_share": int(share_count)}}}
+            "doc": {"popularity": int(share_count)}}
         self.connector.update_document('articles', '_doc', docid, body)
 
     def execute(self):

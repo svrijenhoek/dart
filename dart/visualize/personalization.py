@@ -24,7 +24,8 @@ class Personalization:
         recommendations = self.handlers.recommendations.get_all_recommendations()
         table = []
         for recommendation in recommendations:
-            table.append([recommendation.user, recommendation.date, recommendation.type, recommendation.article['id']])
+            for article_id in recommendation.articles:
+                table.append([recommendation.user, recommendation.date, recommendation.type, article_id])
         columns = ['user_id', 'date', 'recommendation_type', 'id']
         return pd.DataFrame(table, columns=columns)
 

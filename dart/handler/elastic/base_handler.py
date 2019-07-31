@@ -39,6 +39,10 @@ class BaseHandler:
         output = self.connector.execute_search(index, body)
         return output[0]
 
+    def get_multiple_by_docid(self, index, docids):
+        body = {'ids': docids}
+        return self.connector.execute_multiget(index, body)
+
     def get_all_documents(self, index):
         docs = []
         body = {

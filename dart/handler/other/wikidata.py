@@ -18,8 +18,8 @@ class WikidataHandler:
         try:
             r = requests.get(self.url, params={'format': 'json', 'query': query})
             return r
-        except ConnectionAbortedError:
-            return
+        except (ConnectionAbortedError, ConnectionError):
+            return ConnectionError
 
     @staticmethod
     def read_response(response, label):

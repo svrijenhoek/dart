@@ -46,6 +46,7 @@ def read_full_config_file():
     dictionary['recommendation_size'] = data['recommendations']['size']
     dictionary['recommendation_dates'] = data['recommendations']['dates']
     dictionary['reading_history_date'] = data['recommendations']['reading_history_date']
+    dictionary["political_parties"] = data["political_parties"]
     return dictionary
 
 

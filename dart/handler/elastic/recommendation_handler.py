@@ -23,6 +23,32 @@ class RecommendationHandler(BaseHandler):
             self.all_recommendations = [Recommendation(i) for i in recommendations]
         return self.all_recommendations
 
+    def get_recommendations_at_date(self, date, recommendation_type):
+        body = {
+            "size": 500,
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "match": {
+                                "recommendation.date": {
+                                    "query": date,
+                                    "operator": "and"
+                                }
+                            }
+                        },
+                        {
+                            "match": {
+                                "recommendation.type": recommendation_type
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+        response = self.connector.execute_search('recommendations', body)
+        return [Recommendation(i) for i in response]
+
     def update_doc(self, article_id, doc):
         recommendations = self.find_recommendations_with_article(article_id)
         for recommendation in recommendations:
@@ -57,29 +83,22 @@ class RecommendationHandler(BaseHandler):
     # common method for going through all articles in the articles index
     def get_recommendation_types(self):
         body = {
-              "query": {
-                "match_all": {}
-              },
-              "aggregations": {
-                "label_agg": {
-                  "terms": {
-                    "field": "recommendation.type",
-                    "size": 100
-                  }
+              "aggs": {
+                "recommendation_types": {
+                    "terms": {"field": "recommendation.type"}
                 }
               }
             }
-        response = self.connector.execute_search('recommendations', body)
-        output = [entry['_source']['recommendation']['type'] for entry in response]
-        output_set = set(output)
-        return list(output_set)
+        response = self.connector.execute_aggregation('recommendations', body, 'recommendation_types')
+        output = [entry['key'] for entry in response['buckets']]
+        return output
 
     def find_recommendations_with_article(self, article_id):
         body = {
             "size": 10000,
             "query": {
                 "match": {
-                    'article.id': article_id
+                    'articles': article_id
                 }
              }
         }
@@ -95,27 +114,20 @@ class RecommendationHandler(BaseHandler):
         recommendations = self.get_all_recommendations()
         table = []
         for recommendation in recommendations:
-            table.append([recommendation.user, recommendation.date, recommendation.type, recommendation.article['id']])
+            for article_id in recommendation.articles:
+                table.append([recommendation.user, recommendation.date, recommendation.type, article_id])
         columns = ['user_id', 'date', 'recommendation_type', 'id']
         return pd.DataFrame(table, columns=columns)
 
     @staticmethod
-    def create_json_doc(user_id, date, recommendation_type, article):
+    def create_json_doc(user_id, date, recommendation_type, articles):
         doc = {
             "recommendation": {
                 "user_id": user_id,
                 "date": date,
                 "type": recommendation_type
             },
-            "article": {
-                "id": article.id,
-                "source": article.doctype,
-                "popularity": int(article.popularity),
-                "publication_date": article.publication_date,
-                "text": article.text,
-                "title": article.title,
-                "url": article.url
-            }
+            "articles": articles
         }
         return doc
 

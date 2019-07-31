@@ -48,7 +48,7 @@ class ArticleHandler(BaseHandler):
         popularity of articles.
         """
         body = {
-            "size": 1000,
+            "size": 5000,
             "query": {
                 "bool": {
                     "must_not": {
@@ -157,6 +157,10 @@ class ArticleHandler(BaseHandler):
     def get_by_id(self, docid):
         return Article(super(ArticleHandler, self).get_by_docid('articles', docid))
 
+    def get_multiple_by_id(self, docids):
+        docs = super(ArticleHandler, self).get_multiple_by_docid('articles', docids)
+        return [Article(doc) for doc in docs]
+
     def get_by_url(self, index, url):
         body = {
             "query": {
@@ -180,11 +184,42 @@ class ArticleHandler(BaseHandler):
         response = self.connector.execute_search('articles', body)
         return [Article(i) for i in response]
 
-    def more_like_this_history(self, reading_history, upper, lower):
+    def get_political(self, user, upper, lower):
+        upper = upper.strftime('%Y-%m-%dT%H:%M:%S')
+        lower = lower.strftime('%Y-%m-%dT%H:%M:%S')
+
+        body = {
+            'size': 1000,
+            'query': {
+                "bool": {
+                    "must": [
+                        {"range": {
+                            "publication_date": {
+                                "lt": upper,
+                                "gte": lower
+                            }
+                        }},
+                        {"term": {"classification.keyword": 'politiek'}},
+                    ],
+                    "should": [
+                        {"term": {"entities.text.keyword": user.party_preference[0]}},
+                        {"term": {"entities.parties.keyword": user.party_preference[0]}},
+                        {"term": {"entities.text.keyword": user.party_preference[1]}},
+                        {"term": {"entities.parties.keyword": user.party_preference[1]}},
+                    ],
+                }
+            }
+        }
+        response = self.connector.execute_search('articles', body)
+        return [Article(i) for i in response]
+
+    def more_like_this_history(self, user, upper, lower):
         """
         used in the 'more like this' recommendation generator. Finds more articles based on the users reading history
         """
-
+        reading_history = user.select_reading_history(lower, 'more_like_this')
+        upper = upper.strftime('%Y-%m-%dT%H:%M:%S')
+        lower = lower.strftime('%Y-%m-%dT%H:%M:%S')
         like_query = [{"_index": "articles", "_id": doc} for doc in reading_history]
         body = {
             'query': {
@@ -197,12 +232,50 @@ class ArticleHandler(BaseHandler):
                             }
                         },
                     },
-                    "should": {
-                        "more_like_this": {
+                    "should": [
+                        {"term": {"classification.keyword": user.classification_preference}},
+                        {"term": {"doctype.keyword": user.source_preference}},
+                        {"range": {
+                            "complexity": {
+                                "gte": user.complexity_preference+5,
+                                "lte": user.complexity_preference-5,
+                            }
+                        }},
+                        {"more_like_this": {
                             "fields": ['text'],
                             "like": like_query
-                        }
-                    }
+                        }}
+                    ]
+                }
+            }
+        }
+        response = self.connector.execute_search('articles', body)
+        return [Article(i) for i in response]
+
+    def simulate_reading_history(self, d, classification, source, complexity, size):
+        date = datetime.strptime(d, '%d-%m-%Y')
+        full_date = date.strftime('%Y-%m-%dT%H:%M:%S')
+        body = {
+            "size": size,
+            "query": {
+                "bool": {
+                    "must": {
+                        "range": {
+                            "publication_date": {
+                                "lt": full_date,
+                            }
+                        },
+                    },
+                    "should": [
+                        {"term": {"classification.keyword": classification}},
+                        {"term": {"doctype.keyword": source}},
+                        {"range": {
+                            "complexity": {
+                                "gte": complexity+5,
+                                "lte": complexity-5,
+                            }
+                        }}
+                    ]
                 }
             }
         }

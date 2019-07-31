@@ -69,9 +69,9 @@ class Enricher:
             doc['tag_percentages'] = percentages
         if 'classify' in self.metrics:
             if 'entities' not in doc:
-                classification = 'Onbekend'
+                classification = 'onbekend'
             else:
-                classification, scope = self.classifier.classify(doc['entities'])
+                classification, scope = self.classifier.classify(doc['entities'], doc['text'])
             doc['classification'] = classification
             doc['scope'] = scope
         doc['annotated'] = 'Y'
@@ -89,10 +89,16 @@ class Enricher:
     def enrich_recommendations(self):
         try:
             recommendations = self.handlers.recommendations.get_all_recommendations()
+            count = 0
             for recommendation in recommendations:
-                article = self.handlers.articles.get_by_id(recommendation.article_id)
-                if not article.annotated == 'Y':
-                    self.annotate_document(article)
+                for article_id in recommendation.articles:
+                    article = self.handlers.articles.get_by_id(article_id)
+                    if not article.annotated == 'Y':
+                        self.annotate_document(article)
+                        count += 1
+                    if count == 100:
+                        self.enricher.save()
+                        count = 0
             self.enricher.save()
         except ConnectionError:
             self.enricher.save()

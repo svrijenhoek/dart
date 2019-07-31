@@ -2,6 +2,7 @@ import dart.handler.elastic.article_handler
 import dart.handler.elastic.recommendation_handler
 import dart.handler.elastic.user_handler
 import dart.handler.elastic.output_handler
+import dart.handler.elastic.story_handler
 import dart.handler.elastic.connector
 
 
@@ -24,3 +25,4 @@ class Handlers:
         self.users = dart.handler.elastic.user_handler.UserHandler(elastic_connector)
         self.recommendations = dart.handler.elastic.recommendation_handler.RecommendationHandler(elastic_connector)
         self.output = dart.handler.elastic.output_handler.OutputHandler(elastic_connector)
+        self.stories = dart.handler.elastic.story_handler.StoryHandler(elastic_connector)
