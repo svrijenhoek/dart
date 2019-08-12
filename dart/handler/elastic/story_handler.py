@@ -51,3 +51,17 @@ class StoryHandler(BaseHandler):
         }
         response = self.connector.execute_search('stories', body)
         return [Story(i) for i in response]
+
+    def get_story_with_id(self, docid):
+        body = {
+            "query": {
+                "match": {
+                    "docids": {
+                        "query": docid,
+                        "operator": "and"
+                    }
+                }
+            }
+        }
+        response = self.connector.execute_search('stories', body)
+        return Story(response[0])

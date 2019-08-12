@@ -1,4 +1,3 @@
-import sys
 import dart.handler.elastic.connector
 import dart.models.Handlers
 import dart.handler.NLP.cosine_similarity

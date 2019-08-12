@@ -3,6 +3,8 @@ import dart.visualize.FAT.personalization
 import dart.visualize.FAT.coverage
 import dart.visualize.FAT.politicalness
 import dart.visualize.FAT.attention_distribution
+import dart.visualize.FAT.defragmentation
+import dart.visualize.FAT.complexity
 import matplotlib.pyplot as plt
 
 from datetime import datetime
@@ -36,6 +38,10 @@ class FATCalculator:
         # dart.visualize.FAT.personalization.Personalization(self.handlers, self.config).execute()
         print(str(datetime.now()) + "\t Attention distribution")
         dart.visualize.FAT.attention_distribution.AttentionDistribution(self.handlers, self.config).execute()
+        print(str(datetime.now()) + "\t Defragmentation")
+        dart.visualize.FAT.defragmentation.Defragmentation(self.handlers, self.config).execute()
+        print(str(datetime.now()) + "\t Complexity")
+        dart.visualize.FAT.complexity.Complexity(self.handlers, self.config).execute()
         print(str(datetime.now()) + "\t Done")
         plt.show()
 

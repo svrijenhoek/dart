@@ -11,7 +11,7 @@ import dart.populate.generate_recommendations
 import dart.visualize.aggregate_by_user
 import dart.visualize.location
 import dart.visualize.occupations
-import dart.visualize.personalization
+import dart.visualize.personalization_old
 import dart.visualize.FAT_calculations
 import dart.models.Handlers
 import dart.populate.enrich_articles

@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from collections import Counter
 
 
-class AttentionDistribution():
+class AttentionDistribution:
 
     def __init__(self, handlers, config):
         self.handlers = handlers
@@ -25,18 +25,19 @@ class AttentionDistribution():
             for recommendation_type in self.handlers.recommendations.get_recommendation_types():
                 recommendations = self.handlers.recommendations.get_recommendations_at_date(date, recommendation_type)
                 distances = []
-                party_data[recommendation_type] = Counter()
+                if recommendation_type not in party_data:
+                    party_data[recommendation_type] = Counter()
                 for recommendation in recommendations:
                     articles = self.handlers.articles.get_multiple_by_id(recommendation.articles)
                     distance, diff = self.calculate(pool, articles)
                     distances.append(distance)
-                    too_big = self.political_parties[:, 0][diff > 0.5]
+                    too_big = self.political_parties[:, 0][diff > 0.2]
                     for party in too_big:
                         party_data[recommendation_type][party] += 1
                 data.append({'date': date, 'type': recommendation_type, 'distance': np.mean(distances)})
         df = pd.DataFrame(data)
         self.visualize(df)
-        print(party_data)
+        self.visualize_party(party_data)
 
     def calculate(self, pool, recommendations):
         pool_vector = self.make_vector(pool)
@@ -84,5 +85,43 @@ class AttentionDistribution():
         df.groupby('type')['distance'].plot(legend=True)
         plt.draw()
         print(df.groupby('type')['distance'].mean())
+
+    def visualize_party(self, data):
+        plt.figure()
+        labels = self.political_parties[:, 0]
+        # set width of bar
+        barWidth = 0.20
+
+        for recommendation_type in data:
+            for label in labels:
+                if label not in data[recommendation_type]:
+                    data[recommendation_type][label] = 0
+
+        # set height of bar
+        bars1 = [data['random'][label] for label in labels]
+        bars2 = [data['most_popular'][label] for label in labels]
+        bars3 = [data['more_like_this'][label] for label in labels]
+        bars4 = [data['political'][label] for label in labels]
+
+        # Set position of bar on X axis
+        r1 = np.arange(len(bars1))
+        r2 = [x + barWidth for x in r1]
+        r3 = [x + barWidth for x in r2]
+        r4 = [x + barWidth for x in r3]
+
+        # Make the plot
+        plt.bar(r1, bars1, width=barWidth, edgecolor='white', label='random')
+        plt.bar(r2, bars2, width=barWidth, edgecolor='white', label='most_popular')
+        plt.bar(r3, bars3, width=barWidth, edgecolor='white', label='more_like_this')
+        plt.bar(r4, bars4, width=barWidth, edgecolor='white', label='political')
+
+        # Add xticks on the middle of the group bars
+        plt.xlabel('parties', fontweight='bold')
+        plt.xticks([r + barWidth for r in range(len(bars1))], labels)
+
+        # Create legend & Show graphic
+        plt.legend()
+        plt.show()
+
 
 

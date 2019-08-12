@@ -28,7 +28,7 @@
     "folder": "data\\users\\",
     "alternative_schema": "N",
     "schema": "data\\schemas\\user.json",
-    "number_of_users": 1000,
+    "number_of_users": 20,
     "average_topical_interest": 3,
     "average_spread_per_interest": 15,
     "size_popular_stories": 100,

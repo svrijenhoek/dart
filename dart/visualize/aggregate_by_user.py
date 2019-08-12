@@ -1,5 +1,5 @@
 import dart.visualize.style
-import dart.visualize.personalization
+import dart.visualize.personalization_old
 import dart.visualize.cosine
 
 
@@ -13,7 +13,7 @@ class Aggregator:
     def __init__(self, handlers):
         self.handlers = handlers
         self.style_calculator = dart.visualize.style.Style(handlers)
-        self.personalization_calculator = dart.visualize.personalization.Personalization(handlers)
+        self.personalization_calculator = dart.visualize.personalization_old.Personalization(handlers)
         self.cosine_calculator= dart.visualize.cosine.CosineCalculator(handlers)
 
     def aggregate_per_user(self, recommendation_type):

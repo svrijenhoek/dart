@@ -1,6 +1,5 @@
 from dart.handler.elastic.connector import ElasticsearchConnector
 import math
-import numpy as np
 import collections, functools, operator
 from stop_words import get_stop_words
 from statistics import median
