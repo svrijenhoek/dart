@@ -10,3 +10,7 @@ scikit-learn~=0.21
 textpipe~=0.10
 ethnicolr~=0.2
 minimock
+stop_words
+regex
+matplotlib
+
