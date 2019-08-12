@@ -13,4 +13,5 @@ minimock
 stop_words
 regex
 matplotlib
-
+community
+networkx
