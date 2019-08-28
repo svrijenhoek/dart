@@ -15,7 +15,6 @@ class Defragmentation:
     def execute(self):
         data = []
         for date in self.config["recommendation_dates"]:
-            print(date)
             for recommendation_type in self.handlers.recommendations.get_recommendation_types():
                 defragmentations = []
                 recommendations = self.handlers.recommendations.get_recommendations_at_date(date, recommendation_type)
@@ -52,5 +51,6 @@ class Defragmentation:
         df = df.sort_values('date', ascending=True)
         df.set_index('date', inplace=True)
         df.groupby('type')['defragmentation'].plot(legend=True)
+        plt.xticks(rotation='vertical')
         plt.draw()
         print(df.groupby('type')['defragmentation'].mean())

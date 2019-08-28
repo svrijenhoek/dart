@@ -37,6 +37,7 @@ class Coverage:
         df.set_index('date', inplace=True)
         plt.figure()
         df.groupby('type')['coverage'].plot(legend=True)
+        plt.xticks(rotation='vertical')
         plt.draw()
         print(df.groupby('type')['coverage'].mean())
 

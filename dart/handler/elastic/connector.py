@@ -92,4 +92,7 @@ class ElasticsearchConnector:
         self.clear_index('occupation')
         self.clear_index('personalization')
 
+    def delete(self, index, docid):
+        self.es.delete(index, docid)
+
 

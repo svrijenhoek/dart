@@ -15,10 +15,13 @@ class AttentionDistribution:
         self.political_parties = np.array(self.config["political_parties"])
 
     def execute(self):
+        """
+        Iterate over all dates and recommendation types to calculate distance in attention distributions.
+        Visualize output.
+        """
         data = []
         party_data = {}
         for date in self.config["recommendation_dates"]:
-            print(date)
             upper = datetime.strptime(date, '%d-%m-%Y')
             lower = upper - timedelta(days=self.config["recommendation_range"])
             pool = self.handlers.articles.get_all_in_timerange(lower, upper)
@@ -40,6 +43,10 @@ class AttentionDistribution:
         self.visualize_party(party_data)
 
     def calculate(self, pool, recommendations):
+        """
+        Calculate Euclidian distance between the vectors for articles in the pool of all articles and the recommended
+        articles
+        """
         pool_vector = self.make_vector(pool)
         recommendation_vector = self.make_vector(recommendations)
         distance = euclidean(pool_vector, recommendation_vector)
@@ -47,22 +54,36 @@ class AttentionDistribution:
         return distance, diff
 
     def make_vector(self, articles):
+        """
+        Create a vector representing the relative representation of political parties in articles
+        """
         all_vector = [0]*len(self.political_parties)
         for article in articles:
             article_vector = [0]*len(self.political_parties)
+            # for each party specified in the configuration file
             for ix, party in enumerate(self.political_parties):
+                # check if the party is either mentioned in one of the article's articles or mentioned in the text
                 if self.in_entities(article.entities, party) or self.in_fulltext(article.text, party):
+                    # binary approach; being mentioned once is enough
                     article_vector[ix] = 1
             all_vector = [x + y for x, y in zip(all_vector, article_vector)]
+        # normalize for the length of the article
         output = [x/len(articles) for x in all_vector]
         return output
 
     @staticmethod
     def in_entities(entities, party):
+        """
+        Check if the political party is mentioned in line with the article's entities.
+        This means checking the political party that mentioned politicians belong to. Could be extended to also checking
+        mentioned organisations, but checking the fulltext for this proved more efficient.
+        """
         short_party = party[0]
         full_party = party[1]
+        # only consider entities of type person
         persons = filter(lambda x: x['label'] == 'PER', entities)
         for person in persons:
+            # if the person has a property 'party' (this avoids checking this value for people that are not politicians)
             if 'parties' in person:
                 if short_party in person['parties'] or full_party in person['parties']:
                     return True
@@ -77,16 +98,25 @@ class AttentionDistribution:
         else:
             return False
 
-    def visualize(self, df):
+    @staticmethod
+    def visualize(df):
+        """
+        Line plot displaying time on the x-axis and distance on the y-axis
+        """
         df['date'] = pd.to_datetime(df['date'], format="%d-%m-%Y")
         df = df.sort_values('date', ascending=True)
         df.set_index('date', inplace=True)
         plt.figure()
         df.groupby('type')['distance'].plot(legend=True)
+        plt.xticks(rotation='vertical')
         plt.draw()
         print(df.groupby('type')['distance'].mean())
 
     def visualize_party(self, data):
+        """
+        Bar plot visualizing for each party how often they are mentioned significantly more or less than was to be
+        expected from the pool
+        """
         plt.figure()
         labels = self.political_parties[:, 0]
         # set width of bar
@@ -117,7 +147,7 @@ class AttentionDistribution:
 
         # Add xticks on the middle of the group bars
         plt.xlabel('parties', fontweight='bold')
-        plt.xticks([r + barWidth for r in range(len(bars1))], labels)
+        plt.xticks([r + barWidth for r in range(len(bars1))], labels, rotation='vertical')
 
         # Create legend & Show graphic
         plt.legend()

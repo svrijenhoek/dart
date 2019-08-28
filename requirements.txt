@@ -15,3 +15,4 @@ regex
 matplotlib
 community
 networkx
+scipy

@@ -63,6 +63,7 @@ class Complexity:
         df = df.sort_values('date', ascending=True)
         df.set_index('date', inplace=True)
         df.groupby('type')['score'].plot(legend=True)
+        plt.xticks(rotation='vertical')
         plt.draw()
         print(df.groupby('type')['score'].mean())
 

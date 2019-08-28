@@ -58,4 +58,5 @@ class Politicalness:
             # create plots
             ax.scatter(x='date', y='comparison', data=df1)
             ax.plot(df_mean, '*-y')
+        plt.xticks(rotation='vertical')
         plt.draw()
