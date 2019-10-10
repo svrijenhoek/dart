@@ -54,8 +54,11 @@ class PopularityQueue:
             for row in csv_reader:
                 title = row[3]
                 popularity = row[2].replace(',', '')
-                article = self.searcher.get_field_with_value('title', title)[0]
-                self.searcher.update(article.id, 'popularity', int(popularity))
+                try:
+                    article = self.searcher.get_field_with_value('title', title)[0]
+                    self.searcher.update(article.id, 'popularity', int(popularity))
+                except Exception:
+                    print("Document not found: "+title)
 
 
 def main(argv):

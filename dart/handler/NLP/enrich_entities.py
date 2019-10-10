@@ -32,8 +32,8 @@ class EntityEnricher:
             if entity['label'] == 'PER':
                 if 'occupation' in self.metrics and 'occupation' not in entity:
                     entity = self.retrieve_occupation(entity)
-                if 'ethnicity' in self.metrics and 'ethnicity' not in entity:
-                    entity = self.retrieve_ethnicity(entity)
+                # if 'ethnicity' in self.metrics and 'ethnicity' not in entity:
+                #     entity = self.retrieve_ethnicity(entity)
             if 'location' in self.metrics and entity['label'] == 'LOC':
                 if 'country_code' not in entity:
                     entity = self.retrieve_geolocation(entity)

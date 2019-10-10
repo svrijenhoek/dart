@@ -1,5 +1,6 @@
 from dart.handler.elastic.base_handler import BaseHandler
 from dart.models.Article import Article
+import elasticsearch.exceptions
 
 from datetime import datetime
 
@@ -36,6 +37,11 @@ class ArticleHandler(BaseHandler):
             "doc": doc
         }
         self.connector.update_document('articles', '_doc', docid, body)
+
+
+    def get_all_articles(self):
+        articles = super(ArticleHandler, self).get_all_documents('articles')
+        return [Article(i) for i in articles]
 
     def add_field(self, docid, field, value):
         body = {

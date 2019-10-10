@@ -37,7 +37,11 @@ class ElasticsearchConnector:
 
     # add document to the specified elastic index
     def add_document(self, index, doc_type, body):
-        self.es.index(index=index, doc_type=doc_type, body=body)
+        try:
+            self.es.index(index=index, doc_type=doc_type, body=body)
+        except exceptions.RequestError as e:
+            print(e)
+            print(body)
 
     # add multiple documents at once
     def add_bulk(self, index, doc_type, bodies):
@@ -76,7 +80,11 @@ class ElasticsearchConnector:
 
     # update a small part of the given document
     def update_document(self, index, doc_type, docid, body):
-        self.es.update(index=index, doc_type=doc_type, id=docid, body=body)
+        try:
+            self.es.update(index=index, doc_type=doc_type, id=docid, body=body)
+        except exceptions.RequestError as e:
+            print(e)
+            print(body)
 
     # retrieve the term vector for a given document
     def get_term_vector(self, index, doc_type, docid):
