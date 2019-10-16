@@ -2,8 +2,6 @@ import dart.Util
 import dart.handler.other.wikidata
 import dart.handler.other.openstreetmap
 import string
-import pandas as pd
-from ethnicolr import pred_census_ln
 
 
 class EntityEnricher:
