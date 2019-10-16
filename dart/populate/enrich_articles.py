@@ -10,7 +10,6 @@ import dart.handler.NLP.classify_on_entities
 import dart.Util
 
 import sys
-from stopwatch import Stopwatch
 
 
 class Enricher:
@@ -25,7 +24,6 @@ class Enricher:
         self.enricher = dart.handler.NLP.enrich_entities.EntityEnricher(self.metrics)
         self.classifier = dart.handler.NLP.classify_on_entities.Classifier()
         self.clusterer = dart.handler.NLP.cluster_entities.Clustering(0.7, 'a', 'b', 'metric')
-        self.stopwatch = Stopwatch()
 
     def annotate_entities(self, entities):
         annotated_entities = []
@@ -51,27 +49,16 @@ class Enricher:
         return result
 
     def annotate_document(self, article):
-        self.stopwatch.start()
         doc = {'id': article.id}
         if not article.entities:
             _, entities, tags = self.annotator.annotate(article.text)
         else:
             entities = article.entities
             tags = article.tags
-        self.stopwatch.stop()
-        annotation = str(self.stopwatch)
-        self.stopwatch.reset()
-        self.stopwatch.start()
         aggregated_entities = self.clusterer.execute(entities)
-        self.stopwatch.stop()
-        aggregation = str(self.stopwatch)
-        self.stopwatch.reset()
-        self.stopwatch.start()
+
         enriched_entities = self.annotate_entities(aggregated_entities)
-        self.stopwatch.stop()
-        enriching = str(self.stopwatch)
-        self.stopwatch.reset()
-        self.stopwatch.start()
+
         doc['entities'] = enriched_entities
         doc['entities_base'] = entities
         doc['tags'] = tags
@@ -83,17 +70,11 @@ class Enricher:
                 doc['nwords'] = nwords
                 doc['nsentences'] = nsentences
                 doc['complexity'] = complexity
-        self.stopwatch.stop()
-        textpipe = str(self.stopwatch)
-        self.stopwatch.reset()
-        self.stopwatch.start()
+
         if 'emotive' in self.metrics and not article.tag_percentages:
             percentages = self.calculate_tags(tags)
             doc['tag_percentages'] = percentages
-        self.stopwatch.stop()
-        tags = str(self.stopwatch)
-        self.stopwatch.reset()
-        self.stopwatch.start()
+
         if 'classify' in self.metrics:
             if 'entities' not in doc:
                 classification = 'onbekend'
@@ -101,15 +82,9 @@ class Enricher:
                 classification, scope = self.classifier.classify(doc['entities'], article.text)
             doc['classification'] = classification
             doc['scope'] = scope
-        self.stopwatch.stop()
-        classification = str(self.stopwatch)
-        self.stopwatch.reset()
-        self.stopwatch.start()
+
         doc['annotated'] = 'Y'
         self.handlers.articles.update_doc(article.id, doc)
-        self.stopwatch.stop()
-        updating = str(self.stopwatch)
-        print("{}\t{}\t{}\t{}\t{}\t{}\t{}".format(annotation, aggregation, enriching, textpipe, tags, classification, updating))
 
     def enrich_base(self):
         base_date = self.config['reading_history_date']
