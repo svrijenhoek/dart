@@ -20,7 +20,7 @@ doc3, ent3, tags3 = annotator.annotate(TEXT_3)
 def test_entities():
     assert ent1 == []
     assert ent2 == []
-    assert ent3 == [{'text': 'Rob Bats', 'start_char': 13, 'end_char': 21, 'label': 'PER'}, {'text': 'Steenwijkerland', 'start_char': 38, 'end_char': 53, 'label': 'LOC'}, {'text': 'Eesveen', 'start_char': 135, 'end_char': 142, 'label': 'LOC'}]
+    assert ent3 == [{'text': 'Rob Bats', 'start_char': 13, 'end_char': 21, 'label': 'PERSON'}, {'text': 'Steenwijkerland', 'start_char': 38, 'end_char': 53, 'label': 'LOC'}, {'text': 'Eesveen', 'start_char': 135, 'end_char': 142, 'label': 'LOC'}]
 
 
 def test_tags():
