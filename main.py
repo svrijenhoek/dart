@@ -32,7 +32,7 @@ def main():
     metrics = config['metrics']
     es = Elasticsearch()
 
-    # # step 1: load articles
+    # step 1: load articles
     # print(str(datetime.datetime.now())+"\tloading articles")
     # if es.indices.exists(index="articles") and config["append"] == "N":
     #     # delete index
@@ -43,13 +43,13 @@ def main():
     #     dart.handler.elastic.initialize.InitializeIndex().initialize_articles()
     #     module_logger.info("Started adding documents")
     # dart.populate.add_documents.AddDocuments(config).execute()
-    # # add popularity numbers from file
-    # print(str(datetime.datetime.now()) + "\tadding popularity")
+    # add popularity numbers from file
+    #  print(str(datetime.datetime.now()) + "\tadding popularity")
     # dart.populate.add_popularity.PopularityQueue().read_from_file(config['popularity_file'])
     #
-    # # step 1.5: annotate reading history
-    # print(str(datetime.datetime.now())+"\tenriching base articles")
-    # dart.populate.enrich_articles.Enricher(handlers, config).enrich_base()
+    # step 1.5: annotate reading history
+    # print(str(datetime.datetime.now())+"\tenriching articles")
+    # dart.populate.enrich_articles.Enricher(handlers, config).enrich()
 
     # step 1.7: identify stories in the range specified in the configuration
     # print(str(datetime.datetime.now())+"\tidentifying stories")
@@ -77,10 +77,6 @@ def main():
     # dart.populate.generate_recommendations.RunRecommendations(config, handlers).execute()
     # time.sleep(5)
 
-    # step 4: enrich data of recommended articles
-    # print(str(datetime.datetime.now())+"\tenriching articles")
-    # dart.populate.enrich_articles.Enricher(handlers, config).enrich_recommendations()
-
     # step 5: make visualizations
     # print(str(datetime.datetime.now())+"\taggregating data")
     # if 'length' or 'complexity' or 'popularity' or 'personalization' in metrics:
@@ -98,7 +94,6 @@ def main():
     #     dart.handler.elastic.initialize.InitializeIndex().initialize_occupations()
     #     dart.visualize.occupations.OccupationCalculator(handlers).execute()
 
-    # TO DO: ethnicity, source, emotive
     print(str(datetime.datetime.now()) + "\tFAT calculations")
     dart.visualize.FAT_calculations.FATCalculator(handlers, config).execute()
 

@@ -31,11 +31,11 @@ class FATCalculator:
 
     def execute(self):
         print(str(datetime.now()) + "\t Personalization")
-        dart.visualize.FAT.personalization.Personalization(self.handlers, self.config).execute()
+        # dart.visualize.FAT.personalization.Personalization(self.handlers, self.config).execute()
         print(str(datetime.now()) + "\t Politicalness")
-        dart.visualize.FAT.politicalness.Politicalness(self.handlers, self.config).execute()
+        # dart.visualize.FAT.politicalness.Politicalness(self.handlers, self.config).execute()
         print(str(datetime.now()) + "\t Attention distribution")
-        dart.visualize.FAT.attention_distribution.AttentionDistribution(self.handlers, self.config).execute()
+        # dart.visualize.FAT.attention_distribution.AttentionDistribution(self.handlers, self.config).execute()
         print(str(datetime.now()) + "\t Complexity")
         dart.visualize.FAT.complexity.Complexity(self.handlers, self.config).execute()
         print(str(datetime.now()) + "\t Defragmentation")

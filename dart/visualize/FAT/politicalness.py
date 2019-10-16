@@ -19,12 +19,13 @@ class Politicalness:
             upper = datetime.strptime(date, '%d-%m-%Y')
             lower = upper - timedelta(days=self.config["recommendation_range"])
             pool = self.handlers.articles.get_all_in_timerange(lower, upper)
-            pool_percentage = self.get_political_percentage(pool)
-            for recommendation_type in self.handlers.recommendations.get_recommendation_types():
-                recommendations = self.handlers.recommendations.get_recommendations_at_date(date, recommendation_type)
-                percentages = self.get_average_percentage(recommendations)
-                for percentage in percentages:
-                    data.append({'date': date, 'type': recommendation_type, 'comparison': percentage-pool_percentage})
+            if pool:
+                pool_percentage = self.get_political_percentage(pool)
+                for recommendation_type in self.handlers.recommendations.get_recommendation_types():
+                    recommendations = self.handlers.recommendations.get_recommendations_at_date(date, recommendation_type)
+                    percentages = self.get_average_percentage(recommendations)
+                    for percentage in percentages:
+                        data.append({'date': date, 'type': recommendation_type, 'comparison': percentage-pool_percentage})
         df = pd.DataFrame(data)
         return df
 

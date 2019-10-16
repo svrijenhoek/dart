@@ -23,14 +23,15 @@ class Complexity:
             upper = datetime.strptime(date, '%d-%m-%Y')
             lower = upper - timedelta(days=self.config["recommendation_range"])
             pool_complexities = [article.complexity for article in self.handlers.articles.get_all_in_timerange(lower, upper)]
-            for recommendation_type in self.handlers.recommendations.get_recommendation_types():
-                recommendations = self.handlers.recommendations.get_recommendations_at_date(date, recommendation_type)
-                scores = []
-                for recommendation in recommendations:
-                    recommended_articles = self.handlers.articles.get_multiple_by_id(recommendation.articles)
-                    recommended_complexities = [article.complexity for article in recommended_articles]
-                    scores.append(self.compare_complexity(recommended_complexities, pool_complexities))
-                data.append({'date': date, 'type': recommendation_type, 'score': np.mean(scores)})
+            if pool_complexities:
+                for recommendation_type in self.handlers.recommendations.get_recommendation_types():
+                    recommendations = self.handlers.recommendations.get_recommendations_at_date(date, recommendation_type)
+                    scores = []
+                    for recommendation in recommendations:
+                        recommended_articles = self.handlers.articles.get_multiple_by_id(recommendation.articles)
+                        recommended_complexities = [article.complexity for article in recommended_articles]
+                        scores.append(self.compare_complexity(recommended_complexities, pool_complexities))
+                    data.append({'date': date, 'type': recommendation_type, 'score': np.mean(scores)})
         df = pd.DataFrame(data)
         self.visualize(df)
 
