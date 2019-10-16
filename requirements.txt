@@ -1,11 +1,11 @@
-numpy~=1.16
-pandas~=0.24
+numpy~=1.17
+pandas~=0.25
 elasticsearch~=7.0
 requests~=2.22
 whoswho~=0.2
 nltk~=3.4
 gensim~=3.8
-spacy~=2.1
+spacy~=2.2
 scikit-learn~=0.21
 textpipe~=0.11
 ethnicolr~=0.2
