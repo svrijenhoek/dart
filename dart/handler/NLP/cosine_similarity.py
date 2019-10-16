@@ -2,7 +2,7 @@ from dart.handler.elastic.connector import ElasticsearchConnector
 import math
 import collections, functools, operator
 from stop_words import get_stop_words
-from statistics import median
+from statistics import median, StatisticsError
 
 
 # basically copied from https://www.datasciencecentral.com/profiles/blogs/
@@ -74,6 +74,8 @@ class CosineSimilarity:
             print(list1)
             print(list2)
             pass
+        except StatisticsError:
+            return 0
 
     def calculate_all(self, doc_list):
         id_list = [doc.id for doc in doc_list]

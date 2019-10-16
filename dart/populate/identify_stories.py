@@ -9,6 +9,9 @@ import community
 from collections import defaultdict
 from statistics import mode, StatisticsError
 
+import itertools
+from difflib import SequenceMatcher
+
 
 class StoryIdentifier:
 
@@ -30,14 +33,17 @@ class StoryIdentifier:
     def identify(self, documents):
         # calculate cosine similarity between documents
         cosines = self.cos.calculate_all(documents)
-        df = pd.DataFrame(cosines)
-        # filter too-low similarities in order not to confuse the clustering algorithm
-        over_threshold = df[df.cosine > self.threshold]
-        # create graph
-        G = nx.from_pandas_edgelist(over_threshold, 'x', 'y', edge_attr='cosine')
-        # create partitions, or stories
-        partition = community.best_partition(G)
-        return partition
+        if cosines:
+            df = pd.DataFrame(cosines)
+            # filter too-low similarities in order not to confuse the clustering algorithm
+            over_threshold = df[df.cosine > self.threshold]
+            # create graph
+            G = nx.from_pandas_edgelist(over_threshold, 'x', 'y', edge_attr='cosine')
+            # create partitions, or stories
+            partition = community.best_partition(G)
+            return partition
+        else:
+            return {}
 
     def update_articles(self, stories, documents):
         docs = [{'id': doc_id, 'story': story_id} for doc_id, story_id in stories.items()]
@@ -109,3 +115,15 @@ class StoryIdentifier:
             self.handlers.stories.add_to_queue(date, count, article.id, keywords, article.classification, article.title)
             count += 1
         self.handlers.stories.add_bulk()
+
+    def distance(names):
+        output = []
+        for a, b in itertools.combinations(names, 2):
+            if len(a) < 3 or len(b) < 3:
+                similarity = 0
+            elif a in b or b in a:
+                similarity = 1
+            else:
+                similarity = SequenceMatcher(None, a, b).ratio()
+            output.append({'a': a, 'b': b, 'similarity': similarity})
+        return output

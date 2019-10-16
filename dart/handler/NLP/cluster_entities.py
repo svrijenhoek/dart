@@ -82,19 +82,16 @@ class Clustering:
                 for k, v in processed.items():
                     with_name = [entity for entity in of_type if entity['text'] in v]
                     all_names = [entity['text'] for entity in with_name]
+                    label = with_name[0]['label']
                     most_frequent_name = max(set(all_names), key=all_names.count)
+                    if label == 'PER':
+                        with_space = [name for name in all_names if len(name.split(" ")) > 1]
+                        if len(with_space) > 0:
+                            most_frequent_name = max(set(with_space), key=with_space.count)
                     alternative_names = v
                     spans = [(entity['start_char'], entity['end_char']) for entity in with_name]
                     output.append({'text': most_frequent_name, 'alternative': alternative_names, 'frequency': len(with_name),
-                                   'spans': spans, 'label': with_name[0]['label']})
+                                   'spans': spans, 'label': label})
             return output
         else:
             return []
-
-
-if __name__ == "__main__":
-    entities = [{'text': "Barack Obama", 'start_char': 10, 'end_char': 20, 'label': 'PER'}, {'text': "Obama", 'start_char': 10, 'end_char': 20, 'label': 'PER'}, {'text': "Hillary Clinton", 'start_char': 10, 'end_char': 20, 'label': 'PER'}, {'text': "Joe Biden", 'start_char': 10, 'end_char': 20, 'label': 'PER'}]
-    clustering = Clustering(0.7, 'a', 'b', 'metric')
-    clusters = clustering.execute(entities)
-    print(clusters)
-    # Expected output: [{'Barack Obama': 0}, {'Obama': 0}, {'Eva Jinek': 1}, {'Matthijs van Nieuwkerk': 2}]

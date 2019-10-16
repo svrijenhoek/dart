@@ -33,7 +33,7 @@ class RecommendationGenerator:
 
     def generate_political(self, user, upper, lower):
         political_documents = self.handlers.articles.get_political(user, upper, lower)
-        return [political_documents[i].id for i in range(int(self.size))]
+        return [political_documents[i].id for i in range(min(len(political_documents), self.size))]
 
 
 class RunRecommendations:

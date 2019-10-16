@@ -33,21 +33,19 @@ class WikidataHandler:
     def read_person_response_list(response):
         try:
             data = response.json()
-            entry = data['results']['bindings'][0]
-            try:
-                givenname = entry['givenlabel']['value']
-            except IndexError:
-                givenname = ''
-            try:
-                familylabel = entry['familylabel']['value']
-            except IndexError:
-                familylabel = ''
-            try:
-                genderlabel = entry['genderlabel']['value']
-            except IndexError:
-                genderlabel = ''
+            givenname = list(set([x['givenname']['value'] for x in data['results']['bindings'] if 'givenname' in x]))
+            familyname = list(set([x['familyname']['value'] for x in data['results']['bindings'] if 'family' in x]))
+            occupations = list(set([x['occupations']['value'] for x in data['results']['bindings'] if 'occupations' in x]))
+            party = list(set([x['party']['value'] for x in data['results']['bindings'] if 'party' in x]))
+            positions = list(set([x['position']['value'] for x in data['results']['bindings'] if 'position' in x]))
+            gender = list(set([x['gender']['value'] for x in data['results']['bindings'] if 'gender' in x]))
+            citizen = list(set([x['citizen']['value'] for x in data['results']['bindings'] if 'citizen' in x]))
+            ethnicity = list(set([x['ethnicity']['value'] for x in data['results']['bindings'] if 'ethnicity' in x]))
+            sexuality = list(set([x['sexuality']['value'] for x in data['results']['bindings'] if 'sexuality' in x]))
 
-            return {'givenlabel': givenname, 'familylabel': familylabel, 'genderlabel': genderlabel}
+            return {'givenname': givenname, 'familyname': familyname, 'gender': gender, 'occupations': occupations,
+                    'party': party, 'positions': positions, 'citizen': citizen, 'ethnicity': ethnicity,
+                    'sexuality': sexuality}
         except json.decoder.JSONDecodeError:
             return []
         except IndexError:
@@ -78,7 +76,18 @@ class WikidataHandler:
         except IndexError:
             return []
 
-    def get_occupations(self, label):
+    def get_person_data(self, label, alternatives):
+        response = self.person_data_query(label)
+        if response and (response['givenname'] or response['gender'] or response['citizen']):
+            return label, response
+        else:
+            for alternative in alternatives:
+                response = self.person_data_query(alternative)
+                if response and (response['givenname'] or response['gender'] or response['citizen']):
+                    return alternative, response
+        return label, {}
+
+    def occupations_query(self, label):
         """
         Returns a list of occupations known on Wikidata for a named entity of type PER.
         When no occupation can be found an empty list is returned.
@@ -118,24 +127,57 @@ class WikidataHandler:
         r = self.execute_query(query)
         return self.read_response(r, 'position_label')
 
-    def get_person_data(self, label):
+    def person_data_query(self, label):
         try:
             query = """
-                SELECT DISTINCT ?givenlabel ?familylabel ?genderlabel where {
-                  ?person rdfs:label '"""+label+"""'@nl .
-                  OPTIONAL{?person wdt:P734 ?familyname .
-                          ?familyname rdfs:label ?familylabel .}
-                  OPTIONAL{?person wdt:P735  ?givenname .
-                          ?givenname rdfs:label ?givenlabel .}
-                  OPTIONAL{?person wdt:P21 ?gender .
-                          ?gender rdfs:label ?genderlabel}
-                  FILTER(LANG(?genderlabel) = "" || LANGMATCHES(LANG(?genderlabel), "en"))
-                  FILTER(LANG(?givenlabel) = "" || LANGMATCHES(LANG(?givenlabel), "nl"))
-                  FILTER(LANG(?familylabel) = "" || LANGMATCHES(LANG(?familylabel), "en"))
-                } 
-                ORDER BY ?familyname
-                LIMIT 1
-            """
+                SELECT DISTINCT ?givenname ?familyname ?occupations ?party ?position ?gender ?citizen ?ethnicity ?sexuality WHERE { 
+                ?s ?label '"""+label+"""' .
+              OPTIONAL {
+                ?s wdt:P735 ?a . 
+                ?a rdfs:label ?givenname .
+                FILTER(LANG(?givenname) = "" || LANGMATCHES(LANG(?givenname), "nl"))
+              }
+              OPTIONAL {
+                ?s wdt:P734 ?b . 
+                ?b rdfs:label ?familyname .
+                FILTER(LANG(?familyname) = "" || LANGMATCHES(LANG(?familyname), "nl"))
+              }
+              OPTIONAL {
+                ?s wdt:P106 ?c .
+                ?c rdfs:label ?occupations .
+                FILTER(LANG(?occupations) = "" || LANGMATCHES(LANG(?occupations), "nl"))
+              }
+              OPTIONAL {
+                ?s wdt:P102 ?d .
+                ?d rdfs:label ?party .
+                FILTER(LANG(?party) = "" || LANGMATCHES(LANG(?party), "nl"))
+              }
+              OPTIONAL {
+                ?s wdt:P39 ?e .
+                ?e rdfs:label ?position .
+                FILTER(LANG(?position) = "" || LANGMATCHES(LANG(?position), "nl"))
+              }
+              OPTIONAL {
+                ?s wdt:P21 ?f .
+                ?f rdfs:label ?gender .
+                FILTER(LANG(?gender) = "" || LANGMATCHES(LANG(?gender), "nl"))
+              }
+              OPTIONAL {
+                   ?s wdt:P172 ?g . 
+                   ?g rdfs:label ?ethnicity .
+                   FILTER(LANG(?ethnicity) = "" || LANGMATCHES(LANG(?ethnicity), "nl"))
+                }
+              OPTIONAL {
+                ?s wdt:P27 ?h .
+                ?h rdfs:label ?citizen
+                FILTER(LANG(?citizen) = "" || LANGMATCHES(LANG(?citizen), "nl"))
+                }
+               OPTIONAL {
+                ?s wdt:P91 ?i .
+                ?i rdfs:label ?sexuality
+                FILTER(LANG(?sexuality) = "" || LANGMATCHES(LANG(?sexuality), "nl"))
+                }
+            }"""
             r = self.execute_query(query)
             return self.read_person_response_list(r)
         except ConnectionAbortedError:

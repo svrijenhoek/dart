@@ -3,12 +3,14 @@ import pandas as pd
 import dart.handler.NLP.annotator
 import dart.handler.NLP.textpipe_handler
 import dart.handler.NLP.enrich_entities
+import dart.handler.NLP.cluster_entities
 import dart.handler.other.openstreetmap
 import dart.handler.other.wikidata
 import dart.handler.NLP.classify_on_entities
 import dart.Util
 
 import sys
+from stopwatch import Stopwatch
 
 
 class Enricher:
@@ -22,6 +24,8 @@ class Enricher:
         self.spacy_tags = ['DET', 'ADP', 'PRON']
         self.enricher = dart.handler.NLP.enrich_entities.EntityEnricher(self.metrics)
         self.classifier = dart.handler.NLP.classify_on_entities.Classifier()
+        self.clusterer = dart.handler.NLP.cluster_entities.Clustering(0.7, 'a', 'b', 'metric')
+        self.stopwatch = Stopwatch()
 
     def annotate_entities(self, entities):
         annotated_entities = []
@@ -47,14 +51,29 @@ class Enricher:
         return result
 
     def annotate_document(self, article):
+        self.stopwatch.start()
         doc = {'id': article.id}
         if not article.entities:
             _, entities, tags = self.annotator.annotate(article.text)
         else:
             entities = article.entities
             tags = article.tags
-        enriched_entities = self.annotate_entities(entities)
+        self.stopwatch.stop()
+        annotation = str(self.stopwatch)
+        self.stopwatch.reset()
+        self.stopwatch.start()
+        aggregated_entities = self.clusterer.execute(entities)
+        self.stopwatch.stop()
+        aggregation = str(self.stopwatch)
+        self.stopwatch.reset()
+        self.stopwatch.start()
+        enriched_entities = self.annotate_entities(aggregated_entities)
+        self.stopwatch.stop()
+        enriching = str(self.stopwatch)
+        self.stopwatch.reset()
+        self.stopwatch.start()
         doc['entities'] = enriched_entities
+        doc['entities_base'] = entities
         doc['tags'] = tags
 
         if 'length' or 'complexity' in self.metrics:
@@ -64,20 +83,33 @@ class Enricher:
                 doc['nwords'] = nwords
                 doc['nsentences'] = nsentences
                 doc['complexity'] = complexity
+        self.stopwatch.stop()
+        textpipe = str(self.stopwatch)
+        self.stopwatch.reset()
+        self.stopwatch.start()
         if 'emotive' in self.metrics and not article.tag_percentages:
             percentages = self.calculate_tags(tags)
             doc['tag_percentages'] = percentages
+        self.stopwatch.stop()
+        tags = str(self.stopwatch)
+        self.stopwatch.reset()
+        self.stopwatch.start()
         if 'classify' in self.metrics:
             if 'entities' not in doc:
                 classification = 'onbekend'
             else:
-                classification, scope = self.classifier.classify(doc['entities'], doc['text'])
+                classification, scope = self.classifier.classify(doc['entities'], article.text)
             doc['classification'] = classification
             doc['scope'] = scope
+        self.stopwatch.stop()
+        classification = str(self.stopwatch)
+        self.stopwatch.reset()
+        self.stopwatch.start()
         doc['annotated'] = 'Y'
         self.handlers.articles.update_doc(article.id, doc)
-        del doc['tags']
-        self.handlers.recommendations.update_doc(article.id, doc)
+        self.stopwatch.stop()
+        updating = str(self.stopwatch)
+        print("{}\t{}\t{}\t{}\t{}\t{}\t{}".format(annotation, aggregation, enriching, textpipe, tags, classification, updating))
 
     def enrich_base(self):
         base_date = self.config['reading_history_date']
@@ -99,6 +131,25 @@ class Enricher:
                     if count == 100:
                         self.enricher.save()
                         count = 0
+            self.enricher.save()
+        except ConnectionError:
+            self.enricher.save()
+            print("Connection error!")
+            sys.exit()
+        self.enricher.save()
+
+    def enrich(self):
+        try:
+            articles = self.handlers.articles.get_all_articles()
+            count = 0
+            for article in articles:
+                if not article.annotated == 'Y':
+                    self.annotate_document(article)
+                    count += 1
+                    print(count)
+                if count == 100:
+                    self.enricher.save()
+                    count = 0
             self.enricher.save()
         except ConnectionError:
             self.enricher.save()

@@ -21,8 +21,13 @@ class ElasticsearchConnector:
             return []
 
     def execute_multiget(self, index, body):
-        response = self.es.mget(index=index, body=body)
-        return response['docs']
+        try:
+            response = self.es.mget(index=index, body=body)
+            return response['docs']
+        except exceptions.RequestError:
+            print("Request error")
+            print(body)
+            return []
 
     def execute_aggregation(self, index, body, aggregation):
         response = self.es.search(index=index, body=body)

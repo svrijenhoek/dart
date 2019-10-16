@@ -16,11 +16,10 @@
     "organization"],
   "append": "N",
   "articles": {
-    "folder": "data\\articles\\",
+    "folder": "data\\articles\\volkskrant",
     "alternative_schema": "Y",
     "schema": "data\\schemas\\article.json",
-    "preprocessing": "stemming",
-    "popularity_file": "C:\\Users\\Sanne\\Downloads\\popularity.csv"
+    "popularity_file": "data\\popularity.csv"
   },
   "user": {
     "load": "N",
@@ -28,11 +27,7 @@
     "folder": "data\\users\\",
     "alternative_schema": "N",
     "schema": "data\\schemas\\user.json",
-    "number_of_users": 20,
-    "average_topical_interest": 3,
-    "average_spread_per_interest": 15,
-    "size_popular_stories": 100,
-    "size_random": 20,
+    "number_of_users": 100,
     "reading_history_based_on": "id"
   },
   "recommendations": {

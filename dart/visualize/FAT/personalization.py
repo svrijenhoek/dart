@@ -30,7 +30,10 @@ class Personalization:
 
     @staticmethod
     def mode(lst):
-        return max(set(lst), key=lst.count)
+        try:
+            return max(set(lst), key=lst.count)
+        except ValueError:
+            return None
 
     def calculate_personalization(self):
         """
@@ -45,15 +48,16 @@ class Personalization:
                 for date in self.config["recommendation_dates"]:
                     # retrieve all articles recommended at that date
                     recommended_ids = user.reading_history[recommendation_type][date]
-                    # retrieve the reading history at that date
-                    strp_date = datetime.strptime(date, '%d-%m-%Y')
-                    reading_history = user.select_reading_history(strp_date, recommendation_type)
-                    # calculate the average cosine similarity
-                    median_cosine = cos.calculate_cosine_similarity(recommended_ids, reading_history)
-                    # cosine = cos.calculate_cosine_experiment(recommended_ids, reading_history)
-                    distance = self.calculate_distance(recommended_ids, reading_history)
-                    data.append({"user": user.id, "type": recommendation_type, "date": date, "cosine": median_cosine,
-                                 "distance": distance})
+                    if recommended_ids:
+                        # retrieve the reading history at that date
+                        strp_date = datetime.strptime(date, '%d-%m-%Y')
+                        reading_history = user.select_reading_history(strp_date, recommendation_type)
+                        # calculate the average cosine similarity
+                        median_cosine = cos.calculate_cosine_similarity(recommended_ids, reading_history)
+                        # cosine = cos.calculate_cosine_experiment(recommended_ids, reading_history)
+                        distance = self.calculate_distance(recommended_ids, reading_history)
+                        data.append({"user": user.id, "type": recommendation_type, "date": date, "cosine": median_cosine,
+                                     "distance": distance})
         # create dataframe of results
         df = pd.DataFrame(data, columns=["user", "type", "date", "cosine", "distance"])
         return df

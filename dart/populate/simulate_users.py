@@ -10,10 +10,6 @@ class UserSimulator:
     def __init__(self, config, handlers):
         self.handlers = handlers
 
-        self.n_topics = config["user_topics"]
-        self.n_spread = config["user_spread"]
-        self.mean_popular = config["user_popular"]
-        self.mean_random = config["user_random"]
         self.n_users = config["user_number"]
         self.load_users = config["user_load"]
         if self.load_users == "Y":
