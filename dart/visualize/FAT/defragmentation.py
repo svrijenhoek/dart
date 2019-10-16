@@ -18,13 +18,14 @@ class Defragmentation:
             for recommendation_type in self.handlers.recommendations.get_recommendation_types():
                 defragmentations = []
                 recommendations = self.handlers.recommendations.get_recommendations_at_date(date, recommendation_type)
-                for ix, x in enumerate(recommendations):
-                    stories_x = self.get_stories(x)
-                    for iy, y in enumerate(recommendations):
-                        if iy > ix:
-                            stories_y = self.get_stories(y)
-                            defragmentations.append(self.compare_recommendations(stories_x, stories_y))
-                data.append({'date': date, 'type': recommendation_type, 'defragmentation': np.mean(defragmentations)})
+                if recommendations:
+                    for ix, x in enumerate(recommendations):
+                        stories_x = self.get_stories(x)
+                        for iy, y in enumerate(recommendations):
+                            if iy > ix:
+                                stories_y = self.get_stories(y)
+                                defragmentations.append(self.compare_recommendations(stories_x, stories_y))
+                    data.append({'date': date, 'type': recommendation_type, 'defragmentation': np.mean(defragmentations)})
         df = pd.DataFrame(data)
         self.visualize(df)
 
@@ -42,6 +43,8 @@ class Defragmentation:
     def compare_recommendations(x, y):
         intersection = list(set(x) & set(y))
         union = list(set(x).union(y))
+        if len(union) == 0:
+            return 0
         return len(intersection)/len(union)
 
     @staticmethod

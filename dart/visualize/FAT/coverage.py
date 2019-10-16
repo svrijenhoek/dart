@@ -51,7 +51,8 @@ class Coverage:
             stories = self.handlers.stories.get_stories_at_date(date)
             for recommendation_type in self.handlers.recommendations.get_recommendation_types():
                 recommendations = self.handlers.recommendations.get_recommendations_at_date(date, recommendation_type)
-                coverage = self.calculate_coverage(stories, recommendations)
-                data.append({'date': date, 'type': recommendation_type, 'coverage': coverage})
+                if recommendations and stories:
+                    coverage = self.calculate_coverage(stories, recommendations)
+                    data.append({'date': date, 'type': recommendation_type, 'coverage': coverage})
         df = pd.DataFrame(data)
         self.visualize(df)

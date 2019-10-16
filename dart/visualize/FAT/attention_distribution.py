@@ -27,17 +27,18 @@ class AttentionDistribution:
             pool = self.handlers.articles.get_all_in_timerange(lower, upper)
             for recommendation_type in self.handlers.recommendations.get_recommendation_types():
                 recommendations = self.handlers.recommendations.get_recommendations_at_date(date, recommendation_type)
-                distances = []
-                if recommendation_type not in party_data:
-                    party_data[recommendation_type] = Counter()
-                for recommendation in recommendations:
-                    articles = self.handlers.articles.get_multiple_by_id(recommendation.articles)
-                    distance, diff = self.calculate(pool, articles)
-                    distances.append(distance)
-                    too_big = self.political_parties[:, 0][diff > 0.2]
-                    for party in too_big:
-                        party_data[recommendation_type][party] += 1
-                data.append({'date': date, 'type': recommendation_type, 'distance': np.mean(distances)})
+                if recommendations:
+                    distances = []
+                    if recommendation_type not in party_data:
+                        party_data[recommendation_type] = Counter()
+                    for recommendation in recommendations:
+                        articles = self.handlers.articles.get_multiple_by_id(recommendation.articles)
+                        distance, diff = self.calculate(pool, articles)
+                        distances.append(distance)
+                        too_big = self.political_parties[:, 0][diff > 0.2]
+                        for party in too_big:
+                            party_data[recommendation_type][party] += 1
+                    data.append({'date': date, 'type': recommendation_type, 'distance': np.mean(distances)})
         df = pd.DataFrame(data)
         self.visualize(df)
         self.visualize_party(party_data)
@@ -68,8 +69,11 @@ class AttentionDistribution:
                     article_vector[ix] = 1
             all_vector = [x + y for x, y in zip(all_vector, article_vector)]
         # normalize for the length of the article
-        output = [x/len(articles) for x in all_vector]
-        return output
+        if len(articles) == 0:
+            return 0
+        else:
+            output = [x/len(articles) for x in all_vector]
+            return output
 
     @staticmethod
     def in_entities(entities, party):
