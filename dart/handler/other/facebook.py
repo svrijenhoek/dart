@@ -11,8 +11,8 @@ class RetrieveFacebook:
     module_logging = logging.getLogger('popularity')
 
     def __init__(self, metrics):
-        self.client_id = metrics["facebook_client_id"]
-        self.client_secret = metrics["facebook_client_secret"]
+        self.client_id = '294486107835251'
+        self.client_secret = 'f29dc92417e3ff75ad8f067e339f9796'
 
     def get_access_token(self):
         url = 'https://graph.facebook.com/oauth/access_token'

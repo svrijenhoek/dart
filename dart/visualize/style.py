@@ -20,16 +20,17 @@ class Style:
         complexity = []
         tags = {}
         for recommendation in recommendations:
-            article = self.handlers.articles.get_by_id(recommendation.article_id)
-            nwords.append(article.nwords)
-            nsentences.append(article.nsentences)
-            complexity.append(article.complexity)
-            popularity.append(float(article.popularity))
-            for tag in article.tag_percentages:
-                if tag in tags:
-                    tags[tag].append(article.tag_percentages[tag])
-                else:
-                    tags[tag] = [article.tag_percentages[tag]]
+            for article_id in recommendation.articles:
+                article = self.handlers.articles.get_by_id(article_id)
+                nwords.append(article.nwords)
+                nsentences.append(article.nsentences)
+                complexity.append(article.complexity)
+                popularity.append(float(article.popularity))
+                for tag in article.tag_percentages:
+                    if tag in tags:
+                        tags[tag].append(article.tag_percentages[tag])
+                    else:
+                        tags[tag] = [article.tag_percentages[tag]]
         pos_averages = {}
         for tag in tags:
             pos_averages[tag] = Style.average(tags[tag])

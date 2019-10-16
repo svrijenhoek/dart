@@ -12,11 +12,11 @@ class Article(Document):
         try:
             self.entities = self.source['entities']
         except KeyError:
-            self.entities = ''
+            self.entities = None
         try:
             self.tags = self.source['tags']
         except KeyError:
-            self.tags = ''
+            self.tags = None
         try:
             self.author = self.source['byline']
         except KeyError:
@@ -46,6 +46,10 @@ class Article(Document):
             self.annotated = self.source['annotated']
         except KeyError:
             self.annotated = 'N'
+        try:
+                self.classification = self.source['classification']
+        except KeyError:
+            self.classification = 'onbekend'
 
     def get(self, x):
         return self.source[x]

@@ -5,6 +5,8 @@ import dart.Util
 class Classifier:
 
     def __init__(self):
+        self.financial_terms = ['beurs', 'beurzen', 'Wall Street', 'Nikkei', 'Dow Jones', 'Nasdaq', 'aandelen',
+                                'aandelenbeurs', 'aandelenbeurzen', 'kwartaalcijfers', 'omzet', 'fusie', 'AEX', 'AMX']
         try:
             self.occupation_mapping = dart.Util.read_csv('output/occupations_mapping.csv')
             self.instance_mapping = dart.Util.read_csv('output/instance_mapping.csv')
@@ -42,7 +44,7 @@ class Classifier:
         else:
             return 'onbekend'
 
-    def classify_type(self, entities):
+    def classify_type(self, entities, text):
         types = defaultdict(int)
         persons = [entity for entity in entities if entity['label'] == 'PER']
         organisations = [entity for entity in entities if entity['label'] == 'ORG']
@@ -55,6 +57,9 @@ class Classifier:
             type = self.find_type(organisation, 'ORG')
             if not type == 'onbekend':
                 types[type] += 1
+        for term in self.financial_terms:
+            if term in text:
+                types['financieel'] += 1
 
         if len(types) > 0:
             return max(types.items(), key=lambda a: a[1])[0]
@@ -78,8 +83,8 @@ class Classifier:
         else:
             return 'global'
 
-    def classify(self, entities):
-        classification = self.classify_type(entities)
+    def classify(self, entities, text):
+        classification = self.classify_type(entities, text)
         scope = self.classify_scope(entities)
         return classification, scope
 

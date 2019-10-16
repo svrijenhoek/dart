@@ -8,5 +8,4 @@ class Recommendation(Document):
         self.date = self.source['recommendation']['date']
         self.user = self.source['recommendation']['user_id']
         self.type = self.source['recommendation']['type']
-        self.article = self.source['article']
-        self.article_id = self.article['id']
+        self.articles = self.source['articles']

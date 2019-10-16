@@ -28,9 +28,12 @@ class RecommendationGenerator:
         return [self.documents[i].id for i in range(int(self.size))]
 
     def generate_more_like_this(self, user, upper, lower):
-        reading_history = user.reading_history
-        results = self.handlers.articles.more_like_this_history(reading_history, upper, lower)
+        results = self.handlers.articles.more_like_this_history(user, upper, lower)
         return [results[i].id for i in range(min(int(self.size), len(results)))]
+
+    def generate_political(self, user, upper, lower):
+        political_documents = self.handlers.articles.get_political(user, upper, lower)
+        return [political_documents[i].id for i in range(min(len(political_documents), self.size))]
 
 
 class RunRecommendations:
@@ -46,54 +49,30 @@ class RunRecommendations:
         self.load_recommendations = config['recommendations_load']
         if self.load_recommendations == 'Y':
             self.folder = config['recommendations_folder']
-        self.queue = []
-
-    @staticmethod
-    def create_json_doc(user_id, date, recommendation_type, article):
-        doc = {
-            "recommendation": {
-                "user_id": user_id,
-                "date": date,
-                "type": recommendation_type
-            },
-            "article": {
-                "id": article.id,
-                "source": article.doctype,
-                "popularity": int(article.popularity),
-                "publication_date": article.publication_date,
-                "text": article.text,
-                "title": article.title,
-                "url": article.url
-            }
-        }
-        return doc
-
-    def add_document(self, date, user_id, rec_type, article):
-        doc = self.create_json_doc(user_id, date, rec_type, article)
-        self.queue.append(doc)
-        if len(self.queue) % 100 == 0:
-            self.handlers.recommendations.add_bulk(self.queue)
-            self.queue = []
 
     def generate_recommendations(self, user, date, upper, lower, generator):
         # generate random selection
         if 'random' in self.baseline_recommendations:
             random_recommendation = generator.generate_random()
-            for docid in random_recommendation:
-                article = self.handlers.articles.get_by_id(docid)
-                self.add_document(date, user.id, 'random', article)
+            self.handlers.recommendations.add_to_queue(date, user.id, 'random', random_recommendation)
+            user = self.handlers.users.update_reading_history(user, random_recommendation, 'random', date)
         # select most popular
         if 'most_popular' in self.baseline_recommendations:
             most_popular_recommendation = generator.generate_most_popular()
-            for docid in most_popular_recommendation:
-                article = self.handlers.articles.get_by_id(docid)
-                self.add_document(date, user.id, 'most_popular', article)
+            self.handlers.recommendations.add_to_queue(date, user.id, 'most_popular', most_popular_recommendation)
+            user = self.handlers.users.update_reading_history(user, most_popular_recommendation, 'most_popular', date)
         # get more like the user has previously read
         if 'more_like_this' in self.baseline_recommendations:
             more_like_this_recommendation = generator.generate_more_like_this(user, upper, lower)
-            for docid in more_like_this_recommendation:
-                article = self.handlers.articles.get_by_id(docid)
-                self.add_document(date, user.id, 'more_like_this', article)
+            self.handlers.recommendations.add_to_queue(date, user.id, 'more_like_this', more_like_this_recommendation)
+            user = self.handlers.users.update_reading_history(user, more_like_this_recommendation, 'more_like_this', date)
+        # get more like the user has previously read
+        if 'political' in self.baseline_recommendations:
+            political_recommendation = generator.generate_political(user, upper, lower)
+            self.handlers.recommendations.add_to_queue(date, user.id, 'political', political_recommendation)
+            user = self.handlers.users.update_reading_history(user, political_recommendation, 'political', date)
+        self.handlers.users.update_user(user)
+        self.handlers.recommendations.add_bulk()
 
     def load(self):
         for path, _, files in os.walk(self.folder):
@@ -137,7 +116,4 @@ class RunRecommendations:
                 except KeyError:
                     print("Help, a Key Error occurred!")
                     continue
-        if len(self.queue) > 0:
-            self.handlers.recommendations.add_bulk(self.queue)
-            self.queue = []
 

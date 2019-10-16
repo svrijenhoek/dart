@@ -1,6 +1,8 @@
 from dart.handler.elastic.base_handler import BaseHandler
 from dart.models.Article import Article
 
+from datetime import datetime
+
 
 class ArticleHandler(BaseHandler):
 
@@ -35,6 +37,10 @@ class ArticleHandler(BaseHandler):
         }
         self.connector.update_document('articles', '_doc', docid, body)
 
+    def get_all_articles(self):
+        articles = super(ArticleHandler, self).get_all_documents('articles')
+        return [Article(i) for i in articles]
+
     def add_field(self, docid, field, value):
         body = {
             "doc": {field: value}}
@@ -46,7 +52,7 @@ class ArticleHandler(BaseHandler):
         popularity of articles.
         """
         body = {
-            "size": 1000,
+            "size": 5000,
             "query": {
                 "bool": {
                     "must_not": {
@@ -128,9 +134,36 @@ class ArticleHandler(BaseHandler):
                 docs.append(hit)
         return [Article(i) for i in docs]
 
+    def get_articles_before(self, d):
+        date = datetime.strptime(d, '%d-%m-%Y')
+        full_date = date.strftime('%Y-%m-%dT%H:%M:%S')
+        docs = []
+        body = {
+            'query': {"range": {
+                "publication_date": {
+                    "lt": full_date,
+                }
+            }}
+        }
+        sid, scroll_size, result = self.connector.execute_search_with_scroll('articles', body)
+        for hit in result['hits']['hits']:
+            docs.append(hit)
+        # Start retrieving documents
+        while scroll_size > 0:
+            result = self.connector.scroll(sid, '2m')
+            sid = result['_scroll_id']
+            scroll_size = len(result['hits']['hits'])
+            for hit in result['hits']['hits']:
+                docs.append(hit)
+        return [Article(i) for i in docs]
+
     # get elastic entry by id
     def get_by_id(self, docid):
         return Article(super(ArticleHandler, self).get_by_docid('articles', docid))
+
+    def get_multiple_by_id(self, docids):
+        docs = super(ArticleHandler, self).get_multiple_by_docid('articles', docids)
+        return [Article(doc) for doc in docs]
 
     def get_by_url(self, index, url):
         body = {
@@ -155,11 +188,42 @@ class ArticleHandler(BaseHandler):
         response = self.connector.execute_search('articles', body)
         return [Article(i) for i in response]
 
-    def more_like_this_history(self, reading_history, upper, lower):
+    def get_political(self, user, upper, lower):
+        upper = upper.strftime('%Y-%m-%dT%H:%M:%S')
+        lower = lower.strftime('%Y-%m-%dT%H:%M:%S')
+
+        body = {
+            'size': 1000,
+            'query': {
+                "bool": {
+                    "must": [
+                        {"range": {
+                            "publication_date": {
+                                "lt": upper,
+                                "gte": lower
+                            }
+                        }},
+                        {"term": {"classification.keyword": 'politiek'}},
+                    ],
+                    "should": [
+                        {"term": {"entities.text.keyword": user.party_preference[0]}},
+                        {"term": {"entities.parties.keyword": user.party_preference[0]}},
+                        {"term": {"entities.text.keyword": user.party_preference[1]}},
+                        {"term": {"entities.parties.keyword": user.party_preference[1]}},
+                    ],
+                }
+            }
+        }
+        response = self.connector.execute_search('articles', body)
+        return [Article(i) for i in response]
+
+    def more_like_this_history(self, user, upper, lower):
         """
         used in the 'more like this' recommendation generator. Finds more articles based on the users reading history
         """
-
+        reading_history = user.select_reading_history(lower, 'more_like_this')
+        upper = upper.strftime('%Y-%m-%dT%H:%M:%S')
+        lower = lower.strftime('%Y-%m-%dT%H:%M:%S')
         like_query = [{"_index": "articles", "_id": doc} for doc in reading_history]
         body = {
             'query': {
@@ -172,12 +236,50 @@ class ArticleHandler(BaseHandler):
                             }
                         },
                     },
-                    "should": {
-                        "more_like_this": {
+                    "should": [
+                        {"term": {"classification.keyword": user.classification_preference}},
+                        {"term": {"doctype.keyword": user.source_preference}},
+                        {"range": {
+                            "complexity": {
+                                "gte": user.complexity_preference+5,
+                                "lte": user.complexity_preference-5,
+                            }
+                        }},
+                        {"more_like_this": {
                             "fields": ['text'],
                             "like": like_query
-                        }
-                    }
+                        }}
+                    ]
+                }
+            }
+        }
+        response = self.connector.execute_search('articles', body)
+        return [Article(i) for i in response]
+
+    def simulate_reading_history(self, d, classification, source, complexity, size):
+        date = datetime.strptime(d, '%d-%m-%Y')
+        full_date = date.strftime('%Y-%m-%dT%H:%M:%S')
+        body = {
+            "size": size,
+            "query": {
+                "bool": {
+                    "must": {
+                        "range": {
+                            "publication_date": {
+                                "lt": full_date,
+                            }
+                        },
+                    },
+                    "should": [
+                        {"term": {"classification.keyword": classification}},
+                        {"term": {"doctype.keyword": source}},
+                        {"range": {
+                            "complexity": {
+                                "gte": complexity+5,
+                                "lte": complexity-5,
+                            }
+                        }}
+                    ]
                 }
             }
         }

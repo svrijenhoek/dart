@@ -1,5 +1,7 @@
 import json
 import os
+import random
+import numpy as np
 import dart.Util as Util
 
 
@@ -8,10 +10,6 @@ class UserSimulator:
     def __init__(self, config, handlers):
         self.handlers = handlers
 
-        self.n_topics = config["user_topics"]
-        self.n_spread = config["user_spread"]
-        self.mean_popular = config["user_popular"]
-        self.mean_random = config["user_random"]
         self.n_users = config["user_number"]
         self.load_users = config["user_load"]
         if self.load_users == "Y":
@@ -20,42 +18,16 @@ class UserSimulator:
             self.schema = Util.read_json_file(config['user_schema'])
             self.user_reading_history_based_on = config["user_reading_history_based_on"]
 
-    def simulate_similar_to_topic(self, n_topics, n_spread):
-        reading_history = []
-        # get articles around topics
-        for _ in range(0, n_topics):
-            spread = max(Util.get_random_number(n_spread, n_spread / 2), 5)
-            document = self.handlers.articles.get_random_article()
-            response = self.handlers.articles.get_similar_documents(document.id, spread)
-            for article in response:
-                reading_history.append(article.id)
-        return reading_history
+        self.base_date = config['reading_history_date']
+        self.classifications = ['politiek', 'sport', 'entertainment', 'onbekend', 'financieel']
+        self.sources = ['nu', 'geenstijl', 'volkskrant (www)']
+        self.parties = config["political_parties"]
 
-    def simulate_popular_stories(self, mean_popular):
-        # add most popular stories
-        reading_history = []
-        n_popular = max(1, Util.get_random_number(mean_popular, mean_popular / 1.5))
-        response = self.handlers.articles.get_most_popular(n_popular)
-        for hit in response:
-            reading_history.append(hit.id)
-        return reading_history
-
-    def simulate_random(self, mean_random):
-        # add random articles
-        reading_history = []
-        n_random = Util.get_random_number(mean_random, mean_random / 1.5)
-        for _ in range(0, n_random):
-            article = self.handlers.articles.get_random_article()
-            reading_history.append(article.id)
-        return reading_history
-
-    def simulate_reading_history(self):
+    def simulate_reading_history(self, classification, source, complexity, size):
         # generate reading history
-        similar_to_topic = self.simulate_similar_to_topic(self.n_topics, self.n_spread)
-        popular_articles = self.simulate_popular_stories(self.mean_popular)
-        random_articles = self.simulate_random(self.mean_random)
-        reading_history = similar_to_topic + popular_articles + random_articles
-        return reading_history
+        history = self.handlers.articles.simulate_reading_history(self.base_date, classification, source,
+                                                                  complexity, size)
+        return [article.id for article in history]
 
     def reading_history_to_ids(self, titles):
         ids = []
@@ -75,17 +47,26 @@ class UserSimulator:
                             json_doc = Util.transform(json_doc, self.schema)
                             if 'reading_history' in json_doc:
                                 if self.user_reading_history_based_on == "title":
-                                    json_doc['reading_history'] = self.reading_history_to_ids(json_doc['reading_history'])
+                                    json_doc['reading_history'] = {'base': self.reading_history_to_ids(json_doc['reading_history'])}
                             else:
-                                json_doc['reading_history'] = self.simulate_reading_history()
+                                json_doc['reading_history'] = {'base': self.simulate_reading_history()}
                         body = json.dumps(json_doc)
                         self.handlers.users.add_user(body)
         # else:
         # simulate user data
         for _ in range(0, self.n_users):
-            reading_history = self.simulate_reading_history()
+            classification_pref = random.choice(self.classifications)
+            source_pref = random.choice(self.sources)
+            complexity_pref = int(np.random.normal(40, 10, 1)[0])
+            party_pref = random.choice(self.parties)
+            size = max(10, int(np.random.normal(50, 25, 1)[0]))
+            reading_history = self.simulate_reading_history(classification_pref, source_pref, complexity_pref, size)
             json_doc = {
-                "reading_history": reading_history
+                "classification_preference": classification_pref,
+                "source_preference": source_pref,
+                "complexity_preference": complexity_pref,
+                "party_preference": party_pref,
+                "reading_history": {'base': reading_history}
             }
             body = json.dumps(json_doc)
             self.handlers.users.add_user(body)

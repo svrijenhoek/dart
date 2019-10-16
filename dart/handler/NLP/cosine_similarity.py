@@ -1,5 +1,8 @@
 from dart.handler.elastic.connector import ElasticsearchConnector
 import math
+import collections, functools, operator
+from stop_words import get_stop_words
+from statistics import median, StatisticsError
 
 
 # basically copied from https://www.datasciencecentral.com/profiles/blogs/
@@ -7,15 +10,29 @@ import math
 class CosineSimilarity:
 
     connector = ElasticsearchConnector()
+    stop_words = get_stop_words('dutch')
+    term_vectors = {}
 
-    @staticmethod
-    def create_dictionary(doc):
-        return dict([(k, v['term_freq'])
-                     for k, v in doc
-                    .get('term_vectors')
-                    .get('text')
-                    .get('terms')
-                    .items()])
+    def create_dictionary(self, doc):
+        output = {}
+        sum_terms = sum([v['term_freq'] for k, v in doc.get('term_vectors').get('text').get('terms').items()])
+        total_docs = doc.get('term_vectors').get('text').get('field_statistics')['doc_count']
+        for k, v in doc.get('term_vectors').get('text').get('terms').items():
+            if k not in self.stop_words:
+                term_freq = v['term_freq']/sum_terms
+                doc_freq = v['doc_freq']
+                inverse_document_freq = 1.0 + math.log(total_docs / doc_freq)
+                output[k] = term_freq * inverse_document_freq
+        return output
+
+    def most_relevant_terms(self, doclist):
+        tv1 = [self.connector.get_term_vector('articles', '_doc', doc) for doc in doclist]
+        dict1 = [self.create_dictionary(tv) for tv in tv1]
+        merged1 = dict(functools.reduce(operator.add,
+                                        map(collections.Counter, dict1)))
+        sorted_x = sorted(merged1.items(), key=lambda kv: kv[1], reverse=True)
+        output = [x[0] for x in sorted_x[:5]]
+        return output
 
     @staticmethod
     def cosine(vec1, vec2):
@@ -29,12 +46,53 @@ class CosineSimilarity:
         else:
             return float(numerator) / denominator
 
-    def calculate_cosine_similarity(self, doc_list):
-        tv_list = [self.connector.get_term_vector('articles', '_doc', doc) for doc in doc_list]
-        dict_list = [self.create_dictionary(tv) for tv in tv_list]
+    def prepare_vectors(self, doclist):
+        output = []
+        for doc in doclist:
+            if doc in self.term_vectors:
+                output.append(self.term_vectors[doc])
+            else:
+                tv = self.connector.get_term_vector('articles', '_doc', doc)
+                vector = self.create_dictionary(tv)
+                output.append(vector)
+                self.term_vectors[doc] = vector
+        return output
+
+    def calculate_cosine_similarity(self, list1, list2):
+        try:
+            vectors1 = self.prepare_vectors(list1)
+            vectors2 = self.prepare_vectors(list2)
+
+            output = []
+            for ix, x in enumerate(vectors1):
+                for iy, y in enumerate(vectors2):
+                    cosine = self.cosine(x, y)
+                    output.append(cosine)
+            return median(output)
+        except (AttributeError, TypeError):
+            print("Error!")
+            print(list1)
+            print(list2)
+            pass
+        except StatisticsError:
+            return 0
+
+    def calculate_all(self, doc_list):
+        id_list = [doc.id for doc in doc_list]
+        dict_list = self.prepare_vectors(id_list)
         output = []
         for ix, x in enumerate(dict_list):
             for iy, y in enumerate(dict_list):
-                if iy > ix:
-                    output.append(self.cosine(x, y))
+                if ix > iy:
+                    cosine = self.cosine(x, y)
+                    output.append({'x': doc_list[ix].id, 'y': doc_list[iy].id, 'cosine': cosine})
         return output
+
+    def calculate_cosine_experiment(self, list1, list2):
+        vector1 = self.prepare_vectors(list1)
+        merged1 = dict(functools.reduce(operator.add,
+                                        map(collections.Counter, vector1)))
+        vector2 = self.prepare_vectors(list2)
+        merged2 = dict(functools.reduce(operator.add,
+                                        map(collections.Counter, vector2)))
+        return self.cosine(merged1, merged2)

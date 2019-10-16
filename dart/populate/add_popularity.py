@@ -30,7 +30,7 @@ class PopularityQueue:
     def add_popularity(self, docid, share_count):
         self.module_logging.info("Share count: %d" % share_count)
         body = {
-            "doc": {"popularity": {"facebook_share": int(share_count)}}}
+            "doc": {"popularity": int(share_count)}}
         self.connector.update_document('articles', '_doc', docid, body)
 
     def execute(self):
@@ -54,8 +54,11 @@ class PopularityQueue:
             for row in csv_reader:
                 title = row[3]
                 popularity = row[2].replace(',', '')
-                article = self.searcher.get_field_with_value('title', title)[0]
-                self.searcher.update(article.id, 'popularity', int(popularity))
+                try:
+                    article = self.searcher.get_field_with_value('title', title)[0]
+                    self.searcher.update(article.id, 'popularity', int(popularity))
+                except Exception:
+                    print("Document not found: "+title)
 
 
 def main(argv):

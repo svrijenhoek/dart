@@ -32,10 +32,6 @@ def read_full_config_file():
     dictionary['user_alternative_schema'] = data['user']['alternative_schema']
     dictionary['user_schema'] = data['user']['schema']
     dictionary['user_number'] = data['user']['number_of_users']
-    dictionary['user_topics'] = data['user']['average_topical_interest']
-    dictionary['user_spread'] = data['user']['average_spread_per_interest']
-    dictionary['user_popular'] = data['user']['size_popular_stories']
-    dictionary['user_random'] = data['user']['size_random']
     dictionary['user_reading_history_based_on'] = data['user']['reading_history_based_on']
 
     dictionary['recommendations_folder'] = data['recommendations']['folder']
@@ -45,6 +41,8 @@ def read_full_config_file():
     dictionary['recommendation_range'] = data['recommendations']['range']
     dictionary['recommendation_size'] = data['recommendations']['size']
     dictionary['recommendation_dates'] = data['recommendations']['dates']
+    dictionary['reading_history_date'] = data['recommendations']['reading_history_date']
+    dictionary["political_parties"] = data["political_parties"]
     return dictionary
 
 
@@ -76,8 +74,8 @@ def transform(doc, schema):
         for key, value in schema.items():
             if value:
                 doc[key] = doc.pop(value)
-        if 'teaser' in doc and doc['teaser'] not in doc['text']:
-            doc['text'] = doc['teaser'] + '\n' + doc['text']
+        # if 'teaser' in doc and doc['teaser'] not in doc['text']:
+        #     doc['text'] = doc['teaser'] + '\n' + doc['text']
         return doc
     except KeyError:
         pass
