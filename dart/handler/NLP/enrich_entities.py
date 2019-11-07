@@ -6,10 +6,11 @@ import string
 
 class EntityEnricher:
 
-    def __init__(self, metrics):
+    def __init__(self, metrics, language):
         self.metrics = metrics
+        self.language = language
         self.openstreetmap = dart.handler.other.openstreetmap.OpenStreetMap()
-        self.wikidata = dart.handler.other.wikidata.WikidataHandler()
+        self.wikidata = dart.handler.other.wikidata.WikidataHandler(self.language)
         self.printable = set(string.printable)
 
         try:

@@ -1,5 +1,7 @@
 from dart.handler.elastic.connector import ElasticsearchConnector
 import math
+import itertools
+import numpy as np
 import collections, functools, operator
 from stop_words import get_stop_words
 from statistics import median, StatisticsError
@@ -9,9 +11,10 @@ from statistics import median, StatisticsError
 # document-similarity-analysis-using-elasticsearch-and-python
 class CosineSimilarity:
 
-    connector = ElasticsearchConnector()
-    stop_words = get_stop_words('dutch')
-    term_vectors = {}
+    def __init__(self, language):
+        self.connector = ElasticsearchConnector()
+        self.stop_words = get_stop_words(language)
+        self.term_vectors = {}
 
     def create_dictionary(self, doc):
         output = {}
@@ -78,15 +81,16 @@ class CosineSimilarity:
             return 0
 
     def calculate_all(self, doc_list):
-        id_list = [doc.id for doc in doc_list]
-        dict_list = self.prepare_vectors(id_list)
-        output = []
-        for ix, x in enumerate(dict_list):
-            for iy, y in enumerate(dict_list):
-                if ix > iy:
-                    cosine = self.cosine(x, y)
-                    output.append({'x': doc_list[ix].id, 'y': doc_list[iy].id, 'cosine': cosine})
-        return output
+        try:
+            vectors = self.prepare_vectors(doc_list)
+
+            output = []
+            for x, y in itertools.combinations(vectors, 2):
+                cosine = self.cosine(x, y)
+                output.append(cosine)
+            return np.mean(output)
+        except StatisticsError:
+            return 0
 
     def calculate_cosine_experiment(self, list1, list2):
         vector1 = self.prepare_vectors(list1)

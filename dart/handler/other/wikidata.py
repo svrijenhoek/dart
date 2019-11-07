@@ -7,8 +7,14 @@ class WikidataHandler:
     Class that constructs Wikidata queries, executes them and reads responses
     """
 
-    def __init__(self):
+    def __init__(self, language):
         self.url = 'https://query.wikidata.org/sparql'
+        if language == 'dutch':
+            self.language_tag = 'nl'
+        elif language == 'english':
+            self.language_tag = 'en'
+        elif language == 'german':
+            self.language_tag = 'de'
 
     def execute_query(self, query):
         """
@@ -94,10 +100,10 @@ class WikidataHandler:
         """
         query = """
             SELECT DISTINCT ?occupation_label WHERE { 
-                ?s ?label '""" + label + """'@nl .
+                ?s ?label '""" + label + """'@"""+self.language_tag+""" .
                 ?s wdt:P106 ?occupation .
                 ?occupation rdfs:label ?occupation_label
-                FILTER(LANG(?occupation_label) = "" || LANGMATCHES(LANG(?occupation_label), "nl"))
+                FILTER(LANG(?occupation_label) = "" || LANGMATCHES(LANG(?occupation_label), "en"))
             }
             """
         r = self.execute_query(query)
@@ -106,10 +112,10 @@ class WikidataHandler:
     def get_party(self, label):
         query = """
             SELECT DISTINCT ?party_label WHERE { 
-              ?s ?label '""" + label + """'@nl .
+              ?s ?label '""" + label + """'@"""+self.language_tag+""" .
               ?s wdt:P102 ?party .
               ?party rdfs:label ?party_label .
-              FILTER(LANG(?party_label) = "" || LANGMATCHES(LANG(?party_label), "nl"))
+              FILTER(LANG(?party_label) = "" || LANGMATCHES(LANG(?party_label), \""""+self.language_tag+"""\"))
             }
             """
         r = self.execute_query(query)
@@ -118,10 +124,10 @@ class WikidataHandler:
     def get_positions(self, label):
         query = """
             SELECT DISTINCT ?position_label WHERE { 
-              ?s ?label '""" + label + """'@nl .
+              ?s ?label '""" + label + """'@"""+self.language_tag+""" .
               ?s wdt:P39 ?position .
               ?position rdfs:label ?position_label
-              FILTER(LANG(?position_label) = "" || LANGMATCHES(LANG(?position_label), "nl"))
+              FILTER(LANG(?position_label) = "" || LANGMATCHES(LANG(?position_label), \""""+self.language_tag+"""\"))
             }
             """
         r = self.execute_query(query)
@@ -135,47 +141,47 @@ class WikidataHandler:
               OPTIONAL {
                 ?s wdt:P735 ?a . 
                 ?a rdfs:label ?givenname .
-                FILTER(LANG(?givenname) = "" || LANGMATCHES(LANG(?givenname), "nl"))
+                FILTER(LANG(?givenname) = "" || LANGMATCHES(LANG(?givenname), \""""+self.language_tag+"""\"))
               }
               OPTIONAL {
                 ?s wdt:P734 ?b . 
                 ?b rdfs:label ?familyname .
-                FILTER(LANG(?familyname) = "" || LANGMATCHES(LANG(?familyname), "nl"))
+                FILTER(LANG(?familyname) = "" || LANGMATCHES(LANG(?familyname), \""""+self.language_tag+"""\"))
               }
               OPTIONAL {
                 ?s wdt:P106 ?c .
                 ?c rdfs:label ?occupations .
-                FILTER(LANG(?occupations) = "" || LANGMATCHES(LANG(?occupations), "nl"))
+                FILTER(LANG(?occupations) = "" || LANGMATCHES(LANG(?occupations), "en"))
               }
               OPTIONAL {
                 ?s wdt:P102 ?d .
                 ?d rdfs:label ?party .
-                FILTER(LANG(?party) = "" || LANGMATCHES(LANG(?party), "nl"))
+                FILTER(LANG(?party) = "" || LANGMATCHES(LANG(?party), \""""+self.language_tag+"""\"))
               }
               OPTIONAL {
                 ?s wdt:P39 ?e .
                 ?e rdfs:label ?position .
-                FILTER(LANG(?position) = "" || LANGMATCHES(LANG(?position), "nl"))
+                FILTER(LANG(?position) = "" || LANGMATCHES(LANG(?position), \""""+self.language_tag+"""\"))
               }
               OPTIONAL {
                 ?s wdt:P21 ?f .
                 ?f rdfs:label ?gender .
-                FILTER(LANG(?gender) = "" || LANGMATCHES(LANG(?gender), "nl"))
+                FILTER(LANG(?gender) = "" || LANGMATCHES(LANG(?gender), \""""+self.language_tag+"""\"))
               }
               OPTIONAL {
                    ?s wdt:P172 ?g . 
                    ?g rdfs:label ?ethnicity .
-                   FILTER(LANG(?ethnicity) = "" || LANGMATCHES(LANG(?ethnicity), "nl"))
+                   FILTER(LANG(?ethnicity) = "" || LANGMATCHES(LANG(?ethnicity), \""""+self.language_tag+"""\"))
                 }
               OPTIONAL {
                 ?s wdt:P27 ?h .
                 ?h rdfs:label ?citizen
-                FILTER(LANG(?citizen) = "" || LANGMATCHES(LANG(?citizen), "nl"))
+                FILTER(LANG(?citizen) = "" || LANGMATCHES(LANG(?citizen), \""""+self.language_tag+"""\"))
                 }
                OPTIONAL {
                 ?s wdt:P91 ?i .
                 ?i rdfs:label ?sexuality
-                FILTER(LANG(?sexuality) = "" || LANGMATCHES(LANG(?sexuality), "nl"))
+                FILTER(LANG(?sexuality) = "" || LANGMATCHES(LANG(?sexuality), \""""+self.language_tag+"""\"))
                 }
             }"""
             r = self.execute_query(query)
@@ -187,12 +193,12 @@ class WikidataHandler:
         try:
             query = """
             SELECT DISTINCT ?instanceLabel ?industryLabel ?countryLabel WHERE { 
-                ?s rdfs:label '"""+label+"""'@nl .
+                ?s rdfs:label '"""+label+"""'"""+self.language_tag+""" .
                 ?s wdt:P571 ?inception .
                 OPTIONAL {?s wdt:P31 ?instance . }
                 OPTIONAL {?s wdt:P452 ?industry . }
                 OPTIONAL {?s wdt:P17 ?country }
-                SERVICE wikibase:label { bd:serviceParam wikibase:language "nl". }
+                SERVICE wikibase:label { bd:serviceParam wikibase:language \""""+self.language_tag+"""\". }
             }            
             """
             r = self.execute_query(query)

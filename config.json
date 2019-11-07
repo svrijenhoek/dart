@@ -19,7 +19,8 @@
     "folder": "data\\articles\\volkskrant",
     "alternative_schema": "Y",
     "schema": "data\\schemas\\article.json",
-    "popularity_file": "data\\popularity.csv"
+    "popularity_file": "data\\popularity.csv",
+    "language": "dutch"
   },
   "user": {
     "load": "N",

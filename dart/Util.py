@@ -22,6 +22,7 @@ def read_full_config_file():
     dictionary['facebook_client_secret'] = data['facebook']['client_secret']
     dictionary['append'] = data['append']
     dictionary['metrics'] = data['metrics']
+    dictionary['language'] = data['articles']['language']
     dictionary['articles_folder'] = data['articles']['folder']
     dictionary['articles_schema'] = data['articles']['alternative_schema']
     dictionary['articles_schema_location'] = data['articles']['schema']

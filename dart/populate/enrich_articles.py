@@ -18,11 +18,12 @@ class Enricher:
         self.handlers = handlers
         self.config = config
         self.metrics = config['metrics']
-        self.annotator = dart.handler.NLP.annotator.Annotator()
-        self.textpipe = dart.handler.NLP.textpipe_handler.Textpipe()
+        self.language = config['language']
+        self.annotator = dart.handler.NLP.annotator.Annotator(self.language)
+        self.textpipe = dart.handler.NLP.textpipe_handler.Textpipe(self.language)
         self.spacy_tags = ['DET', 'ADP', 'PRON']
-        self.enricher = dart.handler.NLP.enrich_entities.EntityEnricher(self.metrics)
-        self.classifier = dart.handler.NLP.classify_on_entities.Classifier()
+        self.enricher = dart.handler.NLP.enrich_entities.EntityEnricher(self.metrics, self.language)
+        self.classifier = dart.handler.NLP.classify_on_entities.Classifier(self.language)
         self.clusterer = dart.handler.NLP.cluster_entities.Clustering(0.7, 'a', 'b', 'metric')
 
     def annotate_entities(self, entities):

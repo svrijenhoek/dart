@@ -3,7 +3,13 @@ import spacy
 
 class Annotator:
 
-    nlp = spacy.load('nl_core_news_sm', disable=['parser'])
+    def __init__(self, language):
+        if language == 'dutch':
+            self.nlp = spacy.load('nl_core_news_sm', disable=['parser'])
+        elif language == 'english':
+            self.nlp = spacy.load('en_core_news_sm', disable=['parser'])
+        elif language == 'german':
+            self.nlp = spacy.load('de_core_news_sm', disable=['parser'])
 
     def annotate(self, text):
         doc = self.nlp(text)

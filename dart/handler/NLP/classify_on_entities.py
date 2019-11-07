@@ -4,9 +4,25 @@ import dart.Util
 
 class Classifier:
 
-    def __init__(self):
-        self.financial_terms = ['beurs', 'beurzen', 'Wall Street', 'Nikkei', 'Dow Jones', 'Nasdaq', 'aandelen',
-                                'aandelenbeurs', 'aandelenbeurzen', 'kwartaalcijfers', 'omzet', 'fusie', 'AEX', 'AMX']
+    def __init__(self, language):
+        self.language = language
+        if language == 'dutch':
+            self.local_code = 'NL'
+            self.financial_terms = ['beurs', 'beurzen', 'Wall Street', 'Nikkei', 'Dow Jones', 'Nasdaq', 'aandelen',
+                                    'aandelenbeurs', 'aandelenbeurzen', 'kwartaalcijfers', 'omzet', 'fusie', 'AEX',
+                                    'AMX']
+        elif language == 'english':
+            self.local_code = 'EN'
+            # to do
+            self.financial_terms = ['beurs', 'beurzen', 'Wall Street', 'Nikkei', 'Dow Jones', 'Nasdaq', 'aandelen',
+                                    'aandelenbeurs', 'aandelenbeurzen', 'kwartaalcijfers', 'omzet', 'fusie', 'AEX',
+                                    'AMX']
+        elif language == 'german':
+            self.local_code = 'DE'
+            # to do
+            self.financial_terms = ['beurs', 'beurzen', 'Wall Street', 'Nikkei', 'Dow Jones', 'Nasdaq', 'aandelen',
+                                    'aandelenbeurs', 'aandelenbeurzen', 'kwartaalcijfers', 'omzet', 'fusie', 'AEX',
+                                    'AMX']
         try:
             self.occupation_mapping = dart.Util.read_csv('output/occupations_mapping.csv')
             self.instance_mapping = dart.Util.read_csv('output/instance_mapping.csv')
@@ -23,7 +39,7 @@ class Classifier:
         try:
             return df1.iloc[0].classification
         except IndexError:
-            return 'onbekend'
+            return 'unknown'
 
     def find_type(self, entity, key):
         types = defaultdict(int)
@@ -36,13 +52,13 @@ class Classifier:
                 instance_type = self.map(instance, 'ORG')
                 types[instance_type] += 1
         if len(types) > 0:
-            if 'politiek' in types:
-                return 'politiek'
+            if 'politician' in types:
+                return 'politics'
             else:
                 max_key = max(types.items(), key=lambda a: a[1])[0]
                 return max_key
         else:
-            return 'onbekend'
+            return 'unknown'
 
     def classify_type(self, entities, text):
         types = defaultdict(int)
@@ -51,33 +67,32 @@ class Classifier:
 
         for person in persons:
             type = self.find_type(person, 'PER')
-            if not type == 'onbekend':
+            if not type == 'unknown':
                 types[type] += 1
         for organisation in organisations:
             type = self.find_type(organisation, 'ORG')
-            if not type == 'onbekend':
+            if not type == 'unknown':
                 types[type] += 1
         for term in self.financial_terms:
             if term in text:
-                types['financieel'] += 1
+                types['financial'] += 1
 
         if len(types) > 0:
             return max(types.items(), key=lambda a: a[1])[0]
         else:
-            return 'onbekend'
+            return 'unknown'
 
-    @staticmethod
-    def classify_scope(entities):
+    def classify_scope(self, entities):
         loc = 0
         glob = 0
         for entity in (entity for entity in entities if entity['label'] == 'LOC'):
             if 'country_code' in entity:
-                if entity['country_code'] == 'NL':
+                if entity['country_code'] == self.local_code:
                     loc += 1
                 else:
                     glob += 1
         if loc == 0 and glob == 0:
-            return 'onbekend'
+            return 'unknown'
         elif loc >= glob:
             return 'local'
         else:
