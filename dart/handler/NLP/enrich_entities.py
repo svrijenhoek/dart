@@ -114,17 +114,20 @@ class EntityEnricher:
             else:
                 try:
                     # retrieve the coordinates from OpenStreetMap
-                    lat, lon, country_code = self.openstreetmap.get_coordinates(place)
-                    if not lat == 0 or not lon == 0 or not country_code == 0:
-                        self.known_locations[place] = {'country_code': country_code, 'lat': lat, 'lon': lon,
-                                                       'alternative': entity['alternative']}
-                        entity['location'] = {
-                            'lat': lat,
-                            'lon': lon
-                        }
-                        entity['country_code'] = country_code
-                    else:
-                        entity['calculated'] = 'Y'
+                    try:
+                        lat, lon, country_code = self.openstreetmap.get_coordinates(place)
+                        if not lat == 0 or not lon == 0 or not country_code == 0:
+                            self.known_locations[place] = {'country_code': country_code, 'lat': lat, 'lon': lon,
+                                                           'alternative': entity['alternative']}
+                            entity['location'] = {
+                                'lat': lat,
+                                'lon': lon
+                            }
+                            entity['country_code'] = country_code
+                        else:
+                            entity['calculated'] = 'Y'
+                    except TypeError:
+                        pass
                 except IndexError:
                     entity['calculated'] = 'Y'
         return entity
@@ -141,18 +144,17 @@ class EntityEnricher:
             # for now we see if we can work with only the first result
             # problem with this approach: if one field is not filled, they all fail!!
             response = self.wikidata.get_company_data(name)
-            industry = ''
-            instance = ''
-            country = ''
-            if response:
-                company_data = response[0]
-                industry = company_data['industry']
-                instance = company_data['instance']
-                country = company_data['country']
-            self.known_organizations[name] = {'industry': industry, 'instance': instance, 'country': country, 'alternative': entity['alternative']}
-            entity['industry'] = industry
-            entity['instance'] = instance
-            entity['country'] = country
+            try:
+                industry = response['industry']
+                instance = response['instance']
+                country = response['country']
+
+                self.known_organizations[name] = {'industry': industry, 'instance': instance, 'country': country, 'alternative': entity['alternative']}
+                entity['industry'] = industry
+                entity['instance'] = instance
+                entity['country'] = country
+            except TypeError:
+                pass
         return entity
 
     def save(self):

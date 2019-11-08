@@ -33,19 +33,19 @@ def main():
     es = Elasticsearch()
 
     # step 1: load articles
-    # print(str(datetime.datetime.now())+"\tloading articles")
-    # if es.indices.exists(index="articles") and config["append"] == "N":
-    #     # delete index
-    #     elastic_connector.clear_index('articles')
-    #     module_logger.info("Index removed")
-    # if not es.indices.exists(index="articles"):
-    #     module_logger.info("Index created")
-    #     dart.handler.elastic.initialize.InitializeIndex().initialize_articles()
-    #     module_logger.info("Started adding documents")
-    # dart.populate.add_documents.AddDocuments(config).execute()
-    # # add popularity numbers from file
-    # print(str(datetime.datetime.now()) + "\tadding popularity")
-    # dart.populate.add_popularity.PopularityQueue().read_from_file(config['popularity_file'])
+    print(str(datetime.datetime.now())+"\tloading articles")
+    if es.indices.exists(index="articles") and config["append"] == "N":
+        # delete index
+        elastic_connector.clear_index('articles')
+        module_logger.info("Index removed")
+    if not es.indices.exists(index="articles"):
+        module_logger.info("Index created")
+        dart.handler.elastic.initialize.InitializeIndex().initialize_articles()
+        module_logger.info("Started adding documents")
+    dart.populate.add_documents.AddDocuments(config).execute()
+    # add popularity numbers from file
+    print(str(datetime.datetime.now()) + "\tadding popularity")
+    dart.populate.add_popularity.PopularityQueue().read_from_file(config['popularity_file'])
 
     # step 1.5: annotate all articles
     print(str(datetime.datetime.now())+"\tenriching articles")

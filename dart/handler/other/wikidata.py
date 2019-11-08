@@ -28,26 +28,29 @@ class WikidataHandler:
             return ConnectionError
 
     @staticmethod
-    def read_response(response, label):
-        try:
-            data = response.json()
-            return [x[label]['value'] for x in data['results']['bindings']]
-        except json.decoder.JSONDecodeError:
-            return []
+    def read_response(data, label):
+        output = []
+        for x in data['results']['bindings']:
+            if label in x:
+                if label == 'occupations':
+                    output.append(x[label]['value'].lower())
+                else:
+                    output.append(x[label]['value'])
+        return list(set(output))
 
-    @staticmethod
-    def read_person_response_list(response):
+    def read_person_response_list(self, response):
         try:
             data = response.json()
-            givenname = list(set([x['givenname']['value'] for x in data['results']['bindings'] if 'givenname' in x]))
-            familyname = list(set([x['familyname']['value'] for x in data['results']['bindings'] if 'family' in x]))
-            occupations = list(set([x['occupations']['value'] for x in data['results']['bindings'] if 'occupations' in x]))
-            party = list(set([x['party']['value'] for x in data['results']['bindings'] if 'party' in x]))
-            positions = list(set([x['position']['value'] for x in data['results']['bindings'] if 'position' in x]))
-            gender = list(set([x['gender']['value'] for x in data['results']['bindings'] if 'gender' in x]))
-            citizen = list(set([x['citizen']['value'] for x in data['results']['bindings'] if 'citizen' in x]))
-            ethnicity = list(set([x['ethnicity']['value'] for x in data['results']['bindings'] if 'ethnicity' in x]))
-            sexuality = list(set([x['sexuality']['value'] for x in data['results']['bindings'] if 'sexuality' in x]))
+
+            givenname = self.read_response(data, 'givenname')
+            familyname = self.read_response(data, 'familyname')
+            occupations = self.read_response(data, 'occupations')
+            party = self.read_response(data, 'party')
+            positions = self.read_response(data, 'positions')
+            gender = self.read_response(data, 'gender')
+            citizen = self.read_response(data, 'citizen')
+            ethnicity = self.read_response(data, 'ethnicity')
+            sexuality = self.read_response(data, 'sexuality')
 
             return {'givenname': givenname, 'familyname': familyname, 'gender': gender, 'occupations': occupations,
                     'party': party, 'positions': positions, 'citizen': citizen, 'ethnicity': ethnicity,
@@ -57,29 +60,14 @@ class WikidataHandler:
         except IndexError:
             return []
 
-    @staticmethod
-    def read_company_response_list(response):
+    def read_company_response_list(self, response):
         try:
             data = response.json()
-            output = []
-            for entry in data['results']['bindings']:
-                try:
-                    industry = entry['industryLabel']['value']
-                except KeyError:
-                    industry = ''
-                try:
-                    instance = entry['instanceLabel']['value']
-                except KeyError:
-                    instance = ''
-                try:
-                    country = entry['countryLabel']['value']
-                except KeyError:
-                    country = ''
-                output.append({'industry': industry, 'instance': instance, 'country': country})
-            return output
+            industry = self.read_response(data, 'industryLabel')
+            instance = self.read_response(data, 'instanceLabel')
+            country = self.read_response(data, 'countryLabel')
+            return {'industry': industry, 'instance': instance, 'country': country}
         except json.decoder.JSONDecodeError:
-            return []
-        except IndexError:
             return []
 
     def get_person_data(self, label, alternatives):
@@ -93,51 +81,11 @@ class WikidataHandler:
                     return alternative, response
         return label, {}
 
-    def occupations_query(self, label):
-        """
-        Returns a list of occupations known on Wikidata for a named entity of type PER.
-        When no occupation can be found an empty list is returned.
-        """
-        query = """
-            SELECT DISTINCT ?occupation_label WHERE { 
-                ?s ?label '""" + label + """'@"""+self.language_tag+""" .
-                ?s wdt:P106 ?occupation .
-                ?occupation rdfs:label ?occupation_label
-                FILTER(LANG(?occupation_label) = "" || LANGMATCHES(LANG(?occupation_label), "en"))
-            }
-            """
-        r = self.execute_query(query)
-        return self.read_response(r, 'occupation_label')
-
-    def get_party(self, label):
-        query = """
-            SELECT DISTINCT ?party_label WHERE { 
-              ?s ?label '""" + label + """'@"""+self.language_tag+""" .
-              ?s wdt:P102 ?party .
-              ?party rdfs:label ?party_label .
-              FILTER(LANG(?party_label) = "" || LANGMATCHES(LANG(?party_label), \""""+self.language_tag+"""\"))
-            }
-            """
-        r = self.execute_query(query)
-        return self.read_response(r, 'party_label')
-
-    def get_positions(self, label):
-        query = """
-            SELECT DISTINCT ?position_label WHERE { 
-              ?s ?label '""" + label + """'@"""+self.language_tag+""" .
-              ?s wdt:P39 ?position .
-              ?position rdfs:label ?position_label
-              FILTER(LANG(?position_label) = "" || LANGMATCHES(LANG(?position_label), \""""+self.language_tag+"""\"))
-            }
-            """
-        r = self.execute_query(query)
-        return self.read_response(r, 'position_label')
-
     def person_data_query(self, label):
         try:
             query = """
-                SELECT DISTINCT ?givenname ?familyname ?occupations ?party ?position ?gender ?citizen ?ethnicity ?sexuality WHERE { 
-                ?s ?label '"""+label+"""' .
+                SELECT DISTINCT ?givenname ?familyname ?occupations ?party ?positions ?gender ?citizen ?ethnicity ?sexuality WHERE { 
+                ?s ?label '""" + label + """'@"""+self.language_tag+""" .
               OPTIONAL {
                 ?s wdt:P735 ?a . 
                 ?a rdfs:label ?givenname .
@@ -161,27 +109,27 @@ class WikidataHandler:
               OPTIONAL {
                 ?s wdt:P39 ?e .
                 ?e rdfs:label ?position .
-                FILTER(LANG(?position) = "" || LANGMATCHES(LANG(?position), \""""+self.language_tag+"""\"))
+                FILTER(LANG(?position) = "" || LANGMATCHES(LANG(?position), "en"))
               }
               OPTIONAL {
                 ?s wdt:P21 ?f .
                 ?f rdfs:label ?gender .
-                FILTER(LANG(?gender) = "" || LANGMATCHES(LANG(?gender), \""""+self.language_tag+"""\"))
+                FILTER(LANG(?gender) = "" || LANGMATCHES(LANG(?gender), "en"))
               }
               OPTIONAL {
                    ?s wdt:P172 ?g . 
                    ?g rdfs:label ?ethnicity .
-                   FILTER(LANG(?ethnicity) = "" || LANGMATCHES(LANG(?ethnicity), \""""+self.language_tag+"""\"))
+                   FILTER(LANG(?ethnicity) = "" || LANGMATCHES(LANG(?ethnicity), "en"))
                 }
               OPTIONAL {
                 ?s wdt:P27 ?h .
                 ?h rdfs:label ?citizen
-                FILTER(LANG(?citizen) = "" || LANGMATCHES(LANG(?citizen), \""""+self.language_tag+"""\"))
+                FILTER(LANG(?citizen) = "" || LANGMATCHES(LANG(?citizen), "en"))
                 }
                OPTIONAL {
                 ?s wdt:P91 ?i .
                 ?i rdfs:label ?sexuality
-                FILTER(LANG(?sexuality) = "" || LANGMATCHES(LANG(?sexuality), \""""+self.language_tag+"""\"))
+                FILTER(LANG(?sexuality) = "" || LANGMATCHES(LANG(?sexuality), "en"))
                 }
             }"""
             r = self.execute_query(query)
@@ -193,12 +141,12 @@ class WikidataHandler:
         try:
             query = """
             SELECT DISTINCT ?instanceLabel ?industryLabel ?countryLabel WHERE { 
-                ?s rdfs:label '"""+label+"""'"""+self.language_tag+""" .
+                ?s rdfs:label '""" + label + """'@"""+self.language_tag+""" .
                 ?s wdt:P571 ?inception .
                 OPTIONAL {?s wdt:P31 ?instance . }
                 OPTIONAL {?s wdt:P452 ?industry . }
                 OPTIONAL {?s wdt:P17 ?country }
-                SERVICE wikibase:label { bd:serviceParam wikibase:language \""""+self.language_tag+"""\". }
+                SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
             }            
             """
             r = self.execute_query(query)
