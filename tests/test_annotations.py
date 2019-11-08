@@ -11,7 +11,7 @@ TEXT_2 = """Dit is een dummy"""
 # https://www.nu.nl/economie/5798559/may-sluit-nieuwe-brexit-stemming-niet-uit-ondanks-oordeel-voorzitter.html
 TEXT_3 = """Burgemeester Rob Bats van de gemeente Steenwijkerland staat woensdag de hele dag met een bakfiets klaar bij het stembureau in het dorp Eesveen"""
 
-annotator = Annotator()
+annotator = Annotator("dutch")
 doc1, ent1, tags1 = annotator.annotate(TEXT_1)
 doc2, ent2, tags2 = annotator.annotate(TEXT_2)
 doc3, ent3, tags3 = annotator.annotate(TEXT_3)
