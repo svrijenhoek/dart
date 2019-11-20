@@ -21,7 +21,7 @@ class OccupationCalculator:
     def count_occupations(entities):
         """
         count all occupations, and in case of politicians the parties and positions they hold
-        >>> entities = [{"label": "PER", "parties": ["Democratische Partij"], "positions": ["president van de Verenigde Staten"], "occupations": ["staatsman", "politicus"]}]
+        >>> entities = [{"label": "PER", "parties": ["Democratische Partij"], "positions": ["president van de Verenigde Staten"], "occupations": ["staatsman", "politicus"], "frequency": 1}]
         >>> OccupationCalculator.count_occupations(entities)
         (defaultdict(<class 'int'>, {'staatsman': 1, 'politicus': 1}), defaultdict(<class 'int'>, {'Democratische Partij': 1}), defaultdict(<class 'int'>, {'president van de Verenigde Staten': 1}))
         """
@@ -33,17 +33,17 @@ class OccupationCalculator:
             # update frequency lists
             try:
                 for occupation in person['occupations']:
-                    all_occupations[occupation] += 1
+                    all_occupations[occupation] += person['frequency']
             except KeyError:
                 pass
             try:
                 for party in person['parties']:
-                    all_parties[party] += 1
+                    all_parties[party] += person['frequency']
             except KeyError:
                 pass
             try:
                 for position in person['positions']:
-                    all_positions[position] += 1
+                    all_positions[position] += person['frequency']
             except KeyError:
                 pass
         return all_occupations, all_parties, all_positions
@@ -59,6 +59,7 @@ class OccupationCalculator:
         for recommendation_type in df.recommendation_type.unique():
             self.module_logger.info("Calculating 'occupations for "+recommendation_type)
             df1 = df[df.recommendation_type == recommendation_type]
+            count = 0
             # iterate over each recommended article
             for _, row in df1.iterrows():
                 # retrieve the actual document
@@ -78,3 +79,6 @@ class OccupationCalculator:
                     frequency = positions[position]
                     self.handlers.output.add_occupation_document(recommendation_type, row.user_id, row.date, row.id,
                                                                  'position', position, frequency)
+                count += 1
+                if count % 1000 == 0:
+                    print(count)

@@ -50,7 +50,7 @@ def main():
     # step 1.5: annotate all articles
     print(str(datetime.datetime.now())+"\tenriching articles")
     dart.populate.enrich_articles.Enricher(handlers, config).enrich()
-    #
+
     # step 1.7: identify stories in the range specified in the configuration
     print(str(datetime.datetime.now())+"\tidentifying stories")
     if es.indices.exists(index="stories"):
@@ -82,7 +82,7 @@ def main():
     if 'length' or 'complexity' or 'popularity' or 'personalization' in metrics:
         module_logger.info("Visualizing user aggregations")
         dart.handler.elastic.initialize.InitializeIndex().initialize_aggregated()
-        dart.visualize.aggregate_by_user.Aggregator(handlers).execute()
+        dart.visualize.aggregate_by_user.Aggregator(handlers, config).execute()
     print(str(datetime.datetime.now())+"\t\tlocations")
     if 'location' in metrics:
         module_logger.info("Visualizing location metrics")

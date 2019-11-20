@@ -10,11 +10,12 @@ class Aggregator:
     This index is used to detect per-user average number of words, sentences, complexity and popularity.
     """
 
-    def __init__(self, handlers):
+    def __init__(self, handlers, config):
         self.handlers = handlers
+        self.config = config
         self.style_calculator = dart.visualize.style.Style(handlers)
         self.personalization_calculator = dart.visualize.personalization_old.Personalization(handlers)
-        self.cosine_calculator= dart.visualize.cosine.CosineCalculator(handlers)
+        self.cosine_calculator= dart.visualize.cosine.CosineCalculator(handlers, config['language'])
 
     def aggregate_per_user(self, recommendation_type):
         for user in self.handlers.users.get_all_users():

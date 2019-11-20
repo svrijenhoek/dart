@@ -92,6 +92,16 @@ class CosineSimilarity:
         except StatisticsError:
             return 0
 
+    def calculate_all_distances(self, doc_list):
+        dict_list = self.prepare_vectors(doc_list)
+        output = []
+        for ix, x in enumerate(dict_list):
+            for iy, y in enumerate(dict_list):
+                if ix > iy:
+                    cosine = self.cosine(x, y)
+                    output.append({'x': doc_list[ix], 'y': doc_list[iy], 'cosine': cosine})
+        return output
+
     def calculate_cosine_experiment(self, list1, list2):
         vector1 = self.prepare_vectors(list1)
         merged1 = dict(functools.reduce(operator.add,

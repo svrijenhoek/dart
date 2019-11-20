@@ -1,5 +1,6 @@
 from collections import Counter
 
+
 class LocationVisualizer:
 
     def __init__(self, handlers):
@@ -20,7 +21,7 @@ class LocationVisualizer:
                             if not entity['location']['lat'] == 0 and not entity['location']['lon'] == 0:
                                 if recommendation.type not in result:
                                     result[recommendation.type] = Counter()
-                                result[recommendation.type][entity['country_code']] += 1
+                                result[recommendation.type][entity['country_code']] += entity['frequency']
                                 # location = [entity['text'], [entity['country_code'], entity['location']]]
                                 # self.handlers.output.add_location_document(document.publication_date,
                                 #                                           recommendation.type, location)

@@ -18,7 +18,7 @@ class StoryIdentifier:
     def __init__(self, handlers, config):
         self.handlers = handlers
         self.config = config
-        self.cos = dart.handler.NLP.cosine_similarity.CosineSimilarity()
+        self.cos = dart.handler.NLP.cosine_similarity.CosineSimilarity(self.config['language'])
         self.threshold = 0.25
 
     def execute(self):
@@ -32,7 +32,8 @@ class StoryIdentifier:
 
     def identify(self, documents):
         # calculate cosine similarity between documents
-        cosines = self.cos.calculate_all(documents)
+        ids = [article.id for article in documents]
+        cosines = self.cos.calculate_all_distances(ids)
         if cosines:
             df = pd.DataFrame(cosines)
             # filter too-low similarities in order not to confuse the clustering algorithm
@@ -116,6 +117,7 @@ class StoryIdentifier:
             count += 1
         self.handlers.stories.add_bulk()
 
+    @staticmethod
     def distance(names):
         output = []
         for a, b in itertools.combinations(names, 2):
