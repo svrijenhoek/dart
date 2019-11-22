@@ -31,7 +31,8 @@ class Coverage:
                     count += 1
         return count/len(stories)
 
-    def visualize(self, df):
+    @staticmethod
+    def visualize(df):
         df['date'] = pd.to_datetime(df['date'], format="%d-%m-%Y")
         df = df.sort_values('date', ascending=True)
         df.set_index('date', inplace=True)

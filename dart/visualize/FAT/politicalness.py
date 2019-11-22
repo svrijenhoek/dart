@@ -37,7 +37,8 @@ class Politicalness:
             percentages.append(percentage)
         return percentages
 
-    def get_political_percentage(self, articles):
+    @staticmethod
+    def get_political_percentage(articles):
             classifications = [article.classification for article in articles]
             return classifications.count('political')/len(classifications)
 
@@ -49,7 +50,7 @@ class Politicalness:
         df['date'] = pd.to_datetime(df['date'], format="%d-%m-%Y")
         df = df.sort_values('date', ascending=True)
         unique_types = df.type.unique()
-        fig, axes = plt.subplots(ncols=len(unique_types), sharey=True, figsize=(9, 3))
+        _, axes = plt.subplots(ncols=len(unique_types), sharey=True, figsize=(9, 3))
         # iterate over different types of recommendations
         for i, recommendation_type in enumerate(unique_types):
             ax = axes[i]

@@ -101,14 +101,15 @@ class Personalization:
             ax.plot(df_mean, '*-y')
         plt.draw()
 
-    def visualize_style(self, df):
+    @staticmethod
+    def visualize_style(df):
         print("===STYLE PERSONALIZATION===")
         print(df.groupby('type')['distance'].mean())
         # prepare dataframe for visualization
         df = df.sort_values('date', ascending=True)
         df['date'] = pd.to_datetime(df['date'], format="%d-%m-%Y")
         unique_types = df.type.unique()
-        fig, axes = plt.subplots(ncols=len(unique_types), sharey=True, figsize=(9, 3))
+        _, axes = plt.subplots(ncols=len(unique_types), sharey=True, figsize=(9, 3))
         # iterate over different types of recommendations
         for i, recommendation_type in enumerate(unique_types):
             ax = axes[i]

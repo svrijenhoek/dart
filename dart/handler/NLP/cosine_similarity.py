@@ -76,7 +76,6 @@ class CosineSimilarity:
             print("Error!")
             print(list1)
             print(list2)
-            pass
         except StatisticsError:
             return 0
 

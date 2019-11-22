@@ -47,9 +47,11 @@ class UserSimulator:
                             json_doc = Util.transform(json_doc, self.schema)
                             if 'reading_history' in json_doc:
                                 if self.user_reading_history_based_on == "title":
-                                    json_doc['reading_history'] = {'base': self.reading_history_to_ids(json_doc['reading_history'])}
-                            else:
-                                json_doc['reading_history'] = {'base': self.simulate_reading_history()}
+                                    json_doc['reading_history'] = \
+                                        {'base': self.reading_history_to_ids(json_doc['reading_history'])}
+                            # please fix this issue at a later time
+                            # else:
+                            #    json_doc['reading_history'] = {'base': self.simulate_reading_history()}
                         body = json.dumps(json_doc)
                         self.handlers.users.add_user(body)
         # else:

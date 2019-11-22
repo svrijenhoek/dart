@@ -45,12 +45,3 @@ class FATCalculator:
         print(str(datetime.now()) + "\t Done")
         plt.show()
 
-
-def main(argv):
-    fc = FATCalculator()
-    fc.execute()
-
-
-if __name__ == "__main__":
-    main(sys.argv[1:])
-
