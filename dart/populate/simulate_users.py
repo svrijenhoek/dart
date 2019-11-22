@@ -55,10 +55,10 @@ class UserSimulator:
         # else:
         # simulate user data
         for _ in range(0, self.n_users):
-            classification_pref = random.choice(self.classifications)
-            source_pref = random.choice(self.sources)
+            classification_pref = random.choice(self.classifications)  # nosec
+            source_pref = random.choice(self.sources)  # nosec
             complexity_pref = int(np.random.normal(40, 10, 1)[0])
-            party_pref = random.choice(self.parties)
+            party_pref = random.choice(self.parties)  # nosec
             size = max(10, int(np.random.normal(50, 25, 1)[0]))
             reading_history = self.simulate_reading_history(classification_pref, source_pref, complexity_pref, size)
             json_doc = {
