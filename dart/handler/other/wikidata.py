@@ -134,7 +134,7 @@ class WikidataHandler:
             }"""
             r = self.execute_query(query)
             return self.read_person_response_list(r)
-        except ConnectionAbortedError:
+        except ConnectionAbortedError:  # in case the connection fails
             return []
 
     def get_company_data(self, label):

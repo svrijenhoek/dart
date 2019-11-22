@@ -26,7 +26,7 @@ class Classifier:
         try:
             self.occupation_mapping = dart.Util.read_csv('output/occupations_mapping.csv')
             self.instance_mapping = dart.Util.read_csv('output/instance_mapping.csv')
-        except FileNotFoundError:
+        except FileNotFoundError:  # when no mapping files are found
             self.occupation_mapping = {}
             self.instance_mapping = {}
 
@@ -66,16 +66,16 @@ class Classifier:
         organisations = [entity for entity in entities if entity['label'] == 'ORG']
 
         for person in persons:
-            type = self.find_type(person, 'PER')
-            if not type == 'unknown':
-                types[type] += 1
+            person_type = self.find_type(person, 'PER')
+            if not person_type == 'unknown':
+                types[person_type] += 1
         for organisation in organisations:
-            type = self.find_type(organisation, 'ORG')
-            if not type == 'unknown':
-                types[type] += 1
+            organization_type = self.find_type(organisation, 'ORG')
+            if not organization_type == 'unknown':
+                types[organization_type] += 1
         for term in self.financial_terms:
             if term in text:
-                types['financial'] += 1
+                types['business'] += 1
 
         if len(types) > 0:
             return max(types.items(), key=lambda a: a[1])[0]

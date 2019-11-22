@@ -15,15 +15,15 @@ class EntityEnricher:
 
         try:
             self.known_locations = dart.Util.read_json_file('output/known_locations.json')
-        except FileNotFoundError:
+        except FileNotFoundError:  # when no location file is found, create a new dict
             self.known_locations = {}
         try:
             self.known_persons = dart.Util.read_json_file('output/known_persons.json')
-        except FileNotFoundError:
+        except FileNotFoundError:  # when no persons file is found, create a new dict
             self.known_persons = {}
         try:
             self.known_organizations = dart.Util.read_json_file('output/known_organizations.json')
-        except FileNotFoundError:
+        except FileNotFoundError:  # when no organization file is found, create a new dict
             self.known_organizations = {}
 
     def known(self, name, alternative, listtype):

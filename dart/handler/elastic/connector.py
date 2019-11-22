@@ -8,8 +8,8 @@ import json
 
 
 class ElasticsearchConnector:
-    def __init__(self, *args, **kwargs):
-        self.es = Elasticsearch(*args, *kwargs)
+    def __init__(self):
+        self.es = Elasticsearch()
 
     def execute_search(self, index, body):
         try:

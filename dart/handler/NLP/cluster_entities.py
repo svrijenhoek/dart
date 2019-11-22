@@ -14,7 +14,8 @@ class Clustering:
         self.b = b
         self.metric = metric
 
-    def distance(self, names):
+    @staticmethod
+    def distance(names):
         """
         Calculates the distance between each name.
         If the label has less than three characters, skip
@@ -47,7 +48,8 @@ class Clustering:
         else:
             return {}
 
-    def process(self, names, clusters):
+    @staticmethod
+    def process(names, clusters):
         """
         Add all unique clusters that only occurred once to the result set
         """

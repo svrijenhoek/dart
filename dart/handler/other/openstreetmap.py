@@ -2,8 +2,6 @@ import urllib
 import json
 import time
 
-from minimock import Mock
-
 
 class OpenStreetMap:
 
@@ -11,12 +9,6 @@ class OpenStreetMap:
 
     @staticmethod
     def make_request(url):
-        r"""
-        >>> urllib.request = Mock('urllib.Request')
-        >>> OpenStreetMap.make_request('https://nominatim.openstreetmap.org/search?format=json&addressdetails=2&q=Amsterdam')
-        Called urllib.Request.urlopen(
-            'https://nominatim.openstreetmap.org/search?format=json&addressdetails=2&q=Amsterdam')
-        """
         page = urllib.request.urlopen(url)
         return page
 
