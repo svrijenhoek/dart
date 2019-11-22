@@ -39,7 +39,7 @@ class Politicalness:
 
     def get_political_percentage(self, articles):
             classifications = [article.classification for article in articles]
-            return classifications.count('politiek')/len(classifications)
+            return classifications.count('political')/len(classifications)
 
     @staticmethod
     def visualize(df):

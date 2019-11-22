@@ -78,7 +78,7 @@ class Enricher:
 
         if 'classify' in self.metrics:
             if 'entities' not in doc:
-                classification = 'onbekend'
+                classification = 'unknown'
             else:
                 classification, scope = self.classifier.classify(doc['entities'], article.text)
             doc['classification'] = classification

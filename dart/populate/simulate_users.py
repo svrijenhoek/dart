@@ -19,7 +19,7 @@ class UserSimulator:
             self.user_reading_history_based_on = config["user_reading_history_based_on"]
 
         self.base_date = config['reading_history_date']
-        self.classifications = ['politiek', 'sport', 'entertainment', 'onbekend', 'financieel']
+        self.classifications = ['political', 'sport', 'entertainment', 'unknown', 'business', 'general']
         self.sources = ['nu', 'geenstijl', 'volkskrant (www)']
         self.parties = config["political_parties"]
 

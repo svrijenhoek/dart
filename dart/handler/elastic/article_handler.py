@@ -203,7 +203,7 @@ class ArticleHandler(BaseHandler):
                                 "gte": lower
                             }
                         }},
-                        {"term": {"classification.keyword": 'politiek'}},
+                        {"term": {"classification.keyword": 'political'}},
                     ],
                     "should": [
                         {"term": {"entities.text.keyword": user.party_preference[0]}},
