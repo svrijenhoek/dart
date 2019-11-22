@@ -81,7 +81,7 @@ class Clustering:
                 distances = self.distance(names)
                 clusters = self.cluster(distances)
                 processed = self.process(names, clusters)
-                for k, v in processed.items():
+                for _, v in processed.items():
                     with_name = [entity for entity in of_type if entity['text'] in v]
                     all_names = [entity['text'] for entity in with_name]
                     label = with_name[0]['label']

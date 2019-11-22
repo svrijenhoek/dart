@@ -67,8 +67,8 @@ class CosineSimilarity:
             vectors2 = self.prepare_vectors(list2)
 
             output = []
-            for ix, x in enumerate(vectors1):
-                for iy, y in enumerate(vectors2):
+            for _, x in enumerate(vectors1):
+                for _, y in enumerate(vectors2):
                     cosine = self.cosine(x, y)
                     output.append(cosine)
             return median(output)

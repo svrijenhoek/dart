@@ -26,7 +26,8 @@ class UserHandler(BaseHandler):
         }
         self.connector.update_document('users', '_doc', user.id, body)
 
-    def update_reading_history(self, user, article_ids, recommendation_type, date):
+    @staticmethod
+    def update_reading_history(user, article_ids, recommendation_type, date):
         if recommendation_type in user.reading_history:
             current_history = user.reading_history[recommendation_type]
             current_history[date] = article_ids

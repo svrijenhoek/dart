@@ -91,7 +91,7 @@ class RunRecommendations:
                         elif 'title' in json_doc['article']:
                             article = self.handlers.articles.get_field_with_value('title', json_doc['article']['title'])[0]
                         else:
-                            "Could not find article, please supply id or title"
+                            print("Could not find article, please supply id or title")
                             continue
                         self.add_document(date, user_id, recommendation_type, article)
 

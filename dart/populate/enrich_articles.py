@@ -108,7 +108,7 @@ class Enricher:
                         self.enricher.save()
                         count = 0
             self.enricher.save()
-        except ConnectionError:
+        except ConnectionError:  # in case an error occurs when wikidata does not respond, save recently retrieved items
             self.enricher.save()
             print("Connection error!")
             sys.exit()
@@ -127,7 +127,7 @@ class Enricher:
                     self.enricher.save()
                     count = 0
             self.enricher.save()
-        except ConnectionError:
+        except ConnectionError:  # in case an error occurs when wikidata does not respond, save recently retrieved items
             self.enricher.save()
             print("Connection error!")
             sys.exit()
