@@ -6,7 +6,7 @@ whoswho~=0.2
 nltk~=3.4
 gensim~=3.8
 spacy~=2.2
-scikit-learn~=0.21
+scikit-learn~=0.22
 textpipe~=0.11
 minimock
 stop_words
