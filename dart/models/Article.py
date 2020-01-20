@@ -8,7 +8,10 @@ class Article(Document):
         self.text = self.source['text']
         self.title = self.source['title']
         self.publication_date = self.source['publication_date']
-        self.doctype = self.source['doctype']
+        try:
+            self.doctype = self.source['doctype']
+        except KeyError:
+            self.doctype = None
         try:
             self.entities = self.source['entities']
         except KeyError:
@@ -20,16 +23,19 @@ class Article(Document):
         try:
             self.author = self.source['byline']
         except KeyError:
-            self.author = ''
+            self.author = None
         try:
             self.complexity = self.source['complexity']
             self.nwords = self.source['nwords']
             self.nsentences = self.source['nsentences']
         except KeyError:
-            self.complexity = ''
-            self.nwords = ''
-            self.nsentences = ''
-        self.url = self.source['url']
+            self.complexity = None
+            self.nwords = None
+            self.nsentences = None
+        try:
+            self.url = self.source['url']
+        except KeyError:
+            self.url = None
         try:
             self.popularity = self.source['popularity']
         except KeyError:
@@ -47,9 +53,9 @@ class Article(Document):
         except KeyError:
             self.annotated = 'N'
         try:
-                self.classification = self.source['classification']
+            self.classification = self.source['classification']
         except KeyError:
-            self.classification = 'onbekend'
+            self.classification = None
 
     def get(self, x):
         return self.source[x]

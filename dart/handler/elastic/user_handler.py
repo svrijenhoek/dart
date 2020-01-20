@@ -32,6 +32,8 @@ class UserHandler(BaseHandler):
             current_history = user.reading_history[recommendation_type]
             current_history[date] = article_ids
             user.reading_history[recommendation_type] = current_history
+        elif not user.reading_history:
+            user.reading_history = {recommendation_type: {date: article_ids}}
         else:
             user.reading_history[recommendation_type] = {date: article_ids}
         return user

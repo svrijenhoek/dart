@@ -49,7 +49,8 @@ class AddDocuments:
                     json_doc = json.loads(line)
                     if self.alternative_schema == "Y":
                         json_doc = Util.transform(json_doc, self.schema)
-                    if json_doc:
+                    if json_doc and \
+                            not "Nutzen Sie gerne die Suche, um zum gewünschten Inhalt zu gelangen." in json_doc['text']:
                         self.add_document(json_doc)
                     if len(self.queue) > 0 and len(self.queue) % 200 == 0:
                         self.connector.add_bulk('articles', '_doc', self.queue)

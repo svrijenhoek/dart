@@ -40,36 +40,41 @@ class Personalization:
         Method that calculates the internal cosine similarity between the current recommendation and all documents in
         the reading history
         """
-        cos = dart.handler.NLP.cosine_similarity.CosineSimilarity()
+        cos = dart.handler.NLP.cosine_similarity.CosineSimilarity(self.config['language'])
         recommendation_types = self.handlers.recommendations.get_recommendation_types()
         data = []
-        for user in self.handlers.users.get_all_users():
-            for recommendation_type in recommendation_types:
-                for date in self.config["recommendation_dates"]:
-                    # retrieve all articles recommended at that date
-                    recommended_ids = user.reading_history[recommendation_type][date]
-                    if recommended_ids:
-                        # retrieve the reading history at that date
-                        strp_date = datetime.strptime(date, '%d-%m-%Y')
-                        reading_history = user.select_reading_history(strp_date, recommendation_type)
-                        # calculate the average cosine similarity
-                        median_cosine = cos.calculate_cosine_similarity(recommended_ids, reading_history)
+        users = self.handlers.users.get_all_users()
+        too_short = 0
+        for user in users:
+            gen = (rec for rec in recommendation_types if rec in user.reading_history)
+            for recommendation_type in gen:
+                try:
+                    dates = user.reading_history[recommendation_type].keys()
+                    strp_dates = [datetime.strptime(date, '%d-%m-%Y') for date in dates]
+                    last_date = min(strp_dates)
+                    reading_history = user.select_reading_history(last_date, recommendation_type)
+                    if len(reading_history) > 1:
+                        cosine_mean, cosine_std = cos.calculate_all(reading_history)
                         # cosine = cos.calculate_cosine_experiment(recommended_ids, reading_history)
-                        distance = self.calculate_distance(recommended_ids, reading_history)
-                        data.append({"user": user.id, "type": recommendation_type, "date": date, "cosine": median_cosine,
-                                     "distance": distance})
-        # create dataframe of results
-        df = pd.DataFrame(data, columns=["user", "type", "date", "cosine", "distance"])
+                        mean_distance, std_distance = self.calculate_all_distances(reading_history)
+                        data.append({"user": user.id, "type": recommendation_type, "cosine_mean": cosine_mean, "cosine_std": cosine_std,
+                                     "distance_mean": mean_distance, "distance_std": std_distance})
+                    else:
+                        too_short += 1
+                except ValueError:
+                    too_short += 1
+        df = pd.DataFrame(data, columns=["user", "type", "cosine_mean", "cosine_std", "distance_mean", "distance_std"])
+        print("Number of users with too short reading history: {}".format(too_short))
         return df
 
     def calculate_distance(self, recommended, history):
         recommended_articles = self.handlers.articles.get_multiple_by_id(recommended)
-        recommended_complexities = [article.complexity for article in recommended_articles]
+        recommended_complexities = [article.complexity for article in recommended_articles if article.complexity]
         r_mode = self.mode([self.discretize(complexity) for complexity in recommended_complexities])
         if r_mode:
             r_index = list(self.flesch_kincaid_map).index(r_mode)
         history_articles = self.handlers.articles.get_multiple_by_id(history)
-        history_complexities = [article.complexity for article in history_articles]
+        history_complexities = [article.complexity for article in history_articles if article.complexity]
         h_mode = self.mode([self.discretize(complexity) for complexity in history_complexities])
         if h_mode:
             h_index = list(self.flesch_kincaid_map).index(h_mode)
@@ -78,45 +83,52 @@ class Personalization:
         except UnboundLocalError:
             return 0
 
+    def calculate_all_distances(self, history):
+        history_articles = self.handlers.articles.get_multiple_by_id(history)
+        history_complexities = pd.Series([article.complexity for article in history_articles if article.complexity])
+        return history_complexities.mean(), history_complexities.std()
+
     @staticmethod
     def visualize_content(df):
         """
         For each recommender type, create a scatter plot of all values found and an average line
         """
         print("===CONTENT PERSONALIZATION===")
-        print(df.groupby('type')['cosine'].mean())
+        print(df.groupby('type')['cosine_mean'].mean())
+        print(df.groupby('type')['cosine_std'].std())
         # prepare dataframe for visualization
-        df['date'] = pd.to_datetime(df['date'], format="%d-%m-%Y")
-        df = df.sort_values('date', ascending=True)
-        unique_types = df.type.unique()
-        fig, axes = plt.subplots(ncols=len(unique_types), sharey=True, figsize=(9, 3))
-        # iterate over different types of recommendations
-        for i, recommendation_type in enumerate(unique_types):
-            ax = axes[i]
-            ax.set_title(recommendation_type)
-            df1 = df[df['type'] == recommendation_type]
-            df_mean = df1.groupby(df1.date)['cosine'].mean()
-            # create plots
-            ax.scatter(x='date', y='cosine', data=df1)
-            ax.plot(df_mean, '*-y')
-        plt.draw()
+        # df['date'] = pd.to_datetime(df['date'], format="%d-%m-%Y")
+        # df = df.sort_values('date', ascending=True)
+        # unique_types = df.type.unique()
+        # fig, axes = plt.subplots(ncols=len(unique_types), sharey=True, figsize=(9, 3))
+        # # iterate over different types of recommendations
+        # for i, recommendation_type in enumerate(unique_types):
+        #     ax = axes[i]
+        #     ax.set_title(recommendation_type)
+        #     df1 = df[df['type'] == recommendation_type]
+        #     df_mean = df1.groupby(df1.date)['cosine'].mean()
+        #     # create plots
+        #     ax.scatter(x='date', y='cosine', data=df1)
+        #     ax.plot(df_mean, '*-y')
+        # plt.draw()
 
     @staticmethod
     def visualize_style(df):
         print("===STYLE PERSONALIZATION===")
-        print(df.groupby('type')['distance'].mean())
+        print(df.groupby('type')['distance_mean'].mean())
+        print(df.groupby('type')['distance_std'].mean())
         # prepare dataframe for visualization
-        df = df.sort_values('date', ascending=True)
-        df['date'] = pd.to_datetime(df['date'], format="%d-%m-%Y")
-        unique_types = df.type.unique()
-        _, axes = plt.subplots(ncols=len(unique_types), sharey=True, figsize=(9, 3))
-        # iterate over different types of recommendations
-        for i, recommendation_type in enumerate(unique_types):
-            ax = axes[i]
-            ax.set_title(recommendation_type)
-            df1 = df[df['type'] == recommendation_type]
-            df_mean = df1.groupby(df1.date)['distance'].mean()
-            # create plots
-            ax.scatter(x='date', y='distance', data=df1)
-            ax.plot(df_mean, '*-y')
-        plt.draw()
+        # df = df.sort_values('date', ascending=True)
+        # df['date'] = pd.to_datetime(df['date'], format="%d-%m-%Y")
+        # unique_types = df.type.unique()
+        # _, axes = plt.subplots(ncols=len(unique_types), sharey=True, figsize=(9, 3))
+        # # iterate over different types of recommendations
+        # for i, recommendation_type in enumerate(unique_types):
+        #     ax = axes[i]
+        #     ax.set_title(recommendation_type)
+        #     df1 = df[df['type'] == recommendation_type]
+        #     df_mean = df1.groupby(df1.date)['distance'].mean()
+        #     # create plots
+        #     ax.scatter(x='date', y='distance', data=df1)
+        #     ax.plot(df_mean, '*-y')
+        # plt.draw()

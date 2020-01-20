@@ -7,10 +7,16 @@ class User(Document):
     def __init__(self, document):
         Document.__init__(self, document)
         self.reading_history = self.source['reading_history']
-        self.classification_preference = self.source['classification_preference']
-        self.source_preference = self.source['source_preference']
-        self.complexity_preference = self.source['complexity_preference']
-        self.party_preference = self.source['party_preference']
+        try:
+            self.classification_preference = self.source['classification_preference']
+            self.source_preference = self.source['source_preference']
+            self.complexity_preference = self.source['complexity_preference']
+            self.party_preference = self.source['party_preference']
+        except KeyError:
+            self.classification_preference = ''
+            self.source_preference = ''
+            self.complexity_preference = ''
+            self.party_preference = ''
 
     def select_reading_history(self, current_date, recommendation_type):
         """
@@ -24,7 +30,7 @@ class User(Document):
             for date in relevant_history:
                 history_date = datetime.strptime(date, '%d-%m-%Y')
                 # only consider the recommendations before the current time
-                if history_date < current_date:
+                if history_date <= current_date:
                     dates.append(date)
             recommendations_of_type = []
             # append ids for all articles recommended before the current date

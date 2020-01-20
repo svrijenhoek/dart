@@ -29,6 +29,10 @@ class WikidataHandler:
 
     @staticmethod
     def read_response(data, label):
+        """
+        Returns all unique values for a particular label.
+        Lowercases occupation data, which is relevant when returning results in English
+        """
         output = []
         for x in data['results']['bindings']:
             if label in x:
@@ -39,6 +43,10 @@ class WikidataHandler:
         return list(set(output))
 
     def read_person_response_list(self, response):
+        """
+        Attempt to retrieve values for each of the value types relevant for people data.
+        Leaves value empty in case Wikidata has no information about it.
+        """
         try:
             data = response.json()
 
@@ -46,7 +54,7 @@ class WikidataHandler:
             familyname = self.read_response(data, 'familyname')
             occupations = self.read_response(data, 'occupations')
             party = self.read_response(data, 'party')
-            positions = self.read_response(data, 'positions')
+            positions = self.read_response(data, 'position')
             gender = self.read_response(data, 'gender')
             citizen = self.read_response(data, 'citizen')
             ethnicity = self.read_response(data, 'ethnicity')
@@ -84,7 +92,7 @@ class WikidataHandler:
     def person_data_query(self, label):
         try:
             query = """
-                SELECT DISTINCT ?givenname ?familyname ?occupations ?party ?positions ?gender ?citizen ?ethnicity ?sexuality WHERE { 
+                SELECT DISTINCT ?s ?givenname ?familyname ?occupations ?party ?position ?gender ?citizen ?ethnicity ?sexuality WHERE { 
                 ?s ?label '""" + label + """'@"""+self.language_tag+""" .
               OPTIONAL {
                 ?s wdt:P735 ?a . 

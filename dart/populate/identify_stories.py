@@ -14,6 +14,12 @@ from difflib import SequenceMatcher
 
 
 class StoryIdentifier:
+    """
+    Class that aims to identify news stories in a set of news articles according to the principles noted in
+    Nicholls et al.
+
+    Currently only looks at articles from the same day, needs to be expanded.
+    """
 
     def __init__(self, handlers, config):
         self.handlers = handlers
@@ -22,29 +28,45 @@ class StoryIdentifier:
         self.threshold = 0.25
 
     def execute(self):
-        for date in self.config["recommendation_dates"]:
-            upper_date = datetime.strptime(date, '%d-%m-%Y')
-            lower_date = upper_date - timedelta(days=self.config["recommendation_range"])
-            documents = self.handlers.articles.get_all_in_timerange(lower_date, upper_date)
-            stories = self.identify(documents)
-            # self.update_articles(stories, documents)
-            self.add_stories(date, stories, documents)
+        first_date = datetime.strptime(self.config["recommendation_dates"][0], '%d-%m-%Y')
+        last_date = datetime.strptime(self.config["recommendation_dates"][-1], '%d-%m-%Y')
+        delta = last_date - first_date
 
-    def identify(self, documents):
+        cosines = []
+        for i in range(delta.days+1):
+            today = first_date + timedelta(days=i)
+            print(today)
+            yesterday = today - timedelta(days=1)
+            past_three_days = today - timedelta(days=3)
+            documents_3_days = self.handlers.articles.get_all_in_timerange(past_three_days, today)
+            documents_1_day = self.handlers.articles.get_all_in_timerange(yesterday, today)
+            for x in documents_1_day:
+                for y in documents_3_days:
+                    cosine = self.cos.calculate_cosine_similarity(x.id, y.id)
+                    if cosine > 0:
+                        cosines.append({'x': x.id, 'y': y.id, 'cosine': cosine})
+        stories = self.identify(cosines)
+        self.add_stories(stories)
+
+        # stories = self.identify(documents)
+        # self.add_stories(today.strftime("%d-%m-%Y"), stories, documents)
+
+    def identify(self, cosines):
         # calculate cosine similarity between documents
-        ids = [article.id for article in documents]
-        cosines = self.cos.calculate_all_distances(ids)
-        if cosines:
-            df = pd.DataFrame(cosines)
-            # filter too-low similarities in order not to confuse the clustering algorithm
-            over_threshold = df[df.cosine > self.threshold]
-            # create graph
-            G = nx.from_pandas_edgelist(over_threshold, 'x', 'y', edge_attr='cosine')
-            # create partitions, or stories
-            partition = community.best_partition(G)
-            return partition
-        else:
-            return {}
+        # ids = [article.id for article in documents if not article.text == '']
+        # cosines = self.cos.calculate_all_distances(ids)
+        # if cosines:
+        df = pd.DataFrame(cosines)
+        df = df.drop_duplicates()
+        # filter too-low similarities in order not to confuse the clustering algorithm
+        over_threshold = df[df.cosine > self.threshold]
+        # create graph
+        G = nx.from_pandas_edgelist(over_threshold, 'x', 'y', edge_attr='cosine')
+        # create partitions, or stories
+        partition = community.best_partition(G)
+        return partition
+        # else:
+        #    return {}
 
     def update_articles(self, stories, documents):
         docs = [{'id': doc_id, 'story': story_id} for doc_id, story_id in stories.items()]
@@ -88,32 +110,38 @@ class StoryIdentifier:
             print("{}\t{}".format(count, article.title))
             count += 1
 
-    def add_stories(self, date, stories, documents):
-        v = defaultdict(list)
-        for key, value in stories.items():
-            v[value].append(key)
-        for key, value in v.items():
-            keywords = self.cos.most_relevant_terms(value)
+    def add_stories(self, stories):
+        s = defaultdict(list)
+        # make a dictionary where each story id is linked to its article ids
+        for k, v in stories.items():
+            s[v].append(k)
+        # identify the most important keywords, most common classification and a title
+        for story_id, doc_ids in s.items():
+            keywords = self.cos.most_relevant_terms(doc_ids)
             classifications = []
             titles = []
-            for docid in value:
-                article = self.handlers.articles.get_by_id(docid)
+            dates = []
+            for doc_id in doc_ids:
+                article = self.handlers.articles.get_by_id(doc_id)
                 classifications.append(article.classification)
                 titles.append(article.title)
+                dates.append(article.publication_date)
             try:
                 classification = mode(classifications)
             except StatisticsError:
                 classification = classifications[0]
-            self.handlers.stories.add_to_queue(date, key, value, keywords, classification, titles[0])
+            self.handlers.stories.add_to_queue(dates[0], dates, story_id, doc_ids, keywords, classification, titles[0])
 
+        # account for all the documents that are not part of stories
+        # disabled during refactoring
         count = len(stories)
         documents_in_stories = [docid for docid in stories.keys()]
-        all_documents = [doc.id for doc in documents]
+        all_documents = [doc.id for doc in self.handlers.articles.get_all_articles()]
         single_articles = sorted(set(all_documents).difference(documents_in_stories))
         for article_id in single_articles:
             article = self.handlers.articles.get_by_id(article_id)
             keywords = self.cos.most_relevant_terms([article_id])
-            self.handlers.stories.add_to_queue(date, count, article.id, keywords, article.classification, article.title)
+            self.handlers.stories.add_to_queue(article.publication_date, article.publication_date, count, article.id, keywords, article.classification, article.title)
             count += 1
         self.handlers.stories.add_bulk()
 

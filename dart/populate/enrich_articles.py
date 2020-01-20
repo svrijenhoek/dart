@@ -22,9 +22,10 @@ class Enricher:
         self.annotator = dart.handler.NLP.annotator.Annotator(self.language)
         self.textpipe = dart.handler.NLP.textpipe_handler.Textpipe(self.language)
         self.spacy_tags = ['DET', 'ADP', 'PRON']
-        self.enricher = dart.handler.NLP.enrich_entities.EntityEnricher(self.metrics, self.language)
+        self.enricher = dart.handler.NLP.enrich_entities.EntityEnricher(self.metrics, self.language,
+                                                                        pd.read_csv(config['politics_file']))
         self.classifier = dart.handler.NLP.classify_on_entities.Classifier(self.language)
-        self.clusterer = dart.handler.NLP.cluster_entities.Clustering(0.7, 'a', 'b', 'metric')
+        self.clusterer = dart.handler.NLP.cluster_entities.Clustering(0.9, 'a', 'b', 'metric')
 
     def annotate_entities(self, entities):
         annotated_entities = []
@@ -38,7 +39,10 @@ class Enricher:
         calculates for each tag specified its representation in the selected article
         """
         df = pd.DataFrame.from_dict(tags)
-        counts = df.tag.value_counts()
+        try:
+            counts = df.tag.value_counts()
+        except AttributeError:
+            print("what's going on here!")
         result = {}
         for tag in self.spacy_tags:
             try:
@@ -62,7 +66,7 @@ class Enricher:
 
         doc['entities'] = enriched_entities
         doc['entities_base'] = entities
-        doc['tags'] = tags
+        # doc['tags'] = tags
 
         if 'length' or 'complexity' in self.metrics:
             if not article.nsentences or not article.nwords or not article.complexity:
@@ -72,7 +76,7 @@ class Enricher:
                 doc['nsentences'] = nsentences
                 doc['complexity'] = complexity
 
-        if 'emotive' in self.metrics and not article.tag_percentages:
+        if 'emotive' in self.metrics and not article.tag_percentages and tags:
             percentages = self.calculate_tags(tags)
             doc['tag_percentages'] = percentages
 
@@ -87,45 +91,14 @@ class Enricher:
         doc['annotated'] = 'Y'
         self.handlers.articles.update_doc(article.id, doc)
 
-    def enrich_base(self):
-        base_date = self.config['reading_history_date']
-        articles = self.handlers.articles.get_articles_before(base_date)
-        for article in articles:
-            if not article.annotated == 'Y':
-                self.annotate_document(article)
-
-    def enrich_recommendations(self):
-        try:
-            recommendations = self.handlers.recommendations.get_all_recommendations()
-            count = 0
-            for recommendation in recommendations:
-                for article_id in recommendation.articles:
-                    article = self.handlers.articles.get_by_id(article_id)
-                    if not article.annotated == 'Y':
-                        self.annotate_document(article)
-                        count += 1
-                    if count == 100:
-                        self.enricher.save()
-                        count = 0
-            self.enricher.save()
-        except ConnectionError:  # in case an error occurs when wikidata does not respond, save recently retrieved items
-            self.enricher.save()
-            print("Connection error!")
-            sys.exit()
-        self.enricher.save()
-
     def enrich(self):
         try:
-            articles = self.handlers.articles.get_all_articles()
-            count = 0
-            for article in articles:
-                if not article.annotated == 'Y':
+            articles = self.handlers.articles.get_not_calculated("annotated")
+            while len(articles) > 0:
+                for article in articles:
                     self.annotate_document(article)
-                    count += 1
-                    print(count)
-                if count == 100:
-                    self.enricher.save()
-                    count = 0
+                self.enricher.save()
+                articles = self.handlers.articles.get_not_calculated("annotated")
             self.enricher.save()
         except ConnectionError:  # in case an error occurs when wikidata does not respond, save recently retrieved items
             self.enricher.save()

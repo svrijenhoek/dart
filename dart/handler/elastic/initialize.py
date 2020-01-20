@@ -14,6 +14,21 @@ class InitializeIndex:
             self.es.indices.delete(index=index)
         self.es.indices.create(index=index, body=mapping)
 
+    def initialize_stories(self):
+        index_name = 'stories'
+        mapping = {
+            "mappings": {
+                "_doc": {
+                    "properties": {
+                        "date": {
+                            "type": "date"
+                        },
+                    }
+                }
+            }
+        }
+        self.remove_and_initialize(index_name, mapping)
+
     def initialize_recommendations(self):
         index_name = 'recommendations'
         mapping = {

@@ -3,15 +3,18 @@ import os
 import random
 import numpy as np
 import dart.Util as Util
+from dart.handler.elastic.connector import ElasticsearchConnector
 
 
 class UserSimulator:
 
     def __init__(self, config, handlers):
         self.handlers = handlers
+        self.connector = ElasticsearchConnector()
 
         self.n_users = config["user_number"]
         self.load_users = config["user_load"]
+
         if self.load_users == "Y":
             self.alternative_schema = config["user_alternative_schema"]
             self.folder = config["user_folder"]
@@ -22,6 +25,8 @@ class UserSimulator:
         self.classifications = ['political', 'sport', 'entertainment', 'unknown', 'business', 'general']
         self.sources = ['nu', 'geenstijl', 'volkskrant (www)']
         self.parties = config["political_parties"]
+
+        self.queue = []
 
     def simulate_reading_history(self, classification, source, complexity, size):
         # generate reading history
@@ -45,15 +50,22 @@ class UserSimulator:
                         json_doc = json.loads(line)
                         if self.alternative_schema == "Y":
                             json_doc = Util.transform(json_doc, self.schema)
-                            if 'reading_history' in json_doc:
-                                if self.user_reading_history_based_on == "title":
-                                    json_doc['reading_history'] = \
-                                        {'base': self.reading_history_to_ids(json_doc['reading_history'])}
+                        if json_doc['reading_history']:
+                            if self.user_reading_history_based_on == "title":
+                                json_doc['reading_history'] = \
+                                    {'base': self.reading_history_to_ids(json_doc['reading_history'])}
                             # please fix this issue at a later time
                             # else:
                             #    json_doc['reading_history'] = {'base': self.simulate_reading_history()}
-                        body = json.dumps(json_doc)
-                        self.handlers.users.add_user(body)
+                        else:
+                            json_doc['reading_history'] = {'base': []}
+                        self.queue.append(json_doc)
+                    if len(self.queue) > 1000:
+                        self.connector.add_bulk('users', '_doc', self.queue)
+                        self.queue = []
+            if self.queue:
+                self.connector.add_bulk('users', '_doc', self.queue)
+                self.queue = []
         # else:
         # simulate user data
         for _ in range(0, self.n_users):

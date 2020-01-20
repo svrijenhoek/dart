@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 import os
 import json
 import numpy as np
+import pandas as pd
 
 
 class RecommendationGenerator:
@@ -46,6 +47,7 @@ class RunRecommendations:
 
         self.users = self.handlers.users.get_all_users()
         self.baseline_recommendations = config['baseline_recommendations']
+        self.exhaustive = config["exhaustive"]
         self.load_recommendations = config['recommendations_load']
         if self.load_recommendations == 'Y':
             self.folder = config['recommendations_folder']
@@ -55,23 +57,18 @@ class RunRecommendations:
         if 'random' in self.baseline_recommendations:
             random_recommendation = generator.generate_random()
             self.handlers.recommendations.add_to_queue(date, user.id, 'random', random_recommendation)
-            user = self.handlers.users.update_reading_history(user, random_recommendation, 'random', date)
         # select most popular
         if 'most_popular' in self.baseline_recommendations:
             most_popular_recommendation = generator.generate_most_popular()
             self.handlers.recommendations.add_to_queue(date, user.id, 'most_popular', most_popular_recommendation)
-            user = self.handlers.users.update_reading_history(user, most_popular_recommendation, 'most_popular', date)
         # get more like the user has previously read
         if 'more_like_this' in self.baseline_recommendations:
             more_like_this_recommendation = generator.generate_more_like_this(user, upper, lower)
             self.handlers.recommendations.add_to_queue(date, user.id, 'more_like_this', more_like_this_recommendation)
-            user = self.handlers.users.update_reading_history(user, more_like_this_recommendation, 'more_like_this', date)
         # get more like the user has previously read
         if 'political' in self.baseline_recommendations:
             political_recommendation = generator.generate_political(user, upper, lower)
             self.handlers.recommendations.add_to_queue(date, user.id, 'political', political_recommendation)
-            user = self.handlers.users.update_reading_history(user, political_recommendation, 'political', date)
-        self.handlers.users.update_user(user)
         self.handlers.recommendations.add_bulk()
 
     def load(self):
@@ -83,37 +80,52 @@ class RunRecommendations:
                     # if self.schema:
                     #     json_doc = Util.transform(json_doc, self.schema)
                     if json_doc:
-                        date = json_doc['recommendation']['date']
-                        user_id = json_doc['recommendation']['user_id']
-                        recommendation_type = json_doc['recommendation']['type']
-                        if 'id' in json_doc['article']:
-                            article = self.handlers.articles.get_by_id(json_doc['articles']['id'])
-                        elif 'title' in json_doc['article']:
-                            article = self.handlers.articles.get_field_with_value('title', json_doc['article']['title'])[0]
-                        else:
-                            print("Could not find article, please supply id or title")
-                            continue
-                        self.add_document(date, user_id, recommendation_type, article)
+                        date = json_doc['date']
+                        user_id = json_doc['user_id']
+                        recommendation_type = json_doc['type']
+                        # to account for nan article ids
+                        articles = [article_id for article_id in json_doc['articles'] if not article_id != article_id]
+                        self.handlers.recommendations.add_to_queue(date, user_id, recommendation_type, articles)
+
+                    if len(self.handlers.recommendations.queue) > 1000:
+                        self.handlers.recommendations.add_bulk()
+
+        if self.handlers.recommendations.queue:
+            self.handlers.recommendations.add_bulk()
+
+    def generate_reading_histories(self):
+        for recommendation_type in self.handlers.recommendations.get_recommendation_types():
+            for user in self.users:
+                recommendations = self.handlers.recommendations.get_recommendations_to_user(user.id, recommendation_type)
+                user.reading_history[recommendation_type] = {entry.date: entry.articles for entry in recommendations}
+                self.handlers.users.update_user(user)
 
     def execute(self):
         if self.load_recommendations == 'Y':
-            self.load()
+           self.load()
         # go over every date specified in the config file
-        for date in self.dates:
-            # define the timerange for retrieving documents
-            upper = datetime.strptime(date, '%d-%m-%Y')
-            lower = upper - timedelta(days=self.timerange)
-            # retrieve all the documents that are relevant for this date
-            documents = self.handlers.articles.get_all_in_timerange(lower, upper)
-            # to account for a very sparse index
-            recommendation_size = min(len(documents), self.size)
-            rg = RecommendationGenerator(documents, recommendation_size, self.handlers)
-            count = 0
-            for user in self.users:
-                try:
-                    count = count + 1
-                    self.generate_recommendations(user, date, upper, lower, rg)
-                except KeyError:
-                    print("Help, a Key Error occurred!")
-                    continue
+        if self.baseline_recommendations:
+            for date in self.dates:
+                # define the timerange for retrieving documents
+                upper = datetime.strptime(date, '%d-%m-%Y')
+                lower = upper - timedelta(days=self.timerange)
+                # retrieve all the documents that are relevant for this date
+                documents = self.handlers.articles.get_all_in_timerange(lower, upper)
+                # retrieve all recommendations at date if exhaustive = minimal
+                if self.exhaustive == 'minimal':
+                    rec_at_date = self.handlers.recommendations.get_users_with_recommendations_at_date(date)
+                # to account for a very sparse index
+                recommendation_size = min(len(documents), self.size)
+                rg = RecommendationGenerator(documents, recommendation_size, self.handlers)
+                if self.exhaustive == 'full':
+                    user_base = self.users
+                elif self.exhaustive == 'minimal':
+                    user_base = [self.handlers.users.get_by_id(i) for i in rec_at_date]
+                for user in user_base:
+                    try:
+                        self.generate_recommendations(user, date, upper, lower, rg)
+                    except KeyError:
+                        print("Help, a Key Error occurred!")
+                        continue
+        self.generate_reading_histories()
 

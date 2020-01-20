@@ -8,9 +8,11 @@ class Politicalness:
     def __init__(self, handlers, config):
         self.handlers = handlers
         self.config = config
+        self.count = 0
 
     def execute(self):
         df = self.calculate()
+        print("{} recommendations did not have a classification".format(self.count))
         self.visualize(df)
 
     def calculate(self):
@@ -34,13 +36,19 @@ class Politicalness:
         for recommendation in recommendations:
             articles = self.handlers.articles.get_multiple_by_id(recommendation.articles)
             percentage = self.get_political_percentage(articles)
-            percentages.append(percentage)
+            if percentage:
+                percentages.append(percentage)
+            else:
+                self.count += 1
         return percentages
 
     @staticmethod
     def get_political_percentage(articles):
-            classifications = [article.classification for article in articles]
-            return classifications.count('political')/len(classifications)
+            classifications = [article.classification for article in articles if article.classification]
+            if len(classifications) > 0:
+                return classifications.count('politics')/len(classifications)
+            else:
+                return None
 
     @staticmethod
     def visualize(df):
@@ -50,15 +58,20 @@ class Politicalness:
         df['date'] = pd.to_datetime(df['date'], format="%d-%m-%Y")
         df = df.sort_values('date', ascending=True)
         unique_types = df.type.unique()
-        _, axes = plt.subplots(ncols=len(unique_types), sharey=True, figsize=(9, 3))
-        # iterate over different types of recommendations
-        for i, recommendation_type in enumerate(unique_types):
-            ax = axes[i]
-            ax.set_title(recommendation_type)
-            df1 = df[df['type'] == recommendation_type]
-            df_mean = df1.groupby(df1.date)['comparison'].mean()
-            # create plots
-            ax.scatter(x='date', y='comparison', data=df1)
-            ax.plot(df_mean, '*-y')
+        if len(unique_types) == 1:
+            df_mean = df.groupby(df.date)['comparison'].mean()
+            plt.scatter(x='date', y='comparison', data=df)
+            plt.plot(df_mean, '*-y')
+        else:
+            _, axes = plt.subplots(ncols=len(unique_types), sharey=True, figsize=(9, 3))
+            # iterate over different types of recommendations
+            for i, recommendation_type in enumerate(unique_types):
+                ax = axes[i]
+                ax.set_title(recommendation_type)
+                df1 = df[df['type'] == recommendation_type]
+                df_mean = df1.groupby(df1.date)['comparison'].mean()
+                # create plots
+                ax.scatter(x='date', y='comparison', data=df1)
+                ax.plot(df_mean, '*-y')
         plt.xticks(rotation='vertical')
         plt.draw()

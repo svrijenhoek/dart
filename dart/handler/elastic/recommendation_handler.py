@@ -25,7 +25,7 @@ class RecommendationHandler(BaseHandler):
 
     def get_recommendations_at_date(self, date, recommendation_type):
         body = {
-            "size": 500,
+            "size": 10000,
             "query": {
                 "bool": {
                     "must": [
@@ -40,6 +40,63 @@ class RecommendationHandler(BaseHandler):
                         {
                             "match": {
                                 "recommendation.type": recommendation_type
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+        response = self.connector.execute_search('recommendations', body)
+        return [Recommendation(i) for i in response]
+
+    def get_users_with_recommendations_at_date(self, date):
+        user_ids = []
+        body = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "match": {
+                                "recommendation.date": {
+                                    "query": date,
+                                    "operator": "and"
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+        }
+        sid, scroll_size, result = self.connector.execute_search_with_scroll('recommendations', body)
+        for hit in result['hits']['hits']:
+            user_ids.append(hit['_source']['recommendation']['user_id'])
+        # Start retrieving documents
+        while scroll_size > 0:
+            result = self.connector.scroll(sid, '2m')
+            sid = result['_scroll_id']
+            scroll_size = len(result['hits']['hits'])
+            for hit in result['hits']['hits']:
+                user_ids.append(hit['_source']['recommendation']['user_id'])
+        return user_ids
+
+
+    def get_recommendations_to_user_at_date(self, user_id, date):
+        body = {
+            "size": 500,
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "match": {
+                                "recommendation.user_id": user_id
+                            }
+                        },
+                        {
+                            "match": {
+                                "recommendation.date": {
+                                    "query": date,
+                                    "operator": "and"
+                                }
                             }
                         }
                     ]
@@ -80,7 +137,6 @@ class RecommendationHandler(BaseHandler):
         response = self.connector.execute_search('recommendations', body)
         return [Recommendation(i) for i in response]
 
-    # common method for going through all articles in the articles index
     def get_recommendation_types(self):
         body = {
               "aggs": {

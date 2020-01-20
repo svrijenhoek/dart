@@ -1,5 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+from datetime import datetime, timedelta
 
 
 class Coverage:
@@ -8,8 +9,9 @@ class Coverage:
         self.handlers = handlers
         self.config = config
 
-        self.story_percentage_threshold = 0.10
-        self.user_percentage_threshold = 0.05
+        self.story_percentage_threshold = 0.0
+        self.user_percentage_threshold = 0.0
+        self.timerange = config["recommendation_range"]
 
     def is_covered(self, story, recommendations):
         number_of_articles_in_story = len(story.docids)
@@ -49,7 +51,9 @@ class Coverage:
         print("===COVERAGE===")
         data = []
         for date in self.config['recommendation_dates']:
-            stories = self.handlers.stories.get_stories_at_date(date)
+            upper = datetime.strptime(date, '%d-%m-%Y')
+            lower = upper - timedelta(days=self.timerange)
+            stories = self.handlers.stories.get_stories_at_date(upper, lower)
             for recommendation_type in self.handlers.recommendations.get_recommendation_types():
                 recommendations = self.handlers.recommendations.get_recommendations_at_date(date, recommendation_type)
                 if recommendations and stories:

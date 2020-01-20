@@ -1,6 +1,7 @@
 import urllib
 import json
 import time
+from http.client import BadStatusLine
 
 
 class OpenStreetMap:
@@ -9,8 +10,11 @@ class OpenStreetMap:
 
     @staticmethod
     def make_request(url):
-        page = urllib.request.urlopen(url)
-        return page
+        try:
+            page = urllib.request.urlopen(url)
+            return page
+        except BadStatusLine:
+            print(url)
 
     def get_coordinates(self, place):
         try:

@@ -44,8 +44,8 @@ def main():
         module_logger.info("Started adding documents")
     dart.populate.add_documents.AddDocuments(config).execute()
     # add popularity numbers from file
-    print(str(datetime.datetime.now()) + "\tadding popularity")
-    dart.populate.add_popularity.PopularityQueue().read_from_file(config['popularity_file'])
+    # print(str(datetime.datetime.now()) + "\tadding popularity")
+    # dart.populate.add_popularity.PopularityQueue().read_from_file(config['popularity_file'])
 
     # step 1.5: annotate all articles
     print(str(datetime.datetime.now())+"\tenriching articles")
@@ -56,6 +56,7 @@ def main():
     if es.indices.exists(index="stories"):
         # delete index
         elastic_connector.clear_index('stories')
+        dart.handler.elastic.initialize.InitializeIndex().initialize_stories()
     dart.populate.identify_stories.StoryIdentifier(handlers, config).execute()
 
     # step 2: simulate users
@@ -78,21 +79,21 @@ def main():
     time.sleep(5)
 
     # step 5: make visualizations
-    print(str(datetime.datetime.now())+"\taggregating data")
-    if 'length' or 'complexity' or 'popularity' or 'personalization' in metrics:
-        module_logger.info("Visualizing user aggregations")
-        dart.handler.elastic.initialize.InitializeIndex().initialize_aggregated()
-        dart.visualize.aggregate_by_user.Aggregator(handlers, config).execute()
-    print(str(datetime.datetime.now())+"\t\tlocations")
-    if 'location' in metrics:
-        module_logger.info("Visualizing location metrics")
-        dart.handler.elastic.initialize.InitializeIndex().initialize_locations()
-        dart.visualize.location.LocationVisualizer(handlers).execute()
-    print(str(datetime.datetime.now())+"\t\toccupations")
-    if 'occupation' in metrics:
-        module_logger.info("Visualizing occupation metrics")
-        dart.handler.elastic.initialize.InitializeIndex().initialize_occupations()
-        dart.visualize.occupations.OccupationCalculator(handlers).execute()
+    # print(str(datetime.datetime.now())+"\taggregating data")
+    # if 'length' or 'complexity' or 'popularity' or 'personalization' in metrics:
+    #     module_logger.info("Visualizing user aggregations")
+    #     dart.handler.elastic.initialize.InitializeIndex().initialize_aggregated()
+    #     dart.visualize.aggregate_by_user.Aggregator(handlers, config).execute()
+    # print(str(datetime.datetime.now())+"\t\tlocations")
+    # if 'location' in metrics:
+    #     module_logger.info("Visualizing location metrics")
+    #     dart.handler.elastic.initialize.InitializeIndex().initialize_locations()
+    #     dart.visualize.location.LocationVisualizer(handlers).execute()
+    # print(str(datetime.datetime.now())+"\t\toccupations")
+    # if 'occupation' in metrics:
+    #     module_logger.info("Visualizing occupation metrics")
+    #     dart.handler.elastic.initialize.InitializeIndex().initialize_occupations()
+    #     dart.visualize.occupations.OccupationCalculator(handlers).execute()
 
     print(str(datetime.datetime.now()) + "\tFAT calculations")
     dart.visualize.FAT_calculations.FATCalculator(handlers, config).execute()

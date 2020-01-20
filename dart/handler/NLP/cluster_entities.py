@@ -20,6 +20,7 @@ class Clustering:
         Calculates the distance between each name.
         If the label has less than three characters, skip
         If a is contained in b or the other way around (as in "Barack Obama", "Obama"), full match
+
         Otherwise calculate the SequenceMatcher ratio to account for slight spelling errors
         """
 
@@ -74,18 +75,27 @@ class Clustering:
     def execute(self, entities):
         if entities:
             output = []
+            # group all entities of the same type
             types = list(set([x['label'] for x in entities]))
             for entity_type in types:
                 of_type = [entity for entity in entities if entity['label'] == entity_type]
                 names = [entity['text'] for entity in of_type]
+                # calculate the distances between all the entity names
                 distances = self.distance(names)
+                # based on all the distances, cluster the entities
                 clusters = self.cluster(distances)
+                # assign each name to a cluster (cluster length 1 if none was identified)
                 processed = self.process(names, clusters)
                 for _, v in processed.items():
+                    # find all entries of this cluster
                     with_name = [entity for entity in of_type if entity['text'] in v]
+                    # find all unique occurrences of the cluster
                     all_names = [entity['text'] for entity in with_name]
                     label = with_name[0]['label']
+                    # find the name that was most often used to refer to this cluster
                     most_frequent_name = max(set(all_names), key=all_names.count)
+                    # if the cluster is about people names, favor names that contain a space
+                    # eg: Barack Obama over just Obama
                     if label == 'PER':
                         with_space = [name for name in all_names if len(name.split(" ")) > 1]
                         if len(with_space) > 0:

@@ -87,7 +87,7 @@ class ElasticsearchConnector:
     def update_document(self, index, doc_type, docid, body):
         try:
             self.es.update(index=index, doc_type=doc_type, id=docid, body=body)
-        except exceptions.RequestError as e:
+        except (exceptions.RequestError, exceptions.TransportError) as e:
             print(e)
             print(body)
 

@@ -52,7 +52,7 @@ class ArticleHandler(BaseHandler):
         popularity of articles.
         """
         body = {
-            "size": 5000,
+            "size": 100,
             "query": {
                 "bool": {
                     "must_not": {
@@ -163,7 +163,7 @@ class ArticleHandler(BaseHandler):
 
     def get_multiple_by_id(self, docids):
         docs = super(ArticleHandler, self).get_multiple_by_docid('articles', docids)
-        return [Article(doc) for doc in docs]
+        return [Article(doc) for doc in docs if doc['found']]
 
     def get_by_url(self, index, url):
         body = {

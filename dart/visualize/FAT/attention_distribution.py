@@ -1,8 +1,8 @@
 import pandas as pd
-from datetime import datetime, timedelta
-from scipy.spatial.distance import euclidean
 import numpy as np
 import matplotlib.pyplot as plt
+from datetime import datetime, timedelta
+from scipy.spatial.distance import euclidean
 from collections import Counter
 
 
@@ -133,21 +133,21 @@ class AttentionDistribution:
 
         # set height of bar
         bars1 = [data['random'][label] for label in labels]
-        bars2 = [data['most_popular'][label] for label in labels]
-        bars3 = [data['more_like_this'][label] for label in labels]
-        bars4 = [data['political'][label] for label in labels]
+        bars2 = [data['custom'][label] for label in labels]
+        # bars3 = [data['more_like_this'][label] for label in labels]
+        # bars4 = [data['political'][label] for label in labels]
 
         # Set position of bar on X axis
         r1 = np.arange(len(bars1))
         r2 = [x + barWidth for x in r1]
-        r3 = [x + barWidth for x in r2]
-        r4 = [x + barWidth for x in r3]
+        # r3 = [x + barWidth for x in r2]
+        # r4 = [x + barWidth for x in r3]
 
         # Make the plot
         plt.bar(r1, bars1, width=barWidth, edgecolor='white', label='random')
-        plt.bar(r2, bars2, width=barWidth, edgecolor='white', label='most_popular')
-        plt.bar(r3, bars3, width=barWidth, edgecolor='white', label='more_like_this')
-        plt.bar(r4, bars4, width=barWidth, edgecolor='white', label='political')
+        plt.bar(r2, bars2, width=barWidth, edgecolor='white', label='custom')
+        # plt.bar(r3, bars3, width=barWidth, edgecolor='white', label='more_like_this')
+        # plt.bar(r4, bars4, width=barWidth, edgecolor='white', label='political')
 
         # Add xticks on the middle of the group bars
         plt.xlabel('parties', fontweight='bold')

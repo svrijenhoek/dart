@@ -26,9 +26,10 @@ class StoryHandler(BaseHandler):
         self.connector.add_bulk('stories', '_doc', self.queue)
         self.queue = []
 
-    def add_to_queue(self, date, identifier, docids, keywords, classification, title):
+    def add_to_queue(self, date, dates, identifier, docids, keywords, classification, title):
         doc = {
             'date': date,
+            'dates': dates,
             'identifier': identifier,
             'title': title,
             'keywords': keywords,
@@ -37,17 +38,16 @@ class StoryHandler(BaseHandler):
         }
         self.queue.append(doc)
 
-    def get_stories_at_date(self, date):
+    def get_stories_at_date(self, u, l):
+        lower = l.strftime('%Y-%m-%dT%H:%M:%S')
+        upper = u.strftime('%Y-%m-%dT%H:%M:%S')
         body = {
-            "size": 10000,
-            "query": {
-                "match": {
-                    "date": {
-                        "query": date,
-                        "operator": "and"
-                    }
+            'query': {"range": {
+                "date": {
+                    "lt": upper,
+                    "gte": lower
                 }
-            }
+            }},
         }
         response = self.connector.execute_search('stories', body)
         return [Story(i) for i in response]
@@ -64,4 +64,7 @@ class StoryHandler(BaseHandler):
             }
         }
         response = self.connector.execute_search('stories', body)
-        return Story(response[0])
+        if response:
+            return Story(response[0])
+        else:
+            return None
