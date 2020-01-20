@@ -1,6 +1,6 @@
 numpy~=1.17
 pandas~=0.25
-elasticsearch~=7.0
+elasticsearch~=7.5
 requests~=2.22
 whoswho~=0.2
 nltk~=3.4
