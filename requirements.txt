@@ -1,7 +1,7 @@
 numpy~=1.17
 pandas~=0.25
 elasticsearch~=7.0
-requests~=2.22
+requests~=2.23
 whoswho~=0.2
 nltk~=3.4
 gensim~=3.8
