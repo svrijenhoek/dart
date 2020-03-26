@@ -126,10 +126,9 @@ class ArticleHandler(BaseHandler):
         for hit in result['hits']['hits']:
             docs.append(hit)
         # Start retrieving documents
-        while scroll_size > 0:
+        while len(result['hits']['hits']):
             result = self.connector.scroll(sid, '2m')
             sid = result['_scroll_id']
-            scroll_size = len(result['hits']['hits'])
             for hit in result['hits']['hits']:
                 docs.append(hit)
         return [Article(i) for i in docs]
@@ -149,10 +148,9 @@ class ArticleHandler(BaseHandler):
         for hit in result['hits']['hits']:
             docs.append(hit)
         # Start retrieving documents
-        while scroll_size > 0:
+        while len(result['hits']['hits']):
             result = self.connector.scroll(sid, '2m')
             sid = result['_scroll_id']
-            scroll_size = len(result['hits']['hits'])
             for hit in result['hits']['hits']:
                 docs.append(hit)
         return [Article(i) for i in docs]

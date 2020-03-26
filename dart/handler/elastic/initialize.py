@@ -18,12 +18,10 @@ class InitializeIndex:
         index_name = 'stories'
         mapping = {
             "mappings": {
-                "_doc": {
                     "properties": {
                         "date": {
                             "type": "date"
                         },
-                    }
                 }
             }
         }
@@ -33,7 +31,6 @@ class InitializeIndex:
         index_name = 'recommendations'
         mapping = {
             "mappings": {
-                "_doc": {
                     "properties": {
                         "recommendation.type": {
                             "type": "text",
@@ -43,7 +40,6 @@ class InitializeIndex:
                             "type": "date",
                             "format": "dd-MM-YYYY"
                         },
-                    }
                 }
             }
         }
@@ -53,7 +49,6 @@ class InitializeIndex:
         index_name = 'articles'
         mapping = {
             "mappings": {
-                "_doc": {
                     "properties": {
                         "publication_date": {
                             "type": "date"
@@ -71,7 +66,6 @@ class InitializeIndex:
                         "popularity": {
                             "type": "integer"
                         }
-                    }
                 }
             }
         }
@@ -82,7 +76,6 @@ class InitializeIndex:
         index_name = 'aggregated_recommendations'
         mapping = {
           "mappings": {
-            "_doc": {
               "properties": {
                 "date": {
                   "type": "date",
@@ -100,7 +93,6 @@ class InitializeIndex:
                 "avg_nsentences": {
                   "type": "double"
                 },
-              }
             }
           }
         }
@@ -110,7 +102,6 @@ class InitializeIndex:
         index_name = 'locations'
         mapping = {
             "mappings": {
-                "_doc": {
                     "properties": {
                         "date": {
                             "type": "date"
@@ -122,7 +113,6 @@ class InitializeIndex:
                             "type": "keyword"
                         },
                     }
-                }
             }
         }
         self.remove_and_initialize(index_name, mapping)
@@ -131,13 +121,11 @@ class InitializeIndex:
         index_name = 'occupations'
         mapping = {
             "mappings": {
-                "_doc": {
                     "properties": {
                         "date": {
                             "type": "date",
                             "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||dd-MM-YYYY"
                         },
-                    }
                 }
             }
         }
@@ -147,7 +135,6 @@ class InitializeIndex:
         index_name = 'personalization'
         mapping = {
             "mappings": {
-                "_doc": {
                     "properties": {
                         "recommendation.date": {
                             "type": "date",
@@ -175,7 +162,6 @@ class InitializeIndex:
                         "article.style.nwords": {
                             "type": "integer"
                         },
-                    }
                 }
             }
         }
@@ -185,7 +171,6 @@ class InitializeIndex:
         index_name = 'recommended_articles'
         mapping = {
             "mappings": {
-                "_doc": {
                     "properties": {
                         "recommendation.date": {
                             "type": "date",
@@ -213,8 +198,18 @@ class InitializeIndex:
                         "article.style.nwords": {
                             "type": "integer"
                         },
-                    }
                 }
+            }
+        }
+        self.remove_and_initialize(index_name, mapping)
+
+    def initialize_users(self):
+        index_name = 'users'
+        mapping = {
+            "mappings": {
+                    "reading_history": {
+                        "type": "flattened"
+                    },
             }
         }
         self.remove_and_initialize(index_name, mapping)

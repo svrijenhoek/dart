@@ -24,6 +24,7 @@ class RecommendationHandler(BaseHandler):
         return self.all_recommendations
 
     def get_recommendations_at_date(self, date, recommendation_type):
+        docs = []
         body = {
             "size": 10000,
             "query": {
@@ -46,8 +47,16 @@ class RecommendationHandler(BaseHandler):
                 }
             }
         }
-        response = self.connector.execute_search('recommendations', body)
-        return [Recommendation(i) for i in response]
+        sid, scroll_size, result = self.connector.execute_search_with_scroll('recommendations', body)
+        for hit in result['hits']['hits']:
+            docs.append(hit)
+        # Start retrieving documents
+        while len(result['hits']['hits']):
+            result = self.connector.scroll(sid, '2m')
+            sid = result['_scroll_id']
+            for hit in result['hits']['hits']:
+                docs.append(hit)
+        return [Recommendation(i) for i in docs]
 
     def get_users_with_recommendations_at_date(self, date):
         user_ids = []
@@ -71,16 +80,15 @@ class RecommendationHandler(BaseHandler):
         for hit in result['hits']['hits']:
             user_ids.append(hit['_source']['recommendation']['user_id'])
         # Start retrieving documents
-        while scroll_size > 0:
+        while len(result['hits']['hits']):
             result = self.connector.scroll(sid, '2m')
             sid = result['_scroll_id']
-            scroll_size = len(result['hits']['hits'])
             for hit in result['hits']['hits']:
                 user_ids.append(hit['_source']['recommendation']['user_id'])
         return user_ids
 
 
-    def get_recommendations_to_user_at_date(self, user_id, date):
+    def get_recommendations_to_user_at_date(self, user_id, date, recommendation_type):
         body = {
             "size": 500,
             "query": {
@@ -95,6 +103,14 @@ class RecommendationHandler(BaseHandler):
                             "match": {
                                 "recommendation.date": {
                                     "query": date,
+                                    "operator": "and"
+                                }
+                            }
+                        },
+                        {
+                            "match": {
+                                "recommendation.type": {
+                                    "query": recommendation_type,
                                     "operator": "and"
                                 }
                             }
@@ -141,7 +157,7 @@ class RecommendationHandler(BaseHandler):
         body = {
               "aggs": {
                 "recommendation_types": {
-                    "terms": {"field": "recommendation.type"}
+                    "terms": {"field": "recommendation.type.keyword"}
                 }
               }
             }
@@ -149,12 +165,26 @@ class RecommendationHandler(BaseHandler):
         output = [entry['key'] for entry in response['buckets']]
         return output
 
-    def find_recommendations_with_article(self, article_id):
+    def find_recommendations_with_article_and_type(self, recommendation_type, article_id):
         body = {
             "size": 10000,
             "query": {
-                "match": {
-                    'articles': article_id
+                "bool": {
+                    "must": [
+                        {
+                            "match": {
+                                "articles": {
+                                    "query": article_id,
+                                    "operator": "and"
+                                }
+                            }
+                        },
+                        {
+                            "match": {
+                                "recommendation.type": recommendation_type
+                            }
+                        }
+                    ]
                 }
              }
         }
