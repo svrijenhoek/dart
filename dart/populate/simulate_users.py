@@ -2,6 +2,7 @@ import json
 import os
 import random
 import numpy as np
+import pandas as pd
 import dart.Util as Util
 from dart.handler.elastic.connector import ElasticsearchConnector
 
@@ -24,9 +25,14 @@ class UserSimulator:
         self.base_date = config['reading_history_date']
         self.classifications = ['political', 'sport', 'entertainment', 'unknown', 'business', 'general']
         self.sources = ['nu', 'geenstijl', 'volkskrant (www)']
-        self.parties = config["political_parties"]
+        self.parties = self.extract_parties(config["politics_file"])
 
         self.queue = []
+
+    def extract_parties(self, politics_file):
+        df = pd.read_csv(politics_file)
+        parties = df.group.unique()
+        return parties
 
     def simulate_reading_history(self, classification, source, complexity, size):
         # generate reading history

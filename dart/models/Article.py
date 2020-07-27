@@ -1,4 +1,5 @@
 from dart.models.Document import Document
+import json
 
 
 class Article(Document):
@@ -56,6 +57,10 @@ class Article(Document):
             self.classification = self.source['classification']
         except KeyError:
             self.classification = None
+        try:
+            self.editorialTags = self.source['editorialTags']
+        except KeyError:
+            self.editorialTags = None
 
     def get(self, x):
         return self.source[x]

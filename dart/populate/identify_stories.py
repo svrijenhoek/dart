@@ -28,8 +28,8 @@ class StoryIdentifier:
         self.threshold = 0.25
 
     def execute(self):
-        first_date = datetime.strptime(self.config["recommendation_dates"][0], '%d-%m-%Y')
-        last_date = datetime.strptime(self.config["recommendation_dates"][-1], '%d-%m-%Y')
+        first_date = datetime.strptime(self.config["recommendation_dates"][0], '%Y-%m-%d')
+        last_date = datetime.strptime(self.config["recommendation_dates"][-1], '%Y-%m-%d')
         delta = last_date - first_date
 
         cosines = []

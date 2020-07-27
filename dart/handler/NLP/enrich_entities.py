@@ -17,19 +17,19 @@ class EntityEnricher:
         self.political_data = pd.DataFrame(politics)
 
         try:
-            self.known_locations = dart.Util.read_json_file('output/known_locations.json')
+            self.known_locations = dart.Util.read_json_file('data/known_locations.json')
         except FileNotFoundError:  # when no location file is found, create a new dict
             self.known_locations = {}
         try:
-            self.known_persons = dart.Util.read_json_file('output/known_persons.json')
+            self.known_persons = dart.Util.read_json_file('data/known_persons.json')
         except FileNotFoundError:  # when no persons file is found, create a new dict
             self.known_persons = {}
         try:
-            self.unknown_persons = defaultdict(int, dart.Util.read_json_file('output/unknown_persons.json'))
+            self.unknown_persons = defaultdict(int, dart.Util.read_json_file('data/unknown_persons.json'))
         except FileNotFoundError:  # when no persons file is found, create a new dict
             self.unknown_persons = defaultdict(int)
         try:
-            self.known_organizations = dart.Util.read_json_file('output/known_organizations.json')
+            self.known_organizations = dart.Util.read_json_file('data/known_organizations.json')
         except FileNotFoundError:  # when no organization file is found, create a new dict
             self.known_organizations = {}
 
@@ -98,7 +98,7 @@ class EntityEnricher:
             else:
                 found, data = self.wikidata.get_person_data(name, entity['alternative'])
                 alternative = {'alternative': entity['alternative']}
-                if 'politician' in data['occupation']:
+                if 'occupations' in data and 'politician' in data['occupations']:
                     data = self.resolve_politicians(found, data)
             # update the list with the information that was found
             try:
@@ -124,8 +124,8 @@ class EntityEnricher:
     def resolve_politicians(self, name, data):
         df = self.political_data
         row = df.loc[df['name'] == name]
-        if not row.empty and not row.end_date:
-            data['current_party'] = row.group
+        if not row.empty:
+            data['current_party'] = row.iloc[0].group
         return data
 
     def retrieve_geolocation(self, entity):
@@ -188,7 +188,7 @@ class EntityEnricher:
         return entity
 
     def save(self):
-        dart.Util.write_to_json('output/known_locations.json', self.known_locations)
-        dart.Util.write_to_json('output/known_persons.json', self.known_persons)
-        dart.Util.write_to_json('output/unknown_persons.json', self.unknown_persons)
-        dart.Util.write_to_json('output/known_organizations.json', self.known_organizations)
+        dart.Util.write_to_json('data/known_locations.json', self.known_locations)
+        dart.Util.write_to_json('data/known_persons.json', self.known_persons)
+        dart.Util.write_to_json('data/unknown_persons.json', self.unknown_persons)
+        dart.Util.write_to_json('data/known_organizations.json', self.known_organizations)

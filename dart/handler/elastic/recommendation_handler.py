@@ -157,7 +157,7 @@ class RecommendationHandler(BaseHandler):
         body = {
               "aggs": {
                 "recommendation_types": {
-                    "terms": {"field": "recommendation.type.keyword"}
+                    "terms": {"field": "recommendation.type"}
                 }
               }
             }

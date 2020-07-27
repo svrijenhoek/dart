@@ -38,7 +38,7 @@ class InitializeIndex:
                         },
                         "recommendation.date": {
                             "type": "date",
-                            "format": "dd-MM-YYYY"
+                            "format": "yyyy-MM-dd"
                         },
                 }
             }
@@ -207,10 +207,12 @@ class InitializeIndex:
         index_name = 'users'
         mapping = {
             "mappings": {
-                    "reading_history": {
-                        "type": "flattened"
-                    },
-            }
+                "properties": {
+                  "reading_history": {
+                    "type": "nested"
+                  }
+                }
+  }
         }
         self.remove_and_initialize(index_name, mapping)
 
