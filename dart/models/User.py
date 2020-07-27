@@ -31,7 +31,7 @@ class User(Document):
             for date in relevant_history:
                 history_date = datetime.strptime(date, '%Y-%m-%d')
                 # only consider the recommendations before the current time
-                if history_date <= current_date:
+                if history_date < current_date:
                     dates.append(date)
             recommendations_of_type = []
             # append ids for all articles recommended before the current date
