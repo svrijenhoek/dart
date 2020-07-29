@@ -1,4 +1,3 @@
-import sys
 import dart.visualize.metrics.affect
 import dart.visualize.metrics.calibration
 import dart.visualize.metrics.fragmentation
@@ -11,7 +10,7 @@ from datetime import datetime
 
 class MetricsCalculator:
     """
-    Class that calculates the metrics as identified for the new FAT paper
+    Class that calculates the metrics as identified for the new deprecated paper
     - Calibration
       - of style
       - of content

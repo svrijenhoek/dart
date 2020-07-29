@@ -20,7 +20,8 @@ class Complexity:
     def execute(self):
         data = []
         for date in self.config["recommendation_dates"]:
-            upper = datetime.strptime(date, '%d-%m-%Y')
+            print(date)
+            upper = datetime.strptime(date, '%Y-%m-%d')
             lower = upper - timedelta(days=self.config["recommendation_range"])
             pool_complexities = [article.complexity for article in self.handlers.articles.get_all_in_timerange(lower, upper)]
             if pool_complexities:
@@ -29,8 +30,9 @@ class Complexity:
                     scores = []
                     for recommendation in recommendations:
                         recommended_articles = self.handlers.articles.get_multiple_by_id(recommendation.articles)
-                        recommended_complexities = [article.complexity for article in recommended_articles]
-                        scores.append(self.compare_complexity(recommended_complexities, pool_complexities))
+                        if recommended_articles:
+                            recommended_complexities = [article.complexity for article in recommended_articles]
+                            scores.append(self.compare_complexity(recommended_complexities, pool_complexities))
                     data.append({'date': date, 'type': recommendation_type, 'score': np.mean(scores)})
         df = pd.DataFrame(data)
         self.visualize(df)
@@ -60,7 +62,7 @@ class Complexity:
     @staticmethod
     def visualize(df):
         plt.figure()
-        df['date'] = pd.to_datetime(df['date'], format="%d-%m-%Y")
+        df['date'] = pd.to_datetime(df['date'], format="%Y-%m-%d")
         df = df.sort_values('date', ascending=True)
         df.set_index('date', inplace=True)
         df.groupby('type')['score'].plot(legend=True)

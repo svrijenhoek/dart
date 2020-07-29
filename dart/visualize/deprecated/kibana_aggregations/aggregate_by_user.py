@@ -1,6 +1,6 @@
-import dart.visualize.style
-import dart.visualize.personalization_old
-import dart.visualize.cosine
+import visualize.deprecated.kibana_aggregations.style
+import visualize.deprecated.kibana_aggregations.personalization_old
+import visualize.deprecated.kibana_aggregations.cosine
 
 
 class Aggregator:
@@ -13,9 +13,9 @@ class Aggregator:
     def __init__(self, handlers, config):
         self.handlers = handlers
         self.config = config
-        self.style_calculator = dart.visualize.style.Style(handlers)
-        self.personalization_calculator = dart.visualize.personalization_old.Personalization(handlers)
-        self.cosine_calculator= dart.visualize.cosine.CosineCalculator(handlers, config['language'])
+        self.style_calculator = visualize.deprecated.kibana_aggregations.style.Style(handlers)
+        self.personalization_calculator = visualize.deprecated.kibana_aggregations.personalization_old.Personalization(handlers)
+        self.cosine_calculator= visualize.deprecated.kibana_aggregations.cosine.CosineCalculator(handlers, config['language'])
 
     def aggregate_per_user(self, recommendation_type):
         for user in self.handlers.users.get_all_users():

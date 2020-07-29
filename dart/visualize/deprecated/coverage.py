@@ -35,7 +35,7 @@ class Coverage:
 
     @staticmethod
     def visualize(df):
-        df['date'] = pd.to_datetime(df['date'], format="%d-%m-%Y")
+        df['date'] = pd.to_datetime(df['date'], format="%Y-%m-%d")
         df = df.sort_values('date', ascending=True)
         df.set_index('date', inplace=True)
         plt.figure()
@@ -51,7 +51,7 @@ class Coverage:
         print("===COVERAGE===")
         data = []
         for date in self.config['recommendation_dates']:
-            upper = datetime.strptime(date, '%d-%m-%Y')
+            upper = datetime.strptime(date, '%Y-%m-%d')
             lower = upper - timedelta(days=self.timerange)
             stories = self.handlers.stories.get_stories_at_date(upper, lower)
             for recommendation_type in self.handlers.recommendations.get_recommendation_types():

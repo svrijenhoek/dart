@@ -18,7 +18,7 @@ class Politicalness:
     def calculate(self):
         data = []
         for date in self.config['recommendation_dates']:
-            upper = datetime.strptime(date, '%d-%m-%Y')
+            upper = datetime.strptime(date, '%Y-%m-%d')
             lower = upper - timedelta(days=self.config["recommendation_range"])
             pool = self.handlers.articles.get_all_in_timerange(lower, upper)
             if pool:
@@ -36,26 +36,23 @@ class Politicalness:
         for recommendation in recommendations:
             articles = self.handlers.articles.get_multiple_by_id(recommendation.articles)
             percentage = self.get_political_percentage(articles)
-            if percentage:
-                percentages.append(percentage)
-            else:
-                self.count += 1
+            percentages.append(percentage)
         return percentages
 
     @staticmethod
     def get_political_percentage(articles):
-            classifications = [article.classification for article in articles if article.classification]
+            classifications = [article.classification for article in articles]
             if len(classifications) > 0:
                 return classifications.count('politics')/len(classifications)
             else:
-                return None
+                return 0
 
     @staticmethod
     def visualize(df):
         print("===POLITICALNESS===")
         print(df.groupby('type')['comparison'].mean())
         # prepare dataframe for visualization
-        df['date'] = pd.to_datetime(df['date'], format="%d-%m-%Y")
+        df['date'] = pd.to_datetime(df['date'], format="%Y-%m-%d")
         df = df.sort_values('date', ascending=True)
         unique_types = df.type.unique()
         if len(unique_types) == 1:

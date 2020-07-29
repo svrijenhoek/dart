@@ -1,6 +1,6 @@
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
+import dart.visualize.visualize as visualize
 
 from collections import Counter
 import external.rbo
@@ -39,7 +39,7 @@ class Fragmentation:
                                 fragmentations.append(self.compare_recommendations(stories_x, stories_y))
                     data.append({'date': date, 'type': recommendation_type, 'fragmentation': np.mean(fragmentations)})
         df = pd.DataFrame(data)
-        self.visualize(df, self.unknown_articles)
+        self.visualize(df)
 
     def get_stories(self, recommendation):
         """
@@ -66,13 +66,6 @@ class Fragmentation:
             return 0
 
     @staticmethod
-    def visualize(df, unknown_articles):
-        print(unknown_articles)
-        plt.figure()
-        df['date'] = pd.to_datetime(df['date'], format="%Y-%m-%d")
-        df = df.sort_values('date', ascending=True)
-        df.set_index('date', inplace=True)
-        df.groupby('type')['fragmentation'].plot(legend=True)
-        plt.xticks(rotation='vertical')
-        plt.draw()
-        print(df.groupby('type')['fragmentation'].mean())
+    def visualize(df):
+        visualize.Visualize.print_mean(df, 'fragmentation')
+        visualize.Visualize.plot(df, 'fragmentation')

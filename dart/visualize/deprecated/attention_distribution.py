@@ -2,8 +2,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
-from scipy.spatial.distance import euclidean
 from collections import Counter
+from math import log
 
 
 class AttentionDistribution:
@@ -12,7 +12,32 @@ class AttentionDistribution:
         self.handlers = handlers
         self.config = config
 
-        self.political_parties = np.array(self.config["political_parties"])
+        # self.political_parties = np.array([
+        #     ["CDU", "Christlich Demokratische Union Deutschlands"],
+        #     ["SPD", "Sozialdemokratische Partei Deutschlands"],
+        #     ["AfD", "Alternative für Deutschland"],
+        #     ["FDP", "Freie Demokratische Partei"],
+        #     ["LINKE", "Die Linke"],
+        #     ["GRÜNE", "Bündnis 90/Die Grünen"],
+        #     ["CSU", "Christlich-Soziale Union in Bayern"]
+        #
+        # ])
+
+        self.political_parties = np.array([
+            ["CDA", "Christen-Democratisch Appèl"],
+            ["CU", "ChristenUnie"],
+            ["D66", "Democraten 66"],
+            ["FvD", "Forum voor Democratie"],
+            ["GL", "GroenLinks"],
+            ["PvdA", "Partij van de Arbeid"],
+            ["PvdD", "Partij voor de Dieren"],
+            ["PVV", "Partij voor de Vrijheid"],
+            ["SGP", "Staatkundig Gereformeerde Partij"],
+            ["SP", "Socialistische Partij"],
+            ["VVD", "Volkspartij voor Vrijheid en Democratie"],
+            ["50Plus", "50Plus"],
+            ["DENK", "Denk"],
+        ])
 
     def execute(self):
         """
@@ -22,36 +47,64 @@ class AttentionDistribution:
         data = []
         party_data = {}
         for date in self.config["recommendation_dates"]:
-            upper = datetime.strptime(date, '%d-%m-%Y')
+            # retrieve all articles in the specified time range
+            upper = datetime.strptime(date, '%Y-%m-%d')
             lower = upper - timedelta(days=self.config["recommendation_range"])
             pool = self.handlers.articles.get_all_in_timerange(lower, upper)
+            # make a vector of party representation in the pool
+            pool_vector = self.make_vector(pool)
+            # for each recommendation type (custom, most_popular, random)
             for recommendation_type in self.handlers.recommendations.get_recommendation_types():
+                # retrieve all issued recommendations
                 recommendations = self.handlers.recommendations.get_recommendations_at_date(date, recommendation_type)
                 if recommendations:
                     distances = []
+                    # initialize output
                     if recommendation_type not in party_data:
                         party_data[recommendation_type] = Counter()
+                    # for each recommendation set
                     for recommendation in recommendations:
-                        articles = self.handlers.articles.get_multiple_by_id(recommendation.articles)
-                        distance, diff = self.calculate(pool, articles)
-                        distances.append(distance)
-                        too_big = self.political_parties[:, 0][diff > 0.2]
-                        for party in too_big:
-                            party_data[recommendation_type][party] += 1
+                        # retrieve the articles recommended
+                        if recommendation.articles:
+                            articles = self.handlers.articles.get_multiple_by_id(recommendation.articles)
+                            # make a vector of party representation in recommended item set
+                            article_vector = self.make_vector(articles)
+                            distance, diff = self.calculate(pool_vector, article_vector)
+                            distances.append(distance)
+                            # keep track of the absolute differences for each party
+                            for i, party in enumerate(self.political_parties):
+                                party_data[recommendation_type][party[0]] += diff[i]
                     data.append({'date': date, 'type': recommendation_type, 'distance': np.mean(distances)})
         df = pd.DataFrame(data)
         self.visualize(df)
+
+        # normalize to account for different sizes of recommendations
+        for recommendation_type in party_data:
+            len_rec_type = len(df[df['type'] == recommendation_type].index)
+            for party in party_data[recommendation_type]:
+                party_data[recommendation_type][party] = party_data[recommendation_type][party] / len_rec_type
         self.visualize_party(party_data)
+
+    @staticmethod
+    def kullback_leibler(p, q):
+        k_l = 0.0
+        for i in range(len(p)):
+            p_i = p[i]
+            q_i = q[i]
+            if q_i != 0.0:
+                try:
+                    k_l += (p_i * log(p_i / q_i))
+                except ValueError:
+                    pass
+        return k_l
 
     def calculate(self, pool, recommendations):
         """
         Calculate Euclidian distance between the vectors for articles in the pool of all articles and the recommended
-        articles
+        articles, and makes a party vector with the absolute differences
         """
-        pool_vector = self.make_vector(pool)
-        recommendation_vector = self.make_vector(recommendations)
-        distance = euclidean(pool_vector, recommendation_vector)
-        diff = np.array(recommendation_vector) - np.array(pool_vector)
+        distance = self.kullback_leibler(recommendations, pool)
+        diff = np.array(recommendations) - np.array(pool)
         return distance, diff
 
     def make_vector(self, articles):
@@ -64,15 +117,17 @@ class AttentionDistribution:
             # for each party specified in the configuration file
             for ix, party in enumerate(self.political_parties):
                 # check if the party is either mentioned in one of the article's articles or mentioned in the text
-                if self.in_entities(article.entities, party) or self.in_fulltext(article.text, party):
+                if self.in_entities(article.entities, party): # or self.in_fulltext(article.text, party):
                     # binary approach; being mentioned once is enough
                     article_vector[ix] = 1
             all_vector = [x + y for x, y in zip(all_vector, article_vector)]
         # normalize for the length of the article
-        if len(articles) == 0:
-            return 0
+        sum = np.sum(all_vector)
+        if sum == 0:
+            # return a perfectly even distribution
+            return [1/len(self.political_parties)]*len(self.political_parties)
         else:
-            output = [x/len(articles) for x in all_vector]
+            output = [x/sum for x in all_vector]
             return output
 
     @staticmethod
@@ -91,23 +146,19 @@ class AttentionDistribution:
             if 'parties' in person:
                 if short_party in person['parties'] or full_party in person['parties']:
                     return True
+        organisations = filter(lambda x: x['label'] == 'ORG', entities)
+        for organisation in organisations:
+            # if the person has a property 'party' (this avoids checking this value for people that are not politicians)
+            if short_party == organisation['text'] or full_party == organisation['text']:
+                return True
         return False
-
-    @staticmethod
-    def in_fulltext(text, party):
-        short_party = party[0]
-        full_party = party[1]
-        if short_party in text or full_party in text:
-            return True
-        else:
-            return False
 
     @staticmethod
     def visualize(df):
         """
         Line plot displaying time on the x-axis and distance on the y-axis
         """
-        df['date'] = pd.to_datetime(df['date'], format="%d-%m-%Y")
+        df['date'] = pd.to_datetime(df['date'], format="%Y-%m-%d")
         df = df.sort_values('date', ascending=True)
         df.set_index('date', inplace=True)
         plt.figure()
@@ -133,21 +184,22 @@ class AttentionDistribution:
 
         # set height of bar
         bars1 = [data['random'][label] for label in labels]
-        bars2 = [data['custom'][label] for label in labels]
-        # bars3 = [data['more_like_this'][label] for label in labels]
+        bars2 = [data['more_like_this'][label] for label in labels]
+        bars3 = [data['most_popular'][label] for label in labels]
+        bars4 = [data['political'][label] for label in labels]
         # bars4 = [data['political'][label] for label in labels]
 
         # Set position of bar on X axis
         r1 = np.arange(len(bars1))
         r2 = [x + barWidth for x in r1]
-        # r3 = [x + barWidth for x in r2]
-        # r4 = [x + barWidth for x in r3]
+        r3 = [x + barWidth for x in r2]
+        r4 = [x + barWidth for x in r3]
 
         # Make the plot
         plt.bar(r1, bars1, width=barWidth, edgecolor='white', label='random')
         plt.bar(r2, bars2, width=barWidth, edgecolor='white', label='custom')
-        # plt.bar(r3, bars3, width=barWidth, edgecolor='white', label='more_like_this')
-        # plt.bar(r4, bars4, width=barWidth, edgecolor='white', label='political')
+        plt.bar(r3, bars3, width=barWidth, edgecolor='white', label='most_popular')
+        plt.bar(r4, bars4, width=barWidth, edgecolor='white', label='political')
 
         # Add xticks on the middle of the group bars
         plt.xlabel('parties', fontweight='bold')

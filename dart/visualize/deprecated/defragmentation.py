@@ -66,7 +66,7 @@ class Defragmentation:
     def visualize(df, unknown_articles):
         print(unknown_articles)
         plt.figure()
-        df['date'] = pd.to_datetime(df['date'], format="%d-%m-%Y")
+        df['date'] = pd.to_datetime(df['date'], format="%Y-%m-%d")
         df = df.sort_values('date', ascending=True)
         df.set_index('date', inplace=True)
         df.groupby('type')['defragmentation'].plot(legend=True)
