@@ -3,7 +3,7 @@ import numpy as np
 import dart.visualize.visualize as visualize
 
 from collections import Counter
-import external.rbo
+from dart.external.rbo import rbo
 
 
 class Fragmentation:
@@ -24,7 +24,6 @@ class Fragmentation:
     def execute(self):
         data = []
         for date in self.config["recommendation_dates"]:
-            print(date)
             for recommendation_type in self.handlers.recommendations.get_recommendation_types():
                 fragmentations = []
                 recommendations = self.handlers.recommendations.get_recommendations_at_date(date, recommendation_type)
@@ -60,7 +59,7 @@ class Fragmentation:
     @staticmethod
     def compare_recommendations(x, y):
         if x and y:
-            output = external.rbo.rbo(x, y, 0.9)
+            output = rbo(x, y, 0.9)
             return output.min
         else:
             return 0
