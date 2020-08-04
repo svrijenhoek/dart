@@ -112,7 +112,6 @@ class Calibration:
     def execute(self):
         data = []
         for date in self.config["recommendation_dates"]:
-            print(date)
             for recommendation_type in self.handlers.recommendations.get_recommendation_types():
                 topic_calibration_scores, complexity_calibration_scores = self.calculate_calibration(date, recommendation_type)
                 if topic_calibration_scores and complexity_calibration_scores:
@@ -127,5 +126,5 @@ class Calibration:
     def visualize(df):
         visualize.Visualize.print_mean(df, 'topics')
         visualize.Visualize.print_mean(df, 'complexity')
-        visualize.Visualize.plot(df, 'topics')
-        visualize.Visualize.plot(df, 'complexity')
+        visualize.Visualize.plot(df, 'topics', "Calibration (topics)")
+        visualize.Visualize.plot(df, 'complexity', "Calibration (complexity)")

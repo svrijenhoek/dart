@@ -67,4 +67,4 @@ class Fragmentation:
     @staticmethod
     def visualize(df):
         visualize.Visualize.print_mean(df, 'fragmentation')
-        visualize.Visualize.plot(df, 'fragmentation')
+        visualize.Visualize.plot(df, 'fragmentation', "Fragmentation")

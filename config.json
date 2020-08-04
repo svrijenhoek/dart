@@ -4,18 +4,14 @@
     "client_secret": "xxx"
   },
   "metrics": [
-    "length",
-    "complexity",
-    "popularity",
-    "location",
-    "occupation",
-    "source",
-    "personalization",
-    "emotive",
-    "classify",
-    "organization"],
+    "calibration",
+    "fragmentation",
+    "affect",
+    "representation",
+    "inclusion"
+    ],
   "append": "N",
-  "test_size": 2000,
+  "test_size": 50,
   "articles": {
     "folder": "data\\articles\\",
     "alternative_schema": "N",

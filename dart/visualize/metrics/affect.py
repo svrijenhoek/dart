@@ -62,16 +62,15 @@ class Affect:
         data = []
         # when in test phase, only test with the specified number of users
         for date in self.config["recommendation_dates"]:
-            print(date)
             pool_scores = self.get_pool_scores(date)
             # for each recommendation type that is specified in the config file
             for recommendation_type in self.handlers.recommendations.get_recommendation_types():
                 # affect scores
-                affect_scores = self.get_recommendation_scores(date, recommendation_type)
+                recommendation_scores = self.get_recommendation_scores(date, recommendation_type)
                 data.append({'date': date,
                              'type': recommendation_type,
-                             'affect': np.mean(affect_scores),
-                             'diff_affect': np.mean(affect_scores) - np.mean(pool_scores)})
+                             'affect': np.mean(recommendation_scores),
+                             'diff_affect': np.mean(recommendation_scores) - np.mean(pool_scores)})
         df = pd.DataFrame(data)
         self.visualize(df)
 
@@ -79,4 +78,4 @@ class Affect:
     def visualize(df):
         visualize.Visualize.print_mean(df, 'affect')
         visualize.Visualize.print_mean(df, 'diff_affect')
-        visualize.Visualize.plot(df, 'diff_affect')
+        visualize.Visualize.plot(df, 'diff_affect', "Affect")
