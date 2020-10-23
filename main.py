@@ -21,27 +21,27 @@ def main():
                         format='%(asctime)s - %(name)s - %(threadName)s -  %(levelname)s - %(message)s')
     module_logger = logging.getLogger('main')
     elastic_connector = dart.handler.elastic.connector.ElasticsearchConnector()
-    handlers = dart.models.Handlers.Handlers(elastic_connector)
+    mongo_connector = dart.handler.mongo.connector.Connector()
+    handlers = dart.models.Handlers.Handlers(elastic_connector, mongo_connector)
 
     # step 0: load config file
     config = dart.Util.read_full_config_file()
-    metrics = config['metrics']
     es = Elasticsearch()
 
     # step 1: load articles
-    print(str(datetime.datetime.now())+"\tloading articles")
-    if es.indices.exists(index="articles") and config["append"] == "N":
-        # delete index
-        elastic_connector.clear_index('articles')
-        module_logger.info("Index removed")
-    if not es.indices.exists(index="articles"):
-        module_logger.info("Index created")
-        dart.handler.elastic.initialize.InitializeIndex().initialize_articles()
-        module_logger.info("Started adding documents")
-    dart.populate.add_documents.AddDocuments(config).execute()
-    # add popularity numbers from file
-    print(str(datetime.datetime.now()) + "\tadding popularity")
-    dart.populate.add_popularity.PopularityQueue().read_from_file(config['popularity_file'])
+    # print(str(datetime.datetime.now())+"\tloading articles")
+    # if es.indices.exists(index="articles") and config["append"] == "N":
+    #     # delete index
+    #     elastic_connector.clear_index('articles')
+    #     module_logger.info("Index removed")
+    # if not es.indices.exists(index="articles"):
+    #     module_logger.info("Index created")
+    #     dart.handler.elastic.initialize.InitializeIndex().initialize_articles()
+    #     module_logger.info("Started adding documents")
+    # dart.populate.add_documents.AddDocuments(config).execute()
+    # # add popularity numbers from file
+    # print(str(datetime.datetime.now()) + "\tadding popularity")
+    # dart.populate.add_popularity.PopularityQueue().read_from_file(config['popularity_file'])
 
     # step 1.5: annotate all articles
     print(str(datetime.datetime.now())+"\tenriching articles")
@@ -76,7 +76,7 @@ def main():
     time.sleep(5)
 
     # step 5: make visualizations
-    # print(str(datetime.datetime.now()) + "\tZDF calculations")
+    print(str(datetime.datetime.now()) + "\tZDF calculations")
     # dart.visualize.ZDF_calculations.ZDFCalculator(handlers, config).execute()
     print(str(datetime.datetime.now()) + "\tMetrics")
     dart.visualize.start_calculations.MetricsCalculator(handlers, config).execute()
