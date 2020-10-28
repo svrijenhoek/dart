@@ -10,9 +10,10 @@ class StoryHandler(BaseHandler):
         self.connector = connector
         self.queue = []
 
-    def add_story(self, date, identifier, docids, keywords, classification, title):
+    def add_story(self, date, dates, identifier, docids, keywords, classification, title):
         doc = {
             'date': date,
+            'dates': dates,
             'identifier': identifier,
             'title': title,
             'keywords': keywords,

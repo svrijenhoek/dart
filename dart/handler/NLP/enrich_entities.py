@@ -3,6 +3,7 @@ import dart.handler.other.wikidata
 import dart.handler.other.openstreetmap
 import string
 import pandas as pd
+from collections import defaultdict
 
 
 class EntityEnricher:
@@ -15,8 +16,10 @@ class EntityEnricher:
         self.wikidata = dart.handler.other.wikidata.WikidataHandler(self.language)
         self.printable = set(string.printable)
         self.political_data = pd.DataFrame(politics)
+        self.unknown_persons = defaultdict(int)
 
     def known(self, name, alternative, entity_type):
+        entity = {}
         # situation 1: name is directly known
         if self.handlers.entities.find_entity(entity_type, name):
             entity = self.handlers.entities.find_entity(entity_type, name)
@@ -25,8 +28,8 @@ class EntityEnricher:
         else:
             for alt in alternative:
                 if not (entity_type == 'persons' and (name.startswith(alt) and " " not in alt)):
-                    if self.handlers.entities.known_entity(entity_type, alt):
-                        entity = self.handlers.entities.known_entity(entity_type, alt)
+                    if self.handlers.entities.find_entity(entity_type, alt):
+                        entity = self.handlers.entities.find_entity(entity_type, alt)
         if entity:
             known_alternatives = entity['alternative']
             new_set = list(set(alternative + known_alternatives))
@@ -49,6 +52,8 @@ class EntityEnricher:
             if 'type' not in entity:
                 entity = self.retrieve_company_data(entity)
         entity['annotated'] = 'Y'
+        if '_id' in entity:
+            entity['_id'] = str(entity['_id'])
         return entity
 
     def retrieve_person_data(self, entity):
@@ -65,24 +70,26 @@ class EntityEnricher:
             # information with a different way of spelling
             if known_entry:
                 found, data = self.wikidata.get_person_data(name, known_entry['alternative'])
-                alternative = {'alternative': list(set(known_entry['alternative'] +
-                                                                     entity['alternative']))}
+                alternative = list(set(known_entry['alternative'] + entity['alternative']))
                 # if a new way of spelling is found, delete the old entry
-                if found != name and name in self.known_persons:
+                if found != name and self.known(name, [], 'persons'):
                     self.handlers.entities.delete_with_label('persons', name)
             # if this is an entirely new entry
             else:
                 found, data = self.wikidata.get_person_data(name, entity['alternative'])
-                alternative = {'alternative': entity['alternative']}
+                alternative = entity['alternative']
                 if 'occupations' in data and 'politician' in data['occupations']:
                     data = self.resolve_politicians(found, data)
             # update the list with the information that was found
             try:
                 if data:
-                    entity = {'alternative': alternative, 'key': found}
+                    data['key'] = name
+                    data['alternative'] = alternative
+                    entity['alternative'] = alternative
+                    entity['key'] = found
                     for k, v in data.items():
                         entity[k] = v
-                    self.handlers.entities.insert_one('persons', entity)
+                    self.handlers.entities.insert_one('persons', data)
                 else:
                     self.unknown_persons[name] += 1
             except AttributeError as e:
@@ -123,13 +130,19 @@ class EntityEnricher:
                     try:
                         lat, lon, country_code = self.openstreetmap.get_coordinates(place)
                         if not lat == 0 or not lon == 0 or not country_code == 0:
-                            self.known_locations[place] = {'country_code': country_code, 'lat': lat, 'lon': lon,
-                                                           'alternative': entity['alternative']}
+                            # self.known_locations[place] = {'country_code': country_code, 'lat': lat, 'lon': lon,
+                            #                               'alternative': entity['alternative']}
                             entity['location'] = {
                                 'lat': lat,
                                 'lon': lon
                             }
                             entity['country_code'] = country_code
+                            self.handlers.entities.insert_one('locations', {
+                                'key': name,
+                                'country_code': country_code,
+                                'lat': lat, 'lon': lon,
+                                'alternative': entity['alternative']
+                            })
                         else:
                             entity['calculated'] = 'Y'
                     except TypeError:
@@ -155,10 +168,17 @@ class EntityEnricher:
                 instance = response['instance']
                 country = response['country']
 
-                self.known_organizations[name] = {'industry': industry, 'instance': instance, 'country': country, 'alternative': entity['alternative']}
+                # self.known_organizations[name] = {'industry': industry, 'instance': instance, 'country':
+                # country, 'alternative': entity['alternative']}
                 entity['industry'] = industry
                 entity['instance'] = instance
                 entity['country'] = country
+                self.handlers.entities.insert_one('organizations', {
+                    'key': name,
+                    'industry': industry,
+                    'instance': instance,
+                    'country': country,
+                    'alternative': entity['alternative']})
             except TypeError:
                 pass
         return entity

@@ -1,16 +1,16 @@
+from random import random
+
+
 class BaseHandler:
 
     def __init__(self, connector):
-        self.client = connector.client
+        self.connector = connector
 
-    def find_one(self, database, collection, field, value):
-        return self.client[database][collection].find_one({field: value})
+    def get_by_docid(self, database, collection, docid):
+        return self.connector.find_one(database, collection, '_id', docid)
 
-    def find(self, database, collection, field, value):
-        return self.client[database][collection].find({field: value})
+    def get_random(self, database, collection):
+        count = self.client.count(database, collection)
+        number = random.randint(0, count)
+        return self.connector.get_at_number(database, collection, number)
 
-    def insert_one(self, database, collection, data):
-        self.client[database][collection].insert_one(data)
-
-    def delete(self, database, collection, data):
-        self.client[database][collection].remove(data)
