@@ -45,8 +45,8 @@ class StoryIdentifier:
                     cosine = self.cos.calculate_cosine_similarity(x.id, y.id)
                     if cosine > 0:
                         cosines.append({'x': x.id, 'y': y.id, 'cosine': cosine})
-            stories = self.identify(cosines)
-            self.add_stories(stories)
+        stories = self.identify(cosines)
+        self.add_stories(stories)
 
         # stories = self.identify(documents)
         # self.add_stories(today.strftime("%d-%m-%Y"), stories, documents)

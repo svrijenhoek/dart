@@ -172,7 +172,7 @@ class Representation:
         Bar plot visualizing for each party how often they are mentioned significantly more or less than was to be
         expected from the pool
         """
-        plt.figure()
+        plt.figure("Representation (diff)")
         labels = self.political_parties[:, 0]
         # set width of bar
         barWidth = 0.20

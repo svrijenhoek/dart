@@ -4,15 +4,12 @@ import random
 import numpy as np
 import pandas as pd
 import dart.Util as Util
-from dart.handler.elastic.connector import ElasticsearchConnector
 
 
 class UserSimulator:
 
     def __init__(self, config, handlers):
         self.handlers = handlers
-        self.connector = ElasticsearchConnector()
-
         self.n_users = config["user_number"]
         self.load_users = config["user_load"]
 
@@ -54,6 +51,7 @@ class UserSimulator:
                     # assumes all files are json-l, change this to something more robust!
                     for line in open((os.path.join(path, name))):
                         json_doc = json.loads(line)
+                        json_doc['_id'] = json_doc['id']
                         if self.alternative_schema == "Y":
                             json_doc = Util.transform(json_doc, self.schema)
                         if json_doc['reading_history']:
@@ -65,29 +63,28 @@ class UserSimulator:
                             #    json_doc['reading_history'] = {'base': self.simulate_reading_history()}
                         else:
                             json_doc['reading_history'] = {'base': []}
-                        self.queue.append(json_doc)
-                    if len(self.queue) > 1000:
-                        self.connector.add_bulk('users', '_doc', self.queue)
-                        self.queue = []
-            if self.queue:
-                self.connector.add_bulk('users', '_doc', self.queue)
-                self.queue = []
-        # else:
-        # simulate user data
-        for _ in range(0, self.n_users):
-            classification_pref = random.choice(self.classifications)  # nosec
-            source_pref = random.choice(self.sources)  # nosec
-            complexity_pref = int(np.random.normal(40, 10, 1)[0])
-            party_pref = random.choice(self.parties)  # nosec
-            size = max(10, int(np.random.normal(50, 25, 1)[0]))
-            reading_history = self.simulate_reading_history(classification_pref, source_pref, complexity_pref, size)
-            json_doc = {
-                "classification_preference": classification_pref,
-                "source_preference": source_pref,
-                "complexity_preference": complexity_pref,
-                "party_preference": party_pref,
-                "reading_history": {'base': reading_history}
-            }
-            body = json.dumps(json_doc)
-            self.handlers.users.add_user(body)
+                        self.handlers.users.add_user(json_doc)
+            #         if len(self.queue) > 1000:
+            #             self.handlers.users.add_bulk(self.queue)
+            #             self.queue = []
+            # if self.queue:
+            #     self.handlers.users.add_bulk(self.queue)
+            #     self.queue = []
+        else:
+            # simulate user data
+            for _ in range(0, self.n_users):
+                classification_pref = random.choice(self.classifications)  # nosec
+                source_pref = random.choice(self.sources)  # nosec
+                complexity_pref = int(np.random.normal(40, 10, 1)[0])
+                party_pref = random.choice(self.parties)  # nosec
+                size = max(10, int(np.random.normal(50, 25, 1)[0]))
+                reading_history = self.simulate_reading_history(classification_pref, source_pref, complexity_pref, size)
+                json_doc = {
+                    "classification_preference": classification_pref,
+                    "source_preference": source_pref,
+                    "complexity_preference": complexity_pref,
+                    "party_preference": party_pref,
+                    "reading_history": {'base': reading_history}
+                }
+                self.handlers.users.add_user(json_doc)
 

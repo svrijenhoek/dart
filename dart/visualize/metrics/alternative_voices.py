@@ -6,7 +6,7 @@ from collections import Counter
 import dart.visualize.visualize as visualize
 
 
-class Inclusion:
+class AlternativeVoices:
 
     def __init__(self, handlers, config):
         self.handlers = handlers
@@ -16,6 +16,9 @@ class Inclusion:
         if self.config['test_size'] > 0:
             self.users = self.users[1:self.config['test_size']]
 
+        self.ethnicity_scores = {}
+        self.gender_scores = {}
+
         self.minorities = Counter()
         self.majorities = Counter()
         self.irrelevants = Counter()
@@ -24,30 +27,39 @@ class Inclusion:
         majority = 0
         minority = 0
         for article in articles:
-            persons = filter(lambda x: x['label'] == 'PER', article.entities)
-            for person in persons:
-                if 'citizen' in person and "Germany" in person['citizen']:
-                    if 'ethnicity' in person:
-                        if 'Germans' in person['ethnicity'] or person['ethnicity'] == []:
-                            majority += 1
-                            if store: self.majorities[person['text']] += 1
-                        else:
-                            minority += 1
-                            if store: self.minorities[person['text']] += 1
-                    else:
-                        if 'place_of_birth' in person:
-                            if 'Germany' in person['place_of_birth']:
-                                majority += 1
-                                if store: self.majorities[person['text']]
+            article_majority = 0
+            article_minority = 0
+            if article.id in self.ethnicity_scores:
+                article_majority = self.ethnicity_scores[article.id]['majority']
+                article_minority = self.ethnicity_scores[article.id]['minority']
+            else:
+                persons = filter(lambda x: x['label'] == 'PER', article.entities)
+                for person in persons:
+                    if 'citizen' in person and "Germany" in person['citizen']:
+                        if 'ethnicity' in person:
+                            if 'Germans' in person['ethnicity'] or person['ethnicity'] == []:
+                                article_majority += 1
+                                if store: self.majorities[person['text']] += 1
                             else:
-                                minority += 1
-                                if store: self.minorities[person['text']]
-                else:
-                    if store: self.irrelevants[person['text']] += 1
+                                article_minority += 1
+                                if store: self.minorities[person['text']] += 1
+                        else:
+                            if 'place_of_birth' in person:
+                                if 'Germany' in person['place_of_birth']:
+                                    article_majority += 1
+                                    if store: self.majorities[person['text']]
+                                else:
+                                    article_minority += 1
+                                    if store: self.minorities[person['text']]
+                    else:
+                        if store: self.irrelevants[person['text']] += 1
+                self.ethnicity_scores[article.id] = {'majority': article_majority, 'minority': article_minority}
+            majority += article_majority
+            minority += article_minority
         return minority, majority
 
     @staticmethod
-    def calculate_inclusion(pool_scores, recommendation_scores):
+    def calculate_alternative_voices(pool_scores, recommendation_scores):
         # number of people in the protected group in the recommendation
         pi_plus = recommendation_scores[0]
         # number of people in the unprotected group in the recommendation
@@ -66,19 +78,29 @@ class Inclusion:
         majority = 0
         minority = 0
         for article in articles:
-            persons = filter(lambda x: x['label'] == 'PER', article.entities)
-            for person in persons:
-                if 'citizen' in person and "Germany" in person['citizen']:
-                    if 'gender' in person:
-                        if 'male' in person['gender']:
-                            majority += 1
-                            if store: self.majorities[person['text']] += 1
-                        else:
-                            minority += 1
-                            if store: self.minorities[person['text']] += 1
+            article_majority = 0
+            article_minority = 0
+            if article.id in self.gender_scores:
+                article_majority = self.gender_scores[article.id]['majority']
+                article_minority = self.gender_scores[article.id]['minority']
+            else:
+                persons = filter(lambda x: x['label'] == 'PER', article.entities)
+                for person in persons:
+                    if 'citizen' in person and "Germany" in person['citizen']:
+                        if 'gender' in person:
+                            if 'male' in person['gender']:
+                                article_majority += 1
+                                if store: self.majorities[person['text']] += 1
+                            else:
+                                article_minority += 1
+                                if store: self.minorities[person['text']] += 1
 
-                else:
-                    if store: self.irrelevants[person['text']] += 1
+                    else:
+                        if store: self.irrelevants[person['text']] += 1
+
+                self.gender_scores[article.id] = {'majority': article_majority, 'minority': article_minority}
+            majority += article_majority
+            minority += article_minority
         return minority, majority
 
     def execute(self):
@@ -89,6 +111,7 @@ class Inclusion:
         ethnicity_data = []
         gender_data = []
         for date in self.config["recommendation_dates"]:
+            print(date)
             # retrieve all articles in the specified time range
             upper = datetime.strptime(date, '%Y-%m-%d')
             lower = upper - timedelta(days=self.config["recommendation_range"])
@@ -97,6 +120,7 @@ class Inclusion:
             pool_gender = self.get_gender_score(pool)
             # for each recommendation type (custom, most_popular, random)
             for recommendation_type in self.handlers.recommendations.get_recommendation_types():
+                print(recommendation_type)
                 ethnicity_inclusion_scores = []
                 gender_inclusion_scores = []
                 for user in self.users:
@@ -108,10 +132,10 @@ class Inclusion:
                     if recommendation:
                         articles = self.handlers.articles.get_multiple_by_id(recommendation[0].articles)
                         recommendation_ethnicity = self.get_ethnicity_score(articles)
-                        ethnicity_inclusion = self.calculate_inclusion(pool_ethnicity, recommendation_ethnicity)
+                        ethnicity_inclusion = self.calculate_alternative_voices(pool_ethnicity, recommendation_ethnicity)
                         ethnicity_inclusion_scores.append(ethnicity_inclusion)
                         recommendation_gender = self.get_gender_score(articles)
-                        gender_inclusion = self.calculate_inclusion(pool_gender, recommendation_gender)
+                        gender_inclusion = self.calculate_alternative_voices(pool_gender, recommendation_gender)
                         gender_inclusion_scores.append(gender_inclusion)
                 ethnicity_data.append({'date': date, 'type': recommendation_type,
                                        'mean': np.mean(ethnicity_inclusion_scores),

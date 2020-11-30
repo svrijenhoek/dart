@@ -1,10 +1,10 @@
 import dart.handler.elastic.article_handler
-import dart.handler.elastic.recommendation_handler
-import dart.handler.elastic.user_handler
 import dart.handler.elastic.output_handler
 import dart.handler.elastic.connector
+import dart.handler.mongo.recommendation_handler
 import dart.handler.mongo.story_handler
 import dart.handler.mongo.entity_handler
+import dart.handler.mongo.user_handler
 
 
 def singleton(class_):
@@ -23,8 +23,8 @@ class Handlers:
 
     def __init__(self, elastic_connector, mongo_connector):
         self.articles = dart.handler.elastic.article_handler.ArticleHandler(elastic_connector)
-        self.users = dart.handler.elastic.user_handler.UserHandler(elastic_connector)
-        self.recommendations = dart.handler.elastic.recommendation_handler.RecommendationHandler(elastic_connector)
+        self.users = dart.handler.mongo.user_handler.UserHandler(mongo_connector)
+        self.recommendations = dart.handler.mongo.recommendation_handler.RecommendationHandler(mongo_connector)
         self.output = dart.handler.elastic.output_handler.OutputHandler(elastic_connector)
         self.stories = dart.handler.mongo.story_handler.StoryHandler(mongo_connector)
         self.entities = dart.handler.mongo.entity_handler.EntityHandler(mongo_connector)
