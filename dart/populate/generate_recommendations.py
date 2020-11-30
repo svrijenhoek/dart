@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 import os
 import json
 import numpy as np
-import pandas as pd
 
 
 class RecommendationGenerator:
@@ -81,6 +80,7 @@ class RunRecommendations:
                     #     json_doc = Util.transform(json_doc, self.schema)
                     if json_doc:
                         date = json_doc['date']
+                        date = datetime.strptime(date, '%d-%M-%Y').strftime('%Y-%M-%d')
                         user_id = json_doc['user_id']
                         recommendation_type = json_doc['type']
                         # to account for nan article ids
@@ -97,23 +97,24 @@ class RunRecommendations:
         for recommendation_type in self.handlers.recommendations.get_recommendation_types():
             for user in self.users:
                 recommendations = self.handlers.recommendations.get_recommendations_to_user(user.id, recommendation_type)
-                user.reading_history[recommendation_type] = {entry.date: entry.articles for entry in recommendations}
+                user.reading_history[recommendation_type] = {str(entry.date): entry.articles for entry in recommendations}
                 self.handlers.users.update_user(user)
 
     def execute(self):
         if self.load_recommendations == 'Y':
-           self.load()
+            self.load()
         # go over every date specified in the config file
         if self.baseline_recommendations:
             for date in self.dates:
                 # define the timerange for retrieving documents
-                upper = datetime.strptime(date, '%d-%m-%Y')
+                upper = datetime.strptime(date, '%Y-%m-%d')
                 lower = upper - timedelta(days=self.timerange)
                 # retrieve all the documents that are relevant for this date
                 documents = self.handlers.articles.get_all_in_timerange(lower, upper)
-                # retrieve all recommendations at date if exhaustive = minimal
+                # retrieve all recommendations at date if exhaustive = minimal. This causes an exception when no own
+                # recommendations are loaded.
                 if self.exhaustive == 'minimal':
-                    rec_at_date = self.handlers.recommendations.get_users_with_recommendations_at_date(date)
+                    rec_at_date = self.handlers.recommendations.get_users_with_recommendations_at_date(date, 'custom')
                 # to account for a very sparse index
                 recommendation_size = min(len(documents), self.size)
                 rg = RecommendationGenerator(documents, recommendation_size, self.handlers)
@@ -127,5 +128,5 @@ class RunRecommendations:
                     except KeyError:
                         print("Help, a Key Error occurred!")
                         continue
-        self.generate_reading_histories()
+        # self.generate_reading_histories()
 

@@ -26,6 +26,7 @@ class AddDocuments:
             self.schema = Util.read_json_file(config["articles_schema_location"])
         self.queue = []
 
+
     def add_document(self, doc):
         # see if the user has specified their own id. If this is the case, use this in Elasticsearch,
         # otherwise generate a new one based on the title and publication date
@@ -41,6 +42,10 @@ class AddDocuments:
         self.queue.append(doc)
 
     def execute(self):
+
+        success = 0
+        no_text = 0
+
         # iterate over all the files in the data folder
         for path, _, files in os.walk(self.root):
             for name in files:
@@ -49,11 +54,17 @@ class AddDocuments:
                     json_doc = json.loads(line)
                     if self.alternative_schema == "Y":
                         json_doc = Util.transform(json_doc, self.schema)
-                    if json_doc and \
+                    if 'text' in json_doc and \
                             not "Nutzen Sie gerne die Suche, um zum gewünschten Inhalt zu gelangen." in json_doc['text']:
                         self.add_document(json_doc)
+                        success += 1
+                    else:
+                        no_text += 1
                     if len(self.queue) > 0 and len(self.queue) % 200 == 0:
                         self.connector.add_bulk('articles', '_doc', self.queue)
                         self.queue = []
         if self.queue:
             self.connector.add_bulk('articles', '_doc', self.queue)
+
+        print("\tDocuments successfuly added: {}".format(success))
+        print("\tDocuments without text: {}".format(no_text))

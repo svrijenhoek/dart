@@ -21,6 +21,7 @@ def read_full_config_file():
     dictionary['facebook_client_id'] = data['facebook']['client_id']
     dictionary['facebook_client_secret'] = data['facebook']['client_secret']
     dictionary['append'] = data['append']
+    dictionary['test_size'] = data['test_size']
     dictionary['metrics'] = data['metrics']
     dictionary['language'] = data['articles']['language']
     dictionary['articles_folder'] = data['articles']['folder']

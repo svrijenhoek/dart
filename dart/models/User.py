@@ -23,14 +23,15 @@ class User(Document):
         Given a user's reading history, a recommendation type and a date, extract that user's full reading history
         up to that date
         """
+        current_date = datetime.strptime(current_date, '%Y-%m-%d')
         if recommendation_type in self.reading_history:
             relevant_history = self.reading_history[recommendation_type]
             dates = []
             # retrieve all the dates that are in the reading history
             for date in relevant_history:
-                history_date = datetime.strptime(date, '%d-%m-%Y')
+                history_date = datetime.strptime(date, '%Y-%m-%d')
                 # only consider the recommendations before the current time
-                if history_date <= current_date:
+                if history_date < current_date:
                     dates.append(date)
             recommendations_of_type = []
             # append ids for all articles recommended before the current date
