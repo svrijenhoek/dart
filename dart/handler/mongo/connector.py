@@ -38,16 +38,16 @@ class MongoConnector:
     def get_at_number(self, database, collection, number):
         return self.client[database][collection].find().limit(-1).skip(number).next()
 
-    def drop(self, database, collection):
-        self.client[database][collection].drop()
+    def drop_collection(self, database, collection):
+        self.client[database][collection].drop_collection()
 
-    def drop(self, database):
+    def drop_database(self, database):
         self.client.drop_database(database)
 
-    def exists(self, database, collection):
+    def collection_exists(self, database, collection):
         return collection in self.client[database].list_collection_names()
 
-    def exists(self, database):
+    def database_exists(self, database):
         return database in self.client.list_database_names()
 
     def collection_names(self, database):

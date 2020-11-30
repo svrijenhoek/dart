@@ -2,7 +2,7 @@ import dart.visualize.metrics.affect
 import dart.visualize.metrics.calibration
 import dart.visualize.metrics.fragmentation
 import dart.visualize.metrics.representation
-import dart.visualize.metrics.inclusion
+import dart.visualize.metrics.alternative_voices
 import matplotlib.pyplot as plt
 
 from datetime import datetime
@@ -39,7 +39,7 @@ class MetricsCalculator:
             dart.visualize.metrics.representation.Representation(self.handlers, self.config).execute()
         if "inclusion" in self.config["metrics"]:
             print(str(datetime.now()) + "\t Inclusion")
-            dart.visualize.metrics.inclusion.Inclusion(self.handlers, self.config).execute()
+            dart.visualize.metrics.alternative_voices.AlternativeVoices(self.handlers, self.config).execute()
         print(str(datetime.now()) + "\t Done")
         plt.show()
 

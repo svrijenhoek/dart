@@ -11,8 +11,8 @@ class RecommendationHandler(BaseHandler):
         self.all_recommendations = None
         self.queue = {}
 
-    def add_recommendation(self, doc, type):
-        self.connector.insert_one('recommendations', type, doc)
+    def add_recommendation(self, doc, recommendation_type):
+        self.connector.insert_one('recommendations', recommendation_type, doc)
 
     def add_bulk(self):
         # to implement
@@ -20,9 +20,9 @@ class RecommendationHandler(BaseHandler):
             self.connector.insert_many('recommendations', recommendation_type, self.queue[recommendation_type])
         self.queue = {}
 
-    def get_all_recommendations(self, type):
+    def get_all_recommendations(self, recommendation_type):
         if self.all_recommendations is None:
-            recommendations = super(RecommendationHandler, self).find('recommendations', type, {})
+            recommendations = super(RecommendationHandler, self).find('recommendations', recommendation_type, {})
             self.all_recommendations = [Recommendation(i) for i in recommendations]
         return self.all_recommendations
 
@@ -45,12 +45,12 @@ class RecommendationHandler(BaseHandler):
             self.queue[rec_type] = []
         self.queue[rec_type].append(doc)
 
-    def get_users_with_recommendations_at_date(self, date, type):
+    def get_users_with_recommendations_at_date(self, date, recommendation_type):
         user_ids = []
         date = datetime.strptime(date, "%Y-%m-%d")
         query = { "recommendation.date": date}
 
-        cursor = self.connector.find('recommendations', type, query)
+        cursor = self.connector.find('recommendations', recommendation_type, query)
         for entry in cursor:
             user_ids.append(entry['recommendation']['user_id'])
         return user_ids

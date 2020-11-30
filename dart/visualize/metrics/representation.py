@@ -164,8 +164,8 @@ class Representation:
 
     @staticmethod
     def visualize(df):
-        visualize.Visualize.print_mean(df, 'distance')
-        visualize.Visualize.plot(df, 'distance', "Representation")
+        visualize.Visualize.print_mean(df)
+        visualize.Visualize.plot(df, "Representation")
 
     def visualize_party(self, data):
         """
