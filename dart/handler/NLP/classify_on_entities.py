@@ -24,8 +24,8 @@ class Classifier:
                                     'aandelenbeurs', 'aandelenbeurzen', 'kwartaalcijfers', 'omzet', 'fusie', 'AEX',
                                     'AMX']
         try:
-            self.occupation_mapping = dart.Util.read_csv('output/occupations_mapping.csv')
-            self.instance_mapping = dart.Util.read_csv('output/instance_mapping.csv')
+            self.occupation_mapping = dart.Util.read_csv('data/occupations_mapping.csv')
+            self.instance_mapping = dart.Util.read_csv('data/instance_mapping.csv')
         except FileNotFoundError:  # when no mapping files are found
             self.occupation_mapping = {}
             self.instance_mapping = {}

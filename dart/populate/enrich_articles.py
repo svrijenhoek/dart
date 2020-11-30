@@ -23,7 +23,8 @@ class Enricher:
         self.textpipe = dart.handler.NLP.textpipe_handler.Textpipe(self.language)
         self.spacy_tags = ['DET', 'ADP', 'PRON']
         self.enricher = dart.handler.NLP.enrich_entities.EntityEnricher(self.metrics, self.language,
-                                                                        pd.read_csv(config['politics_file']))
+                                                                        pd.read_csv(config['politics_file']),
+                                                                                    self.handlers)
         self.classifier = dart.handler.NLP.classify_on_entities.Classifier(self.language)
         self.clusterer = dart.handler.NLP.cluster_entities.Clustering(0.9, 'a', 'b', 'metric')
 
@@ -97,14 +98,10 @@ class Enricher:
             while len(articles) > 0:
                 for article in articles:
                     self.annotate_document(article)
-                self.enricher.save()
                 articles = self.handlers.articles.get_not_calculated("annotated")
-            self.enricher.save()
         except ConnectionError:  # in case an error occurs when wikidata does not respond, save recently retrieved items
-            self.enricher.save()
             print("Connection error!")
             sys.exit()
-        self.enricher.save()
 
 
 

@@ -52,7 +52,7 @@ class ArticleHandler(BaseHandler):
         popularity of articles.
         """
         body = {
-            "size": 100,
+            "size": 300,
             "query": {
                 "bool": {
                     "must_not": {
@@ -201,13 +201,11 @@ class ArticleHandler(BaseHandler):
                                 "gte": lower
                             }
                         }},
-                        {"term": {"classification.keyword": 'political'}},
+                        {"term": {"classification.keyword": 'politics'}},
                     ],
                     "should": [
-                        {"term": {"entities.text.keyword": user.party_preference[0]}},
-                        {"term": {"entities.parties.keyword": user.party_preference[0]}},
-                        {"term": {"entities.text.keyword": user.party_preference[1]}},
-                        {"term": {"entities.parties.keyword": user.party_preference[1]}},
+                        {"term": {"entities.text.keyword": user.party_preference}},
+                        {"term": {"entities.parties.keyword": user.party_preference}}
                     ],
                 }
             }
@@ -237,12 +235,12 @@ class ArticleHandler(BaseHandler):
                     "should": [
                         {"term": {"classification.keyword": user.classification_preference}},
                         {"term": {"doctype.keyword": user.source_preference}},
-                        {"range": {
-                            "complexity": {
-                                "gte": user.complexity_preference+5,
-                                "lte": user.complexity_preference-5,
-                            }
-                        }},
+                        # {"range": {
+                        #     "complexity": {
+                        #         "gte": user.complexity_preference+5,
+                        #         "lte": user.complexity_preference-5,
+                        #     }
+                        # }},
                         {"more_like_this": {
                             "fields": ['text'],
                             "like": like_query

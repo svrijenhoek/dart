@@ -1,11 +1,12 @@
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
+import dart.visualize.visualize as visualize
 
 from collections import Counter
+from dart.external.rbo import rbo
 
 
-class Defragmentation:
+class Fragmentation:
 
     """
     Class that calculates to what extent users have seen the same news stories.
@@ -23,20 +24,21 @@ class Defragmentation:
     def execute(self):
         data = []
         for date in self.config["recommendation_dates"]:
-            print(date)
             for recommendation_type in self.handlers.recommendations.get_recommendation_types():
-                defragmentations = []
+                fragmentations = []
                 recommendations = self.handlers.recommendations.get_recommendations_at_date(date, recommendation_type)
                 if recommendations:
+                    if self.config['test_size'] > 0:
+                        recommendations = recommendations[1:self.config['test_size']]
                     for ix, x in enumerate(recommendations):
                         stories_x = self.get_stories(x)
                         for iy, y in enumerate(recommendations):
                             if iy > ix:
                                 stories_y = self.get_stories(y)
-                                defragmentations.append(self.compare_recommendations(stories_x, stories_y))
-                    data.append({'date': date, 'type': recommendation_type, 'defragmentation': np.mean(defragmentations)})
+                                fragmentations.append(self.compare_recommendations(stories_x, stories_y))
+                    data.append({'date': date, 'type': recommendation_type, 'fragmentation': np.mean(fragmentations)})
         df = pd.DataFrame(data)
-        self.visualize(df, self.unknown_articles)
+        self.visualize(df)
 
     def get_stories(self, recommendation):
         """
@@ -56,20 +58,13 @@ class Defragmentation:
 
     @staticmethod
     def compare_recommendations(x, y):
-        intersection = list(set(x) & set(y))
-        union = list(set(x).union(y))
-        if len(union) == 0:
+        if x and y:
+            output = rbo(x, y, 0.9)
+            return output.min
+        else:
             return 0
-        return len(intersection)/len(union)
 
     @staticmethod
-    def visualize(df, unknown_articles):
-        print(unknown_articles)
-        plt.figure()
-        df['date'] = pd.to_datetime(df['date'], format="%d-%m-%Y")
-        df = df.sort_values('date', ascending=True)
-        df.set_index('date', inplace=True)
-        df.groupby('type')['defragmentation'].plot(legend=True)
-        plt.xticks(rotation='vertical')
-        plt.draw()
-        print(df.groupby('type')['defragmentation'].mean())
+    def visualize(df):
+        visualize.Visualize.print_mean(df, 'fragmentation')
+        visualize.Visualize.plot(df, 'fragmentation', "Fragmentation")
