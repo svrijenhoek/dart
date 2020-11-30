@@ -164,15 +164,15 @@ class Representation:
 
     @staticmethod
     def visualize(df):
-        visualize.Visualize.print_mean(df, 'distance')
-        visualize.Visualize.plot(df, 'distance', "Representation")
+        visualize.Visualize.print_mean(df)
+        visualize.Visualize.plot(df, "Representation")
 
     def visualize_party(self, data):
         """
         Bar plot visualizing for each party how often they are mentioned significantly more or less than was to be
         expected from the pool
         """
-        plt.figure()
+        plt.figure("Representation (diff)")
         labels = self.political_parties[:, 0]
         # set width of bar
         barWidth = 0.20

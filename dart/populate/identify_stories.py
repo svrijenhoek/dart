@@ -130,7 +130,8 @@ class StoryIdentifier:
                 classification = mode(classifications)
             except StatisticsError:
                 classification = classifications[0]
-            self.handlers.stories.add_to_queue(dates[0], dates, story_id, doc_ids, keywords, classification, titles[0])
+            self.handlers.stories.add_story(dates[0], dates, story_id, doc_ids, keywords, classification, titles[0])
+            # self.handlers.stories.add_to_queue(dates[0], dates, story_id, doc_ids, keywords, classification, titles[0])
 
         # account for all the documents that are not part of stories
         # disabled during refactoring
@@ -141,9 +142,12 @@ class StoryIdentifier:
         for article_id in single_articles:
             article = self.handlers.articles.get_by_id(article_id)
             keywords = self.cos.most_relevant_terms([article_id])
-            self.handlers.stories.add_to_queue(article.publication_date, article.publication_date, count, article.id, keywords, article.classification, article.title)
+            self.handlers.stories.add_story(article.publication_date, article.publication_date, count, article.id,
+                                            keywords, article.classification, article.title)
+            # self.handlers.stories.add_to_queue(article.publication_date, article.publication_date, count, article.id,
+            # keywords, article.classification, article.title)
             count += 1
-        self.handlers.stories.add_bulk()
+        # self.handlers.stories.add_bulk()
 
     @staticmethod
     def distance(names):

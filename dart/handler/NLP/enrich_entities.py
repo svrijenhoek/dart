@@ -2,77 +2,58 @@ import dart.Util
 import dart.handler.other.wikidata
 import dart.handler.other.openstreetmap
 import string
-from collections import defaultdict
 import pandas as pd
+from collections import defaultdict
 
 
 class EntityEnricher:
 
-    def __init__(self, metrics, language, politics):
+    def __init__(self, metrics, language, politics, handlers):
+        self.handlers = handlers
         self.metrics = metrics
         self.language = language
         self.openstreetmap = dart.handler.other.openstreetmap.OpenStreetMap()
         self.wikidata = dart.handler.other.wikidata.WikidataHandler(self.language)
         self.printable = set(string.printable)
         self.political_data = pd.DataFrame(politics)
+        self.unknown_persons = defaultdict(int)
 
-        try:
-            self.known_locations = dart.Util.read_json_file('data/known_locations.json')
-        except FileNotFoundError:  # when no location file is found, create a new dict
-            self.known_locations = {}
-        try:
-            self.known_persons = dart.Util.read_json_file('data/known_persons.json')
-        except FileNotFoundError:  # when no persons file is found, create a new dict
-            self.known_persons = {}
-        try:
-            self.unknown_persons = defaultdict(int, dart.Util.read_json_file('data/unknown_persons.json'))
-        except FileNotFoundError:  # when no persons file is found, create a new dict
-            self.unknown_persons = defaultdict(int)
-        try:
-            self.known_organizations = dart.Util.read_json_file('data/known_organizations.json')
-        except FileNotFoundError:  # when no organization file is found, create a new dict
-            self.known_organizations = {}
-
-    def known(self, name, alternative, listtype):
-        if listtype == 'person': known_list = self.known_persons
-        elif listtype == 'organization': known_list = self.known_organizations
-        elif listtype == 'location': known_list = self.known_locations
-
+    def known(self, name, alternative, entity_type):
+        entity = {}
         # situation 1: name is directly known
-        if name in known_list:
-            known_list[name]['alternative'] = list(set(alternative + known_list[name]['alternative']))
-            return known_list[name]
-        # situation 2: one of the alternative names is directly in dict
-        for alt in alternative:
-            if not (listtype == 'person' and (name.startswith(alt) and " " not in alt)):
-                if alt in known_list:
-                    known_list[alt]['alternative'] = list(set(alternative + known_list[alt]['alternative']))
-                    return known_list[alt]
-        # situation 3: name is a known alternative
-        for k, v in known_list.items():
-            if name in v['alternative']:
-                known_list[k]['alternative'] = list(set(alternative + known_list[k]['alternative']))
-                return v
-            # situation 4: shared alternative names
-            # this does not work for first names only!
-            # elif len(list(set(alternative) & set(v['alternative']))) > 0:
-            #    known_list[k]['alternative'] = list(set(alternative + known_list[k]['alternative']))
-            #    return v
+        if self.handlers.entities.find_entity(entity_type, name):
+            entity = self.handlers.entities.find_entity(entity_type, name)
+        elif self.handlers.entities.find_alternative_name(entity_type, name):
+            entity = self.handlers.entities.find_alternative_name(entity_type, name)
+        else:
+            for alt in alternative:
+                if not (entity_type == 'persons' and (name.startswith(alt) and " " not in alt)):
+                    if self.handlers.entities.find_entity(entity_type, alt):
+                        entity = self.handlers.entities.find_entity(entity_type, alt)
+        if entity:
+            known_alternatives = entity['alternative']
+            new_set = list(set(alternative + known_alternatives))
+            if new_set != known_alternatives:
+                entity['alternative'] = new_set
+                self.handlers.entities.update_entity(entity_type, entity)
+            return entity
         return
 
     def enrich(self, entity):
         if entity['label'] == 'PER':
-            if 'occupation' in self.metrics and 'occupation' not in entity:
+            if 'occupation' not in entity:
                 entity = self.retrieve_person_data(entity)
             # if 'ethnicity' in self.metrics and 'ethnicity' not in entity:
             #     entity = self.retrieve_ethnicity(entity)
-        if 'location' in self.metrics and entity['label'] == 'LOC':
+        if entity['label'] == 'LOC':
             if 'country_code' not in entity:
                 entity = self.retrieve_geolocation(entity)
-        if 'organization' in self.metrics and entity['label'] == 'ORG':
+        if entity['label'] == 'ORG':
             if 'type' not in entity:
                 entity = self.retrieve_company_data(entity)
         entity['annotated'] = 'Y'
+        if '_id' in entity:
+            entity['_id'] = str(entity['_id'])
         return entity
 
     def retrieve_person_data(self, entity):
@@ -81,7 +62,7 @@ class EntityEnricher:
         """
         name = entity['text']
         # see if the entity is already known
-        known_entry = self.known(name, entity['alternative'], 'person')
+        known_entry = self.known(name, entity['alternative'], 'persons')
         # if it is unknown, or we don't gave any additional data about it, try to find it again
         # reasoning here is that we may have encountered another way of spelling the entity's name that would be found
         if not known_entry or 'givenname' not in known_entry or known_entry['givenname'] == []:
@@ -89,24 +70,26 @@ class EntityEnricher:
             # information with a different way of spelling
             if known_entry:
                 found, data = self.wikidata.get_person_data(name, known_entry['alternative'])
-                alternative = {'alternative': list(set(known_entry['alternative'] +
-                                                                     entity['alternative']))}
+                alternative = list(set(known_entry['alternative'] + entity['alternative']))
                 # if a new way of spelling is found, delete the old entry
-                if found != name and name in self.known_persons:
-                    del self.known_persons[name]
+                if found != name and self.known(name, [], 'persons'):
+                    self.handlers.entities.delete_with_label('persons', name)
             # if this is an entirely new entry
             else:
                 found, data = self.wikidata.get_person_data(name, entity['alternative'])
-                alternative = {'alternative': entity['alternative']}
+                alternative = entity['alternative']
                 if 'occupations' in data and 'politician' in data['occupations']:
                     data = self.resolve_politicians(found, data)
             # update the list with the information that was found
             try:
                 if data:
-                    self.known_persons[found] = alternative
+                    data['key'] = name
+                    data['alternative'] = alternative
+                    entity['alternative'] = alternative
+                    entity['key'] = found
                     for k, v in data.items():
-                        self.known_persons[found][k] = v
                         entity[k] = v
+                    self.handlers.entities.insert_one('persons', data)
                 else:
                     self.unknown_persons[name] += 1
             except AttributeError as e:
@@ -133,7 +116,7 @@ class EntityEnricher:
         place = ''.join(filter(lambda x: x in self.printable, name))
         place = place.replace('\n', '').replace('\r', '')
         if len(place) > 2 and '|' not in place and place.lower() != 'None'.lower():
-            known_entry = self.known(name, entity['alternative'], 'location')
+            known_entry = self.known(name, entity['alternative'], 'locations')
             if known_entry:
                 location = known_entry
                 entity['location'] = {
@@ -147,13 +130,19 @@ class EntityEnricher:
                     try:
                         lat, lon, country_code = self.openstreetmap.get_coordinates(place)
                         if not lat == 0 or not lon == 0 or not country_code == 0:
-                            self.known_locations[place] = {'country_code': country_code, 'lat': lat, 'lon': lon,
-                                                           'alternative': entity['alternative']}
+                            # self.known_locations[place] = {'country_code': country_code, 'lat': lat, 'lon': lon,
+                            #                               'alternative': entity['alternative']}
                             entity['location'] = {
                                 'lat': lat,
                                 'lon': lon
                             }
                             entity['country_code'] = country_code
+                            self.handlers.entities.insert_one('locations', {
+                                'key': name,
+                                'country_code': country_code,
+                                'lat': lat, 'lon': lon,
+                                'alternative': entity['alternative']
+                            })
                         else:
                             entity['calculated'] = 'Y'
                     except TypeError:
@@ -164,7 +153,7 @@ class EntityEnricher:
 
     def retrieve_company_data(self, entity):
         name = entity['text']
-        known_entry = self.known(name, entity['alternative'], 'organization')
+        known_entry = self.known(name, entity['alternative'], 'organizations')
         if known_entry:
             entity['industry'] = known_entry['industry']
             entity['instance'] = known_entry['instance']
@@ -179,16 +168,17 @@ class EntityEnricher:
                 instance = response['instance']
                 country = response['country']
 
-                self.known_organizations[name] = {'industry': industry, 'instance': instance, 'country': country, 'alternative': entity['alternative']}
+                # self.known_organizations[name] = {'industry': industry, 'instance': instance, 'country':
+                # country, 'alternative': entity['alternative']}
                 entity['industry'] = industry
                 entity['instance'] = instance
                 entity['country'] = country
+                self.handlers.entities.insert_one('organizations', {
+                    'key': name,
+                    'industry': industry,
+                    'instance': instance,
+                    'country': country,
+                    'alternative': entity['alternative']})
             except TypeError:
                 pass
         return entity
-
-    def save(self):
-        dart.Util.write_to_json('data/known_locations.json', self.known_locations)
-        dart.Util.write_to_json('data/known_persons.json', self.known_persons)
-        dart.Util.write_to_json('data/unknown_persons.json', self.unknown_persons)
-        dart.Util.write_to_json('data/known_organizations.json', self.known_organizations)
