@@ -1,4 +1,4 @@
-from pymongo import MongoClient
+from pymongo import MongoClient, errors
 
 
 class MongoConnector:
@@ -17,7 +17,17 @@ class MongoConnector:
         return self.client[database][collection].find(query)
 
     def insert_one(self, database, collection, data):
-        self.client[database][collection].insert_one(data)
+        try:
+            return self.client[database][collection].insert_one(data)
+        except errors.DuplicateKeyError:
+            return -1
+
+    def insert_many(self, database, collection, documents):
+        try:
+            self.client[database][collection].insert(documents)
+        except errors.DuplicateKeyError:
+            print("Error!")
+            print(documents)
 
     def delete(self, database, collection, data):
         self.client[database][collection].remove(data)
@@ -27,3 +37,18 @@ class MongoConnector:
 
     def get_at_number(self, database, collection, number):
         return self.client[database][collection].find().limit(-1).skip(number).next()
+
+    def drop_collection(self, database, collection):
+        self.client[database][collection].drop_collection()
+
+    def drop_database(self, database):
+        self.client.drop_database(database)
+
+    def collection_exists(self, database, collection):
+        return collection in self.client[database].list_collection_names()
+
+    def database_exists(self, database):
+        return database in self.client.list_database_names()
+
+    def collection_names(self, database):
+        return self.client[database].collection_names()

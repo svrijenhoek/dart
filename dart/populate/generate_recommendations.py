@@ -97,7 +97,7 @@ class RunRecommendations:
         for recommendation_type in self.handlers.recommendations.get_recommendation_types():
             for user in self.users:
                 recommendations = self.handlers.recommendations.get_recommendations_to_user(user.id, recommendation_type)
-                user.reading_history[recommendation_type] = {entry.date: entry.articles for entry in recommendations}
+                user.reading_history[recommendation_type] = {str(entry.date): entry.articles for entry in recommendations}
                 self.handlers.users.update_user(user)
 
     def execute(self):
@@ -114,7 +114,7 @@ class RunRecommendations:
                 # retrieve all recommendations at date if exhaustive = minimal. This causes an exception when no own
                 # recommendations are loaded.
                 if self.exhaustive == 'minimal':
-                    rec_at_date = self.handlers.recommendations.get_users_with_recommendations_at_date(date)
+                    rec_at_date = self.handlers.recommendations.get_users_with_recommendations_at_date(date, 'custom')
                 # to account for a very sparse index
                 recommendation_size = min(len(documents), self.size)
                 rg = RecommendationGenerator(documents, recommendation_size, self.handlers)
@@ -128,5 +128,5 @@ class RunRecommendations:
                     except KeyError:
                         print("Help, a Key Error occurred!")
                         continue
-        self.generate_reading_histories()
+        # self.generate_reading_histories()
 

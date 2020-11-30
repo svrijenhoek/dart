@@ -7,4 +7,8 @@ class Document:
 
     def __init__(self, document):
         self.id = document['_id']
-        self.source = document['_source']
+        # self.source = document['_source']
+        if '_source' in document:
+            self.source = document['_source']
+        else:
+            self.source = document
