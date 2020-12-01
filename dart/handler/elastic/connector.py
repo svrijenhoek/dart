@@ -16,8 +16,8 @@ class ElasticsearchConnector:
             response = self.es.search(index=index, body=body)
             return response['hits']['hits']
         except exceptions.RequestError:
-            print("Request error")
-            print(body)
+            # print("Request error")
+            # print(body)
             return []
 
     def execute_multiget(self, index, body):
@@ -25,8 +25,8 @@ class ElasticsearchConnector:
             response = self.es.mget(index=index, body=body)
             return response['docs']
         except exceptions.RequestError:
-            print("Request error")
-            print(body)
+            # print("Request error")
+            # print(body)
             return []
 
     def execute_aggregation(self, index, body, aggregation):

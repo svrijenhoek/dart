@@ -21,3 +21,7 @@ class UserHandler(BaseHandler):
 
     def get_by_id(self, user_id):
         return User(super(UserHandler, self).get_by_docid('users', 'users', user_id))
+
+    def update_reading_history(self, user):
+        self.connector.update_one('users', 'users', {"id": user.id},
+                                  {"$set": {"reading_history": user.reading_history}})

@@ -52,3 +52,6 @@ class MongoConnector:
 
     def collection_names(self, database):
         return self.client[database].collection_names()
+
+    def update_one(self, database, collection, query, document):
+        self.client[database][collection].update_one(query, document)

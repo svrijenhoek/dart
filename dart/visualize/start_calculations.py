@@ -29,8 +29,8 @@ class MetricsCalculator:
             print(str(datetime.now()) + "\t Calibration")
             dart.visualize.metrics.calibration.Calibration(self.handlers, self.config).execute()
         if "fragmentation" in self.config["metrics"]:
-            print(str(datetime.now()) + "\t Fragmentation")
-            dart.visualize.metrics.fragmentation.Fragmentation(self.handlers, self.config).execute()
+           print(str(datetime.now()) + "\t Fragmentation")
+           dart.visualize.metrics.fragmentation.Fragmentation(self.handlers, self.config).execute()
         if "affect" in self.config["metrics"]:
             print(str(datetime.now()) + "\t Affect")
             dart.visualize.metrics.affect.Affect(self.handlers, self.config).execute()
@@ -38,7 +38,7 @@ class MetricsCalculator:
             print(str(datetime.now()) + "\t Representation")
             dart.visualize.metrics.representation.Representation(self.handlers, self.config).execute()
         if "inclusion" in self.config["metrics"]:
-            print(str(datetime.now()) + "\t Inclusion")
+            print(str(datetime.now()) + "\t Alternative Voices")
             dart.visualize.metrics.alternative_voices.AlternativeVoices(self.handlers, self.config).execute()
         print(str(datetime.now()) + "\t Done")
         plt.show()

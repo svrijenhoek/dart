@@ -110,8 +110,11 @@ class AlternativeVoices:
         """
         ethnicity_data = []
         gender_data = []
-        for date in self.config["recommendation_dates"]:
-            print(date)
+        no_dates = len(self.config["recommendation_dates"])
+        marker = no_dates/10
+        for x, date in enumerate(self.config["recommendation_dates"]):
+            if x % marker < 1:
+                print(str(datetime.now()) + "\t\t\t{:.0f}% completed".format(x/no_dates*100))
             # retrieve all articles in the specified time range
             upper = datetime.strptime(date, '%Y-%m-%d')
             lower = upper - timedelta(days=self.config["recommendation_range"])
@@ -120,7 +123,6 @@ class AlternativeVoices:
             pool_gender = self.get_gender_score(pool)
             # for each recommendation type (custom, most_popular, random)
             for recommendation_type in self.handlers.recommendations.get_recommendation_types():
-                print(recommendation_type)
                 ethnicity_inclusion_scores = []
                 gender_inclusion_scores = []
                 for user in self.users:

@@ -76,3 +76,9 @@ class RecommendationHandler(BaseHandler):
         cursor = self.connector.find('recommendations', recommendation_type, query)
         return [Recommendation(i) for i in cursor]
 
+    def get_recommendations_at_date(self, date, recommendation_type):
+        date = datetime.strptime(date, "%Y-%m-%d")
+        query = {"recommendation.date": date}
+        cursor = self.connector.find('recommendations', recommendation_type, query)
+        return [Recommendation(i) for i in cursor]
+

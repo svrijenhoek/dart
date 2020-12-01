@@ -98,7 +98,7 @@ class RunRecommendations:
             for user in self.users:
                 recommendations = self.handlers.recommendations.get_recommendations_to_user(user.id, recommendation_type)
                 user.reading_history[recommendation_type] = {str(entry.date): entry.articles for entry in recommendations}
-                self.handlers.users.update_user(user)
+                self.handlers.users.update_reading_history(user)
 
     def execute(self):
         if self.load_recommendations == 'Y':
@@ -128,5 +128,5 @@ class RunRecommendations:
                     except KeyError:
                         print("Help, a Key Error occurred!")
                         continue
-        # self.generate_reading_histories()
+        self.generate_reading_histories()
 

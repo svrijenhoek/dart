@@ -139,7 +139,11 @@ class Representation:
         Visualize output.
         """
         data = []
-        for date in self.config["recommendation_dates"]:
+        no_dates = len(self.config["recommendation_dates"])
+        marker = no_dates/10
+        for x, date in enumerate(self.config["recommendation_dates"]):
+            if x % marker < 1:
+                print(str(datetime.now()) + "\t\t\t{:.0f}% completed".format(x/no_dates*100))
             # retrieve all articles in the specified time range
             upper = datetime.strptime(date, '%Y-%m-%d')
             lower = upper - timedelta(days=self.config["recommendation_range"])
@@ -151,9 +155,10 @@ class Representation:
                 self.party_data[recommendation_type] = Counter()
                 recommendation_vectors = self.get_recommendation_vectors(date, recommendation_type)
                 distances = self.calculate_distance(recommendation_vectors, pool_vector, recommendation_type)
-                data.append({'date': date, 'type': recommendation_type, 'distance': np.mean(distances)})
+                data.append({'date': date, 'type': recommendation_type,
+                             'mean': np.mean(distances), 'std': np.std(distances)})
         df = pd.DataFrame(data)
-        self.visualize(df)
+        self.visualize(df, "Representation")
 
         # normalize to account for different sizes of recommendations
         for recommendation_type in self.party_data:
@@ -163,9 +168,9 @@ class Representation:
         self.visualize_party(self.party_data)
 
     @staticmethod
-    def visualize(df):
+    def visualize(df, title):
         visualize.Visualize.print_mean(df)
-        visualize.Visualize.plot(df, "Representation")
+        visualize.Visualize.plot(df, title)
 
     def visualize_party(self, data):
         """

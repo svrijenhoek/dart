@@ -29,7 +29,7 @@ class User(Document):
             dates = []
             # retrieve all the dates that are in the reading history
             for date in relevant_history:
-                history_date = datetime.strptime(date, '%Y-%m-%d')
+                history_date = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
                 # only consider the recommendations before the current time
                 if history_date < current_date:
                     dates.append(date)

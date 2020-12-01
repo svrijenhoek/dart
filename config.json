@@ -1,8 +1,4 @@
 {
-  "facebook": {
-    "client_id": "xxx",
-    "client_secret": "xxx"
-  },
   "metrics": [
     "calibration",
     "fragmentation",
@@ -11,7 +7,7 @@
     "inclusion"
     ],
   "append": "N",
-  "test_size": 1000,
+  "test_size": 200,
   "articles": {
     "folder": "data\\articles\\",
     "alternative_schema": "N",
@@ -33,7 +29,7 @@
     "append": "N",
     "folder": "data\\recommendations\\",
     "schema": "data\\schemas\\recommendation.json",
-    "baseline_recommendations": ["random", "political", "most_popular"],
+    "baseline_recommendations": ["random", "most_popular"],
     "reading_history_date": "01-06-2017",
     "range": 1,
     "size": 8,

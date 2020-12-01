@@ -58,11 +58,12 @@ class WikidataHandler:
             gender = self.read_response(data, 'gender')
             citizen = self.read_response(data, 'citizen')
             ethnicity = self.read_response(data, 'ethnicity')
+            place_of_birth = self.read_response(data, 'place_of_birth')
             sexuality = self.read_response(data, 'sexuality')
 
             return {'givenname': givenname, 'familyname': familyname, 'gender': gender, 'occupations': occupations,
                     'party': party, 'positions': positions, 'citizen': citizen, 'ethnicity': ethnicity,
-                    'sexuality': sexuality}
+                    'sexuality': sexuality, 'place_of_birth': place_of_birth}
         except json.decoder.JSONDecodeError:
             return []
         except IndexError:
@@ -92,7 +93,7 @@ class WikidataHandler:
     def person_data_query(self, label):
         try:
             query = """
-                SELECT DISTINCT ?s ?givenname ?familyname ?occupations ?party ?position ?gender ?citizen ?ethnicity ?sexuality WHERE { 
+                SELECT DISTINCT ?s ?givenname ?familyname ?occupations ?party ?position ?gender ?citizen ?ethnicity ?place_of_birth ?sexuality WHERE { 
                 ?s ?label '""" + label + """'@"""+self.language_tag+""" .
               OPTIONAL {
                 ?s wdt:P735 ?a . 
@@ -129,6 +130,12 @@ class WikidataHandler:
                    ?g rdfs:label ?ethnicity .
                    FILTER(LANG(?ethnicity) = "" || LANGMATCHES(LANG(?ethnicity), "en"))
                 }
+               OPTIONAL {
+                   ?s wdt:P19 ?pb . 
+                   ?pb wdt:P17 ?country .
+                   ?country rdfs:label ?place_of_birth .
+                   FILTER(LANG(?place_of_birth) = "" || LANGMATCHES(LANG(?place_of_birth), "en"))
+                }
               OPTIONAL {
                 ?s wdt:P27 ?h .
                 ?h rdfs:label ?citizen
@@ -142,7 +149,7 @@ class WikidataHandler:
             }"""
             r = self.execute_query(query)
             return self.read_person_response_list(r)
-        except ConnectionAbortedError:  # in case the connection fails
+        except (ConnectionAbortedError, requests.exceptions.ChunkedEncodingError):  # in case the connection fails
             return []
 
     def get_company_data(self, label):

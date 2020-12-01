@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import dart.visualize.visualize as visualize
+import datetime
 
 from collections import Counter
 from dart.external.rbo import rbo
@@ -23,7 +24,11 @@ class Fragmentation:
 
     def execute(self):
         data = []
-        for date in self.config["recommendation_dates"]:
+        no_dates = len(self.config["recommendation_dates"])
+        marker = no_dates/10
+        for x, date in enumerate(self.config["recommendation_dates"]):
+            if x % marker < 1:
+                print(str(datetime.datetime.now()) + "\t\t\t{:.0f}% completed".format(x/no_dates*100))
             for recommendation_type in self.handlers.recommendations.get_recommendation_types():
                 fragmentations = []
                 recommendations = self.handlers.recommendations.get_recommendations_at_date(date, recommendation_type)
@@ -36,7 +41,8 @@ class Fragmentation:
                             if iy > ix:
                                 stories_y = self.get_stories(y)
                                 fragmentations.append(self.compare_recommendations(stories_x, stories_y))
-                    data.append({'date': date, 'type': recommendation_type, 'fragmentation': np.mean(fragmentations)})
+                    data.append({'date': date, 'type': recommendation_type,
+                                 'mean': np.mean(fragmentations), 'std': np.std(fragmentations)})
         df = pd.DataFrame(data)
         self.visualize(df)
 
@@ -66,5 +72,5 @@ class Fragmentation:
 
     @staticmethod
     def visualize(df):
-        visualize.Visualize.print_mean(df, 'fragmentation')
-        visualize.Visualize.plot(df, 'fragmentation', "Fragmentation")
+        visualize.Visualize.print_mean(df)
+        visualize.Visualize.plot(df, "Fragmentation")

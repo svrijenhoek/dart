@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import dart.visualize.visualize as visualize
+import datetime
 
 
 class Calibration:
@@ -17,7 +18,7 @@ class Calibration:
         self.config = config
         self.users = self.handlers.users.get_all_users()
         if self.config['test_size'] > 0:
-            self.users = self.users[1:self.config['test_size']]
+            self.users = self.users[:self.config['test_size']:]
 
     def calculate_calibration(self, date, recommendation_type):
         calibration_topics = []
@@ -44,7 +45,6 @@ class Calibration:
                         [article.complexity for article in reading_history_articles])
                     if complexity_divergence:
                         calibration_complexity.append(complexity_divergence)
-
         return calibration_topics, calibration_complexity
 
     @staticmethod
@@ -110,21 +110,31 @@ class Calibration:
             return
 
     def execute(self):
-        data = []
-        for date in self.config["recommendation_dates"]:
+        topic_data = []
+        complexity_data = []
+        no_dates = len(self.config["recommendation_dates"])
+        marker =no_dates/10
+        for x, date in enumerate(self.config["recommendation_dates"]):
+            if x % marker < 1:
+                print(str(datetime.datetime.now()) + "\t\t\t{:.0f}% completed".format(x/no_dates*100))
             for recommendation_type in self.handlers.recommendations.get_recommendation_types():
                 topic_calibration_scores, complexity_calibration_scores = self.calculate_calibration(date, recommendation_type)
-                if topic_calibration_scores and complexity_calibration_scores:
-                    data.append({'date': date,
-                                 'type': recommendation_type,
-                                 'topics': np.mean(topic_calibration_scores),
-                                 'complexity': np.mean(complexity_calibration_scores)})
-        df = pd.DataFrame(data)
-        self.visualize(df)
+                if topic_calibration_scores:
+                    topic_data.append({'date': date,
+                                       'type': recommendation_type,
+                                       'mean': np.mean(topic_calibration_scores),
+                                       'std': np.std(topic_calibration_scores)})
+                if complexity_calibration_scores:
+                    complexity_data.append({'date': date,
+                                            'type': recommendation_type,
+                                            'mean': np.mean(complexity_calibration_scores),
+                                            'std': np.std(complexity_calibration_scores)})
+        df = pd.DataFrame(topic_data)
+        self.visualize(df, "Calibration (topics)")
+        df = pd.DataFrame(complexity_data)
+        self.visualize(df, "Calibration (complexity)")
 
     @staticmethod
-    def visualize(df):
-        visualize.Visualize.print_mean(df, 'topics')
-        visualize.Visualize.print_mean(df, 'complexity')
-        visualize.Visualize.plot(df, 'topics', "Calibration (topics)")
-        visualize.Visualize.plot(df, 'complexity', "Calibration (complexity)")
+    def visualize(df, title):
+        visualize.Visualize.print_mean(df)
+        visualize.Visualize.plot(df, title)
