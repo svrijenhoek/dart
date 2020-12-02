@@ -18,8 +18,6 @@ def read_config_file():
 def read_full_config_file():
     data = read_config_file()
     dictionary = {}
-    dictionary['facebook_client_id'] = data['facebook']['client_id']
-    dictionary['facebook_client_secret'] = data['facebook']['client_secret']
     dictionary['append'] = data['append']
     dictionary['test_size'] = data['test_size']
     dictionary['metrics'] = data['metrics']

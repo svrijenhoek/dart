@@ -210,9 +210,5 @@ class Representation:
         plt.xlabel('parties', fontweight='bold')
         plt.xticks([r + barWidth for r in range(len(bars1))], labels, rotation='vertical')
 
-        # Create legend & Show graphic
-        plt.legend()
-        plt.show()
-
 
 

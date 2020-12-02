@@ -1,4 +1,5 @@
 from dart.handler.mongo.base_handler import BaseHandler
+from dart.models.Story import Story
 
 
 class StoryHandler(BaseHandler):
@@ -21,7 +22,10 @@ class StoryHandler(BaseHandler):
         self.connector.insert_one('support', 'stories', doc)
 
     def get_story_with_id(self, docid):
-        return super(StoryHandler, self).get_by_docid('other', 'stories', docid)
+        response = self.connector.find_one('support', 'stories', 'docids', docid)
+        if response:
+            return Story(response)
+        return
 
     def get_story_at_date(self, l, u):
         lower = l.strftime('%Y-%m-%dT%H:%M:%S')

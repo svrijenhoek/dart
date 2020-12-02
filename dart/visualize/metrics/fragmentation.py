@@ -55,7 +55,8 @@ class Fragmentation:
             for docid in recommendation.articles:
                 if docid not in self.article_to_story:
                     try:
-                        self.article_to_story[docid] = self.handlers.stories.get_story_with_id(docid).identifier
+                        story = self.handlers.stories.get_story_with_id(docid)
+                        self.article_to_story[docid] = story.identifier
                         articles.append(self.article_to_story[docid])
                     except AttributeError:
                         self.unknown_articles[docid] += 1
