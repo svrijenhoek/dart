@@ -1,5 +1,5 @@
 numpy~=1.19
-pandas~=1.1
+pandas~=1.2
 elasticsearch~=7.10
 requests~=2.25
 whoswho~=0.2
