@@ -8,6 +8,26 @@ import dart.visualize.visualize as visualize
 
 class AlternativeVoices:
 
+    """
+    Class that calculates the number of mentions of minority vs majority people. In the current implementation, what
+    entails a minority / majority is hardcoded. In this case, for the implementation for a German media company,
+    we calculate both minority/majority of gender and ethnicity. In both cases, we only consider German citizens.
+    The required information is obtained by running Named Entity Recognition on a text and retrieving additional
+    information about the identified persons from Wikidata.
+
+    Gender:
+        majority: male
+        minority: non-male
+
+    Ethnicity:
+       majority: people with a 'German' ethnicity or place of birth
+       minority: other
+
+    Actual calculation is done following the formula specified in Equation 8 from http://proceedings.mlr.press/v81/burke18a.html
+
+    We recognize there are a multitude of problems with this approach, and welcome suggestions for better ones.
+    """
+
     def __init__(self, handlers, config):
         self.handlers = handlers
         self.config = config
