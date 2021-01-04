@@ -31,7 +31,7 @@ class Classifier:
             self.instance_mapping = {}
 
     def map(self, cue, key):
-        if key == 'PER':
+        if key == 'PER' or key == 'PERSON':
             df = self.occupation_mapping
         elif key == 'ORG':
             df = self.instance_mapping
@@ -43,7 +43,7 @@ class Classifier:
 
     def find_type(self, entity, key):
         types = defaultdict(int)
-        if key == 'PER' and 'occupations' in entity:
+        if (key == 'PER' or key == 'PERSON') and 'occupations' in entity:
             for occupation in entity['occupations']:
                 occupation_type = self.map(occupation, 'PER')
                 types[occupation_type] += 1
@@ -62,7 +62,7 @@ class Classifier:
 
     def classify_type(self, entities, text):
         types = defaultdict(int)
-        persons = [entity for entity in entities if entity['label'] == 'PER']
+        persons = [entity for entity in entities if (entity['label'] == 'PER' or entity['label'] == 'PERSON')]
         organisations = [entity for entity in entities if entity['label'] == 'ORG']
 
         for person in persons:
@@ -85,7 +85,7 @@ class Classifier:
     def classify_scope(self, entities):
         loc = 0
         glob = 0
-        for entity in (entity for entity in entities if entity['label'] == 'LOC'):
+        for entity in (entity for entity in entities if (entity['label'] == 'LOC' or entity['label'] == 'GPE')):
             if 'country_code' in entity:
                 if entity['country_code'] == self.local_code:
                     loc += 1

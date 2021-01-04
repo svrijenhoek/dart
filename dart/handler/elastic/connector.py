@@ -57,13 +57,11 @@ class ElasticsearchConnector:
                 actions.append({
                         "_id": body['id'],
                         "_index": index,
-                        "_type": doc_type,
                         "_source": dump
                 })
             else:
                 actions.append({
                         "_index": index,
-                        "_type": doc_type,
                         "_source": body
                     })
 
@@ -84,16 +82,16 @@ class ElasticsearchConnector:
         helpers.bulk(self.es, actions)
 
     # update a small part of the given document
-    def update_document(self, index, doc_type, docid, body):
+    def update_document(self, index, docid, body):
         try:
-            self.es.update(index=index, doc_type=doc_type, id=docid, body=body)
+            self.es.update(index=index, id=docid, body=body)
         except (exceptions.RequestError, exceptions.TransportError) as e:
             print(e)
             print(body)
 
     # retrieve the term vector for a given document
-    def get_term_vector(self, index, doc_type, docid):
-        return self.es.termvectors(index=index, doc_type=doc_type, id=docid, positions=True, term_statistics=True)
+    def get_term_vector(self, index, docid):
+        return self.es.termvectors(index=index, id=docid, positions=True, term_statistics=True)
 
     def clear_index(self, index):
         self.es.indices.delete(index=index, ignore=[400, 404])

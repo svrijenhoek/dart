@@ -26,7 +26,7 @@ class ArticleHandler(BaseHandler):
         body = {
             "doc": {field: value}
         }
-        self.connector.update_document('articles', '_doc', docid, body)
+        self.connector.update_document('articles', docid, body)
 
     def update_bulk(self, docs):
         self.connector.update_bulk('articles', docs)
@@ -35,7 +35,7 @@ class ArticleHandler(BaseHandler):
         body = {
             "doc": doc
         }
-        self.connector.update_document('articles', '_doc', docid, body)
+        self.connector.update_document('articles', docid, body)
 
     def get_all_articles(self):
         articles = super(ArticleHandler, self).get_all_documents('articles')
@@ -281,3 +281,24 @@ class ArticleHandler(BaseHandler):
         }
         response = self.connector.execute_search('articles', body)
         return [Article(i) for i in response]
+
+    def get_first_and_last_dates(self):
+        body_newest = {
+            "size": 1,
+            "sort": [
+                {"publication_date": {"order": "desc"}}
+            ],
+            "query": {
+                "match_all": {},
+            }}
+        response_newest = self.connector.execute_search('articles', body_newest)
+        body_oldest = {
+            "size": 1,
+            "sort": [
+                {"publication_date": {"order": "asc"}}
+            ],
+            "query": {
+                "match_all": {},
+            }}
+        response_oldest = self.connector.execute_search('articles', body_oldest)
+        return Article(response_oldest[0]).publication_date, Article(response_newest[0]).publication_date
