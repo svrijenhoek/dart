@@ -5,7 +5,7 @@ requests~=2.25
 whoswho~=0.2
 nltk~=3.5
 gensim~=3.8
-spacy~=2.3
+spacy~=3.0
 scikit-learn~=0.23
 textpipe~=0.11
 minimock
