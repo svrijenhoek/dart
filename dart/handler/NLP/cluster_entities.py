@@ -96,7 +96,7 @@ class Clustering:
                     most_frequent_name = max(set(all_names), key=all_names.count)
                     # if the cluster is about people names, favor names that contain a space
                     # eg: Barack Obama over just Obama
-                    if label == 'PER':
+                    if label == 'PER' or label == 'PERSON':
                         with_space = [name for name in all_names if len(name.split(" ")) > 1]
                         if len(with_space) > 0:
                             most_frequent_name = max(set(with_space), key=with_space.count)

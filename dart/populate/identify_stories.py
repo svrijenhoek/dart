@@ -8,6 +8,7 @@ import networkx as nx
 import community
 from collections import defaultdict
 from statistics import mode, StatisticsError
+from multiprocessing.pool import ThreadPool
 
 import itertools
 from difflib import SequenceMatcher
@@ -18,7 +19,6 @@ class StoryIdentifier:
     Class that aims to identify news stories in a set of news articles according to the principles noted in
     Nicholls et al.
 
-    Currently only looks at articles from the same day, needs to be expanded.
     """
 
     def __init__(self, handlers, config):
@@ -28,11 +28,32 @@ class StoryIdentifier:
         self.threshold = 0.25
 
     def execute(self):
-        first_date = datetime.strptime(self.config["recommendation_dates"][0], '%Y-%m-%d')
-        last_date = datetime.strptime(self.config["recommendation_dates"][-1], '%Y-%m-%d')
+        # first_date, last_date = self.handlers.articles.get_first_and_last_dates()
+        first_date = datetime.strptime("2019-10-01", '%Y-%m-%d')
+        last_date = datetime.strptime("2019-12-07", '%Y-%m-%d')
+        # last_date = datetime.strptime(self.config["recommendation_dates"][-1], '%Y-%m-%d')
         delta = last_date - first_date
 
         cosines = []
+
+        number_of_threads = 3
+        pool = ThreadPool(processes=number_of_threads)
+        split = delta / number_of_threads
+
+        first_thread = pool.apply_async(self.get_cosines_in_timerange, (first_date, first_date+split))
+        second_thread = pool.apply_async(self.get_cosines_in_timerange, (first_date+split, last_date - split))
+        third_thread = pool.apply_async(self.get_cosines_in_timerange, (last_date - split, last_date))
+
+        [cosines.append(i) for i in first_thread.get()]
+        [cosines.append(i) for i in second_thread.get()]
+        [cosines.append(i) for i in third_thread.get()]
+
+        stories = self.identify(cosines)
+        self.add_stories(stories)
+
+    def get_cosines_in_timerange(self, first_date, last_date):
+        cosines = []
+        delta = last_date - first_date
         for i in range(delta.days+1):
             today = first_date + timedelta(days=i)
             print(today)
@@ -43,25 +64,20 @@ class StoryIdentifier:
             for x in documents_1_day:
                 for y in documents_3_days:
                     cosine = self.cos.calculate_cosine_similarity(x.id, y.id)
-                    if cosine > 0:
+                    if cosine > self.threshold:
                         cosines.append({'x': x.id, 'y': y.id, 'cosine': cosine})
-        stories = self.identify(cosines)
-        self.add_stories(stories)
+        return cosines
 
-        # stories = self.identify(documents)
-        # self.add_stories(today.strftime("%d-%m-%Y"), stories, documents)
-
-    def identify(self, cosines):
+    @staticmethod
+    def identify(cosines):
         # calculate cosine similarity between documents
         # ids = [article.id for article in documents if not article.text == '']
         # cosines = self.cos.calculate_all_distances(ids)
         # if cosines:
         df = pd.DataFrame(cosines)
         df = df.drop_duplicates()
-        # filter too-low similarities in order not to confuse the clustering algorithm
-        over_threshold = df[df.cosine > self.threshold]
         # create graph
-        G = nx.from_pandas_edgelist(over_threshold, 'x', 'y', edge_attr='cosine')
+        G = nx.from_pandas_edgelist(df, 'x', 'y', edge_attr='cosine')
         # create partitions, or stories
         partition = community.best_partition(G)
         return partition

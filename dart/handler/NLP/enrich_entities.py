@@ -40,12 +40,12 @@ class EntityEnricher:
         return
 
     def enrich(self, entity):
-        if entity['label'] == 'PER':
+        if entity['label'] == 'PER' or entity['label'] == 'PERSON':
             if 'occupation' not in entity:
                 entity = self.retrieve_person_data(entity)
             # if 'ethnicity' in self.metrics and 'ethnicity' not in entity:
             #     entity = self.retrieve_ethnicity(entity)
-        if entity['label'] == 'LOC':
+        if entity['label'] == 'LOC' or entity['label'] == 'GPE':
             if 'country_code' not in entity:
                 entity = self.retrieve_geolocation(entity)
         if entity['label'] == 'ORG':

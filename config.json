@@ -7,13 +7,13 @@
     "inclusion"
     ],
   "append": "N",
-  "test_size": 200,
+  "test_size": 1000,
   "articles": {
     "folder": "data\\articles\\",
     "alternative_schema": "N",
     "schema": "data\\schemas\\article.json",
     "popularity_file": "data\\popularity.csv",
-    "language": "german"
+    "language": "english"
   },
   "user": {
     "load": "Y",
@@ -138,5 +138,5 @@
     ],
     "exhaustive": "minimal"
   },
-  "political_file": "data\\term-19.csv"
+  "political_file": "data\\term-57.csv"
 }

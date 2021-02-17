@@ -69,13 +69,12 @@ class Enricher:
         doc['entities_base'] = entities
         # doc['tags'] = tags
 
-        if 'length' or 'complexity' in self.metrics:
-            if not article.nsentences or not article.nwords or not article.complexity:
-                # rewrite
-                nwords, nsentences, complexity = self.textpipe.analyze(article.text)
-                doc['nwords'] = nwords
-                doc['nsentences'] = nsentences
-                doc['complexity'] = complexity
+        if not article.nsentences or not article.nwords or not article.complexity:
+            # rewrite
+            nwords, nsentences, complexity = self.textpipe.analyze(article.text)
+            doc['nwords'] = nwords
+            doc['nsentences'] = nsentences
+            doc['complexity'] = complexity
 
         if 'emotive' in self.metrics and not article.tag_percentages and tags:
             percentages = self.calculate_tags(tags)

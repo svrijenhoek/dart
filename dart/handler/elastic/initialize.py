@@ -51,7 +51,8 @@ class InitializeIndex:
             "mappings": {
                     "properties": {
                         "publication_date": {
-                            "type": "date"
+                            "type": "date",
+                            "format": "dateOptionalTime"
                         },
                         "entities.country_code": {
                             "type": "keyword"

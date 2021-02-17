@@ -88,3 +88,20 @@ class UserSimulator:
                 }
                 self.handlers.users.add_user(json_doc)
 
+    def execute_tsv(self, file_location):
+        tsv_file = open(file_location, encoding="utf-8")
+        df = pd.read_table(tsv_file, names=["id", "userid", "timestamp", "reading_history", "interactions"])
+        userids = df.userid.unique()
+        for userid in userids:
+            user_sessions = df[df.userid == userid]
+            reading_history = user_sessions.iloc[0].reading_history
+            interactions = {}
+            for _, row in user_sessions.iterrows():
+                interactions[row.timestamp] = row.interactions
+            json_doc = {
+                'userid': userid,
+                'reading_history': reading_history,
+                'interactions': interactions
+            }
+            self.handlers.users.add_user(json_doc)
+

@@ -36,7 +36,7 @@ class CosineSimilarity:
         return output
 
     def most_relevant_terms(self, doclist):
-        tv1 = [self.connector.get_term_vector('articles', '_doc', doc) for doc in doclist]
+        tv1 = [self.connector.get_term_vector('articles', doc) for doc in doclist]
         dict1 = [self.create_dictionary(tv) for tv in tv1]
         merged1 = dict(functools.reduce(operator.add,
                                         map(collections.Counter, dict1)))
@@ -60,7 +60,7 @@ class CosineSimilarity:
         if doc in self.term_vectors:
             return self.term_vectors[doc]
         else:
-            tv = self.connector.get_term_vector('articles', '_doc', doc)
+            tv = self.connector.get_term_vector('articles', doc)
             if 'term_vectors' in tv and 'text' in tv['term_vectors']:
                 vector = self.create_dictionary(tv)
                 self.term_vectors[doc] = vector
@@ -80,7 +80,7 @@ class CosineSimilarity:
             if doc in self.term_vectors:
                 output.append(self.term_vectors[doc])
             else:
-                tv = self.connector.get_term_vector('articles', '_doc', doc)
+                tv = self.connector.get_term_vector('articles', doc)
                 if 'term_vectors' in tv and 'text' in tv['term_vectors']:
                     vector = self.create_dictionary(tv)
                     output.append(vector)

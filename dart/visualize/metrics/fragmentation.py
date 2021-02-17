@@ -12,6 +12,9 @@ class Fragmentation:
     """
     Class that calculates to what extent users have seen the same news stories.
     A "story" is considered a set of articles that are about the same 'event'.
+
+    Calculation is based on the Rank Biased Overlap specified in http://codalism.com/research/papers/wmz10_tois.pdf
+    Implementation from https://github.com/dlukes/rbo/blob/master/rbo.py
     """
 
     def __init__(self, handlers, config):

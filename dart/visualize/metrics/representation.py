@@ -9,6 +9,13 @@ import dart.visualize.visualize as visualize
 
 class Representation:
 
+    """
+    Calculates Representation of entities linked to different political parties using KL Divergence.
+    Currently the implementation is only suitable for the Participatory model, where we compare the party distribution
+    in the recommendations to the one that was available in the pool. For the Deliberative and Critical models we also
+    need to implement comparison with an equal and "pool inverse" distribution
+    """
+
     def __init__(self, handlers, config):
         self.handlers = handlers
         self.config = config
@@ -19,7 +26,7 @@ class Representation:
             self.users = self.users[1:self.config['test_size']]
 
         # to do: add support for English parties. Also disitnguish between UK/US, fix by adding a country parameter
-        # beside the language parameter.
+        # beside the language parameter?
         if self.config["language"] == "german":
             self.political_parties = np.array([
                 ["CDU", "Christlich Demokratische Union Deutschlands"],

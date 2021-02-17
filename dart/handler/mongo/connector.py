@@ -39,7 +39,7 @@ class MongoConnector:
         return self.client[database][collection].find().limit(-1).skip(number).next()
 
     def drop_collection(self, database, collection):
-        self.client[database][collection].drop_collection()
+        self.client[database][collection].drop()
 
     def drop_database(self, database):
         self.client.drop_database(database)
