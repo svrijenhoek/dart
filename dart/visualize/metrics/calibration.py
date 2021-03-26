@@ -32,11 +32,18 @@ class Calibration:
                 reading_history = user.select_reading_history(date, recommendation_type)
                 if reading_history:
                     recommendation_articles = self.handlers.articles.get_multiple_by_id(recommendation[0].articles)
-                    reading_history_articles = self.handlers.articles.get_multiple_by_id(reading_history)
+                    reading_history_ids = []
+                    for entry in reading_history:
+                        try:
+                            reading_history_ids.append(
+                                self.handlers.articles.get_field_with_value('newsid', entry)[0].id)
+                        except IndexError:
+                            pass
+                    reading_history_articles = self.handlers.articles.get_multiple_by_id(reading_history_ids)
                     # calculate topics divergence
                     topics_divergence = self.calculate_categorical_divergence(
-                        [article.editorialTags for article in recommendation_articles],
-                        [article.editorialTags for article in reading_history_articles])
+                        [article.subcategory for article in recommendation_articles],
+                        [article.subcategory for article in reading_history_articles])
                     if topics_divergence:
                         calibration_topics.append(topics_divergence)
                     # calculate complexity divergence

@@ -25,7 +25,7 @@ class StoryIdentifier:
         self.handlers = handlers
         self.config = config
         self.cos = dart.handler.NLP.cosine_similarity.CosineSimilarity(self.config['language'])
-        self.threshold = 0.25
+        self.threshold = 0.50
 
     def execute(self):
         # first_date, last_date = self.handlers.articles.get_first_and_last_dates()

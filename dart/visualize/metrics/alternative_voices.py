@@ -53,11 +53,11 @@ class AlternativeVoices:
                 article_majority = self.ethnicity_scores[article.id]['majority']
                 article_minority = self.ethnicity_scores[article.id]['minority']
             else:
-                persons = filter(lambda x: x['label'] == 'PER', article.entities)
+                persons = filter(lambda x: x['label'] == 'PERSON', article.entities)
                 for person in persons:
-                    if 'citizen' in person and "Germany" in person['citizen']:
+                    if 'citizen' in person and "United States" in person['citizen']:
                         if 'ethnicity' in person:
-                            if 'Germans' in person['ethnicity'] or person['ethnicity'] == []:
+                            if 'white people' in person['ethnicity'] or person['ethnicity'] == []:
                                 article_majority += 1
                                 if store: self.majorities[person['text']] += 1
                             else:
@@ -65,7 +65,7 @@ class AlternativeVoices:
                                 if store: self.minorities[person['text']] += 1
                         else:
                             if 'place_of_birth' in person:
-                                if 'Germany' in person['place_of_birth']:
+                                if 'United States' in person['place_of_birth']:
                                     article_majority += 1
                                     if store: self.majorities[person['text']]
                                 else:
@@ -104,7 +104,7 @@ class AlternativeVoices:
                 article_majority = self.gender_scores[article.id]['majority']
                 article_minority = self.gender_scores[article.id]['minority']
             else:
-                persons = filter(lambda x: x['label'] == 'PER', article.entities)
+                persons = filter(lambda x: x['label'] == 'PERSON', article.entities)
                 for person in persons:
                     if 'citizen' in person and "Germany" in person['citizen']:
                         if 'gender' in person:

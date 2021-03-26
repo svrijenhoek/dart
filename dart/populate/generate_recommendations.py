@@ -80,8 +80,8 @@ class RunRecommendations:
                     #     json_doc = Util.transform(json_doc, self.schema)
                     if json_doc:
                         date = json_doc['date']
-                        date = datetime.strptime(date, '%d-%M-%Y').strftime('%Y-%M-%d')
-                        user_id = json_doc['user_id']
+                        date = datetime.strptime(date, '%m/%d/%Y %H:%M:%S %p').strftime('%Y-%m-%d')
+                        user_id = json_doc['userid']
                         recommendation_type = json_doc['type']
                         # to account for nan article ids
                         articles = [article_id for article_id in json_doc['articles'] if not article_id != article_id]
@@ -97,7 +97,7 @@ class RunRecommendations:
         for recommendation_type in self.handlers.recommendations.get_recommendation_types():
             for user in self.users:
                 recommendations = self.handlers.recommendations.get_recommendations_to_user(user.id, recommendation_type)
-                user.reading_history[recommendation_type] = {str(entry.date): entry.articles for entry in recommendations}
+                user.interactions[recommendation_type] = {entry.date: entry.articles for entry in recommendations}
                 self.handlers.users.update_reading_history(user)
 
     def execute(self):
@@ -114,7 +114,8 @@ class RunRecommendations:
                 # retrieve all recommendations at date if exhaustive = minimal. This causes an exception when no own
                 # recommendations are loaded.
                 if self.exhaustive == 'minimal':
-                    rec_at_date = self.handlers.recommendations.get_users_with_recommendations_at_date(date, 'custom')
+                    # fix this
+                    rec_at_date = self.handlers.recommendations.get_users_with_recommendations_at_date(date, 'npa')
                 # to account for a very sparse index
                 recommendation_size = min(len(documents), self.size)
                 rg = RecommendationGenerator(documents, recommendation_size, self.handlers)
@@ -128,5 +129,5 @@ class RunRecommendations:
                     except KeyError:
                         print("Help, a Key Error occurred!")
                         continue
-        self.generate_reading_histories()
+        # self.generate_reading_histories()
 

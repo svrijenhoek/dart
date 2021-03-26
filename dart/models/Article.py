@@ -61,6 +61,10 @@ class Article(Document):
             self.editorialTags = self.source['editorialTags']
         except KeyError:
             self.editorialTags = None
+        try:
+            self.subcategory = self.source['subcategory']
+        except KeyError:
+            self.subcategory = None
 
     def get(self, x):
         return self.source[x]

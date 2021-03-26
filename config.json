@@ -7,7 +7,7 @@
     "inclusion"
     ],
   "append": "N",
-  "test_size": 1000,
+  "test_size": 0,
   "articles": {
     "folder": "data\\articles\\",
     "alternative_schema": "N",
@@ -29,7 +29,7 @@
     "append": "N",
     "folder": "data\\recommendations\\",
     "schema": "data\\schemas\\recommendation.json",
-    "baseline_recommendations": ["random", "most_popular"],
+    "baseline_recommendations": ["random"],
     "reading_history_date": "01-06-2017",
     "range": 1,
     "size": 8,
@@ -123,20 +123,9 @@
       "2019-12-01"
     ],
     "dates": [
-      "2018-12-15",
-      "2019-01-15",
-      "2019-02-15",
-      "2019-03-15",
-      "2019-04-15",
-      "2019-05-15",
-      "2019-06-15",
-      "2019-07-15",
-      "2019-08-15",
-      "2019-09-15",
-      "2019-10-15",
       "2019-11-15"
     ],
     "exhaustive": "minimal"
   },
-  "political_file": "data\\term-57.csv"
+  "political_file": "data\\term-116.csv"
 }

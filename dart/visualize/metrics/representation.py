@@ -53,6 +53,13 @@ class Representation:
                 ["50Plus", "50Plus"],
                 ["DENK", "Denk"],
             ])
+        # should think of something for "Independent",
+        elif self.config["language"] == "english":
+            self.political_parties = np.array([
+                ["Democrat", "Democratic Party"],
+                ["Republican", "Republican Party"],
+                #["", "Independent"],
+            ])
 
     @staticmethod
     def in_entities(entities, party):
@@ -64,7 +71,7 @@ class Representation:
         short_party = party[0]
         full_party = party[1]
         # only consider entities of type person
-        persons = filter(lambda x: x['label'] == 'PER', entities)
+        persons = filter(lambda x: x['label'] == 'PERSON', entities)
         for person in persons:
             # if the person has a property 'party' (this avoids checking this value for people that are not politicians)
             if 'parties' in person:
@@ -196,22 +203,22 @@ class Representation:
 
         # set height of bar
         bars1 = [data['random'][label] for label in labels]
-        bars2 = [data['custom'][label] for label in labels]
-        bars3 = [data['most_popular'][label] for label in labels]
-        bars4 = [data['political'][label] for label in labels]
+        bars2 = [data['npa'][label] for label in labels]
+        bars3 = [data['lstur'][label] for label in labels]
+        # bars4 = [data['political'][label] for label in labels]
         # bars4 = [data['political'][label] for label in labels]
 
         # Set position of bar on X axis
         r1 = np.arange(len(bars1))
         r2 = [x + barWidth for x in r1]
         r3 = [x + barWidth for x in r2]
-        r4 = [x + barWidth for x in r3]
+        # r4 = [x + barWidth for x in r3]
 
         # Make the plot
         plt.bar(r1, bars1, width=barWidth, edgecolor='white', label='random')
-        plt.bar(r2, bars2, width=barWidth, edgecolor='white', label='custom')
-        plt.bar(r3, bars3, width=barWidth, edgecolor='white', label='most_popular')
-        plt.bar(r4, bars4, width=barWidth, edgecolor='white', label='political')
+        plt.bar(r2, bars2, width=barWidth, edgecolor='white', label='npa')
+        plt.bar(r3, bars3, width=barWidth, edgecolor='white', label='lstur')
+        # plt.bar(r4, bars4, width=barWidth, edgecolor='white', label='political')
 
         # Add xticks on the middle of the group bars
         plt.xlabel('parties', fontweight='bold')
