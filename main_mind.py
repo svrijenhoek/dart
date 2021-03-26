@@ -32,7 +32,7 @@ def main():
 
     thread_retrieve_articles = threading.Thread(
         target=dart.populate.add_documents.AddDocuments(config).execute_tsv,
-        args=("C:\\Users\\Sanne\\PycharmProjects\\MIND data\\MINDsmall_train\\news.tsv",))
+        args=("~/data/volume_1/mind/train/news.tsv",))
     thread_enrich_articles = threading.Thread(
         target=dart.populate.enrich_articles.Enricher(handlers, config).enrich,
         args=())
@@ -41,7 +41,7 @@ def main():
         args=())
     thread_add_users = threading.Thread(
         target=dart.populate.simulate_users.UserSimulator(config, handlers).execute_tsv,
-        args=("C:\\Users\\Sanne\\PycharmProjects\\DART\\recommenders\\valid\\behaviors.tsv",))
+        args=("~/data/volume_1/mind/behaviors.tsv",))
 
     # step 1: load articles
     print(str(datetime.datetime.now())+"\tloading articles")
