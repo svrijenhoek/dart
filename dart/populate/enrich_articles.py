@@ -1,7 +1,7 @@
 import pandas as pd
 
 import dart.handler.NLP.annotator
-import dart.handler.NLP.textpipe_handler
+# import dart.handler.NLP.textpipe_handler
 import dart.handler.NLP.enrich_entities
 import dart.handler.NLP.cluster_entities
 import dart.handler.other.openstreetmap
@@ -20,7 +20,7 @@ class Enricher:
         self.metrics = config['metrics']
         self.language = config['language']
         self.annotator = dart.handler.NLP.annotator.Annotator(self.language)
-        self.textpipe = dart.handler.NLP.textpipe_handler.Textpipe(self.language)
+        # self.textpipe = dart.handler.NLP.textpipe_handler.Textpipe(self.language)
         self.spacy_tags = ['DET', 'ADP', 'PRON']
         self.enricher = dart.handler.NLP.enrich_entities.EntityEnricher(self.metrics, self.language,
                                                                         pd.read_csv(config['politics_file']),
@@ -69,12 +69,12 @@ class Enricher:
         doc['entities_base'] = entities
         # doc['tags'] = tags
 
-        if not article.nsentences or not article.nwords or not article.complexity:
-            # rewrite
-            nwords, nsentences, complexity = self.textpipe.analyze(article.text)
-            doc['nwords'] = nwords
-            doc['nsentences'] = nsentences
-            doc['complexity'] = complexity
+        # if not article.nsentences or not article.nwords or not article.complexity:
+        #     # rewrite
+        #     nwords, nsentences, complexity = self.textpipe.analyze(article.text)
+        #     doc['nwords'] = nwords
+        #     doc['nsentences'] = nsentences
+        #     doc['complexity'] = complexity
 
         if 'emotive' in self.metrics and not article.tag_percentages and tags:
             percentages = self.calculate_tags(tags)

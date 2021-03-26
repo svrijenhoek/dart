@@ -7,7 +7,6 @@ nltk~=3.5
 gensim~=3.8
 spacy~=3.0
 scikit-learn~=0.24
-textpipe~=0.12
 minimock
 stop_words
 regex
