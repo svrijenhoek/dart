@@ -16,7 +16,8 @@ class UserSimulator:
         if self.load_users == "Y":
             self.alternative_schema = config["user_alternative_schema"]
             self.folder = config["user_folder"]
-            self.schema = Util.read_json_file(config['user_schema'])
+            if self.alternative_schema == "Y":
+                self.schema = Util.read_json_file(config['user_schema'])
             self.user_reading_history_based_on = config["user_reading_history_based_on"]
 
         self.base_date = config['reading_history_date']
