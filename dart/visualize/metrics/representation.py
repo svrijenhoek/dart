@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from collections import Counter
 from math import log
 import dart.visualize.visualize as visualize
+import csv
 
 
 class Representation:
@@ -20,13 +21,12 @@ class Representation:
         self.handlers = handlers
         self.config = config
         self.party_data = {}
-
         self.users = self.handlers.users.get_all_users()
         if self.config['test_size'] > 0:
             self.users = self.users[1:self.config['test_size']]
-
         # to do: add support for English parties. Also disitnguish between UK/US, fix by adding a country parameter
         # beside the language parameter?
+
         if self.config["language"] == "german":
             self.political_parties = np.array([
                 ["CDU", "Christlich Demokratische Union Deutschlands"],
@@ -173,7 +173,6 @@ class Representation:
                              'mean': np.mean(distances), 'std': np.std(distances)})
         df = pd.DataFrame(data)
         self.visualize(df, "Representation")
-
         # normalize to account for different sizes of recommendations
         for recommendation_type in self.party_data:
             len_rec_type = len(df[df['type'] == recommendation_type].index)
@@ -195,34 +194,75 @@ class Representation:
         labels = self.political_parties[:, 0]
         # set width of bar
         barWidth = 0.20
-
         for recommendation_type in data:
             for label in labels:
                 if label not in data[recommendation_type]:
                     data[recommendation_type][label] = 0
-
         # set height of bar
         bars1 = [data['random'][label] for label in labels]
         bars2 = [data['npa'][label] for label in labels]
         bars3 = [data['lstur'][label] for label in labels]
         # bars4 = [data['political'][label] for label in labels]
         # bars4 = [data['political'][label] for label in labels]
-
         # Set position of bar on X axis
         r1 = np.arange(len(bars1))
         r2 = [x + barWidth for x in r1]
         r3 = [x + barWidth for x in r2]
         # r4 = [x + barWidth for x in r3]
-
         # Make the plot
         plt.bar(r1, bars1, width=barWidth, edgecolor='white', label='random')
         plt.bar(r2, bars2, width=barWidth, edgecolor='white', label='npa')
         plt.bar(r3, bars3, width=barWidth, edgecolor='white', label='lstur')
         # plt.bar(r4, bars4, width=barWidth, edgecolor='white', label='political')
-
         # Add xticks on the middle of the group bars
         plt.xlabel('parties', fontweight='bold')
         plt.xticks([r + barWidth for r in range(len(bars1))], labels, rotation='vertical')
 
+    def calculate_distance_mind(self, recommendation_vector, pool_vector, recommendation_type):
+        distance = self.kullback_leibler(pool_vector, recommendation_vector, )
+        diff = np.array(recommendation_vector) - np.array(pool_vector)
+        # keep track of the absolute differences for each party
+        for i, party in enumerate(self.political_parties):
+            self.party_data[recommendation_type][party[0]] += diff[i]
+        return distance
+
+    def get_recommendation_vector_mind(self, impr_index, rec_type):
+        recommendation = self.handlers.recommendations.get_recommendation_with_index_and_type(impr_index, rec_type)
+        articles = self.handlers.articles.get_multiple_by_id(recommendation[0].articles)
+        vector = self.make_vector(articles)
+        return vector
+    
+    def execute_mind(self):
+        """
+        Iterate over all dates and recommendation types to calculate distance in attention distributions.
+        Visualize output.
+        """
+        behavior_file = open('data/recommendations/behaviors.tsv')
+        behaviors_csv = csv.reader(behavior_file, delimiter="\t")
+        behaviors = []
+        for line in behaviors_csv:
+            behaviors.append(line)
+        data = []
+        for behavior in behaviors:
+            items = behavior[4].split(" ")
+            pool = [entry.split("-")[0] for entry in items]
+            pool_articles = self.handlers.articles.get_multiple_by_id(pool)
+            # make a vector of party representation in the pool
+            pool_vector = self.make_vector(pool_articles)
+            # for each recommendation type (custom, most_popular, random)
+            for recommendation_type in self.handlers.recommendations.get_recommendation_types():
+                self.party_data[recommendation_type] = Counter()
+                recommendation_vector = self.get_recommendation_vector_mind(behavior[0], recommendation_type)
+                distance = self.calculate_distance_mind(recommendation_vector, pool_vector, recommendation_type)
+                data.append({'date': behavior[2], 'type': recommendation_type,
+                            'distance': distance})
+        df = pd.DataFrame(data)
+        print(df)
+        # normalize to account for different sizes of recommendations
+        for recommendation_type in self.party_data:
+            len_rec_type = len(df[df['type'] == recommendation_type].index)
+            for party in self.party_data[recommendation_type]:
+                self.party_data[recommendation_type][party] = self.party_data[recommendation_type][party] / len_rec_type
+        self.visualize_party(self.party_data)
 
 

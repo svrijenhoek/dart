@@ -82,3 +82,8 @@ class RecommendationHandler(BaseHandler):
         cursor = self.connector.find('recommendations', recommendation_type, query)
         return [Recommendation(i) for i in cursor]
 
+    def get_recommendation_with_index_and_type(self, impr_index, recommendation_type):
+        query = {"recommendation.impr_index": impr_index}
+        cursor = self.connector.find('recommendations', recommendation_type, query)
+        return [Recommendation(i) for i in cursor][0]
+

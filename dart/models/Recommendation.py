@@ -5,7 +5,8 @@ class Recommendation(Document):
 
     def __init__(self, document):
         Document.__init__(self, document)
-        self.date = document['recommendation']['date']
-        self.user = document['recommendation']['user_id']
-        self.type = document['recommendation']['type']
+        self.date = document['date']
+        self.user = document['user_id']
+        self.type = document['type']
+        self.impr_index = document['impr_index']
         self.articles = document['articles']
