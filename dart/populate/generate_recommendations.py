@@ -150,25 +150,25 @@ class RunRecommendations:
 
         # for JSON
         lstur = []
-        file = open('data/recommendations/lstur_pred_small.json')
+        file = open('data/recommendations/lstur_pred_large.json')
         for line in file:
             json_line = json.loads(line)
             lstur.append(json_line)
         #
         naml = []
-        file = open('data/recommendations/naml_pred_small.json')
+        file = open('data/recommendations/naml_pred_large.json')
         for line in file:
             json_line = json.loads(line)
             naml.append(json_line)
 
         npa = []
-        file = open('data/recommendations/npa_pred_small.json')
+        file = open('data/recommendations/npa_pred_large.json')
         for line in file:
             json_line = json.loads(line)
             npa.append(json_line)
 
         nrms = []
-        file = open('data/recommendations/nrms_pred_small.json')
+        file = open('data/recommendations/nrms_pred_large.json')
         for line in file:
             json_line = json.loads(line)
             nrms.append(json_line)
