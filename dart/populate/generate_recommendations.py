@@ -173,7 +173,7 @@ class RunRecommendations:
             json_line = json.loads(line)
             nrms.append(json_line)
 
-        behavior_file = open('data/recommendations/behaviors.tsv')
+        behavior_file = open('data/recommendations/behaviors_large.tsv')
         behaviors_csv = csv.reader(behavior_file, delimiter="\t")
         behaviors = []
         for line in behaviors_csv:
