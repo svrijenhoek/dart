@@ -163,6 +163,13 @@ class ArticleHandler(BaseHandler):
         docs = super(ArticleHandler, self).get_multiple_by_docid('articles', docids)
         return [Article(doc) for doc in docs if doc['found']]
 
+    def get_multiple_by_newsid(self, docids):
+        articles = []
+        for newsid in docids:
+            article = self.get_field_with_value('newsid', newsid)[0]
+            articles.append(article)
+        return articles
+
     def get_by_url(self, index, url):
         body = {
             "query": {

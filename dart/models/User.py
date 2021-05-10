@@ -7,7 +7,6 @@ class User(Document):
     def __init__(self, document):
         Document.__init__(self, document)
         self.reading_history = self.source['reading_history']
-        self.reading_history = self.source['reading_history']
         try:
             self.id = self.source['userid']
             self.classification_preference = self.source['classification_preference']
@@ -19,13 +18,6 @@ class User(Document):
             self.source_preference = ''
             self.complexity_preference = ''
             self.party_preference = ''
-
-    def select_reading_history(self, current_date, recommendation_type):
-        try:
-            history = self.reading_history.strip().split(" ")
-        except AttributeError:
-            history = []
-        return history
 
     # def select_reading_history(self, current_date, recommendation_type):
     #     """

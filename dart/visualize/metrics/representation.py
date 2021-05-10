@@ -228,10 +228,10 @@ class Representation:
 
     def get_recommendation_vector_mind(self, impr_index, rec_type):
         recommendation = self.handlers.recommendations.get_recommendation_with_index_and_type(impr_index, rec_type)
-        articles = self.handlers.articles.get_multiple_by_id(recommendation[0].articles)
+        articles = self.handlers.articles.get_multiple_by_id(recommendation.articles)
         vector = self.make_vector(articles)
         return vector
-    
+
     def execute_mind(self):
         """
         Iterate over all dates and recommendation types to calculate distance in attention distributions.
@@ -246,7 +246,7 @@ class Representation:
         for behavior in behaviors:
             items = behavior[4].split(" ")
             pool = [entry.split("-")[0] for entry in items]
-            pool_articles = self.handlers.articles.get_multiple_by_id(pool)
+            pool_articles = self.handlers.articles.get_multiple_by_newsid(pool)
             # make a vector of party representation in the pool
             pool_vector = self.make_vector(pool_articles)
             # for each recommendation type (custom, most_popular, random)

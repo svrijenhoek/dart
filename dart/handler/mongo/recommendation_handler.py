@@ -1,6 +1,6 @@
 from dart.models.Recommendation import Recommendation
 from dart.handler.mongo.base_handler import BaseHandler
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class RecommendationHandler(BaseHandler):
@@ -48,7 +48,7 @@ class RecommendationHandler(BaseHandler):
     def get_users_with_recommendations_at_date(self, date, recommendation_type):
         user_ids = []
         date = datetime.strptime(date, "%Y-%m-%d")
-        query = { "recommendation.date": date}
+        query = {"date": date}
 
         cursor = self.connector.find('recommendations', recommendation_type, query)
         for entry in cursor:
@@ -66,24 +66,25 @@ class RecommendationHandler(BaseHandler):
         return self.connector.collection_names('recommendations')
 
     def get_recommendations_to_user(self, user_id, recommendation_type):
-        query = {"recommendation.user_id": user_id}
+        query = {"userid": user_id}
         cursor = self.connector.find('recommendations', recommendation_type, query)
         return [Recommendation(i) for i in cursor]
 
     def get_recommendations_to_user_at_date(self, user_id, date, recommendation_type):
         date = datetime.strptime(date, "%Y-%m-%d")
-        query = {"recommendation.user_id": user_id, "recommendation.date": date}
+        query = {"userid": user_id, "date": date}
         cursor = self.connector.find('recommendations', recommendation_type, query)
         return [Recommendation(i) for i in cursor]
 
     def get_recommendations_at_date(self, date, recommendation_type):
         date = datetime.strptime(date, "%Y-%m-%d")
-        query = {"recommendation.date": date}
+        date_upper = date + timedelta(days=1)
+        query = {"date": {"$gte": date, "$lt": date_upper}}
         cursor = self.connector.find('recommendations', recommendation_type, query)
         return [Recommendation(i) for i in cursor]
 
     def get_recommendation_with_index_and_type(self, impr_index, recommendation_type):
-        query = {"recommendation.impr_index": impr_index}
+        query = {"impr_index": impr_index}
         cursor = self.connector.find('recommendations', recommendation_type, query)
         return [Recommendation(i) for i in cursor][0]
 

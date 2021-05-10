@@ -95,7 +95,19 @@ class UserSimulator:
         userids = df.userid.unique()
         for userid in userids:
             user_sessions = df[df.userid == userid]
-            reading_history = user_sessions.iloc[0].reading_history
+            try:
+                hist = user_sessions.iloc[0].reading_history.split(" ")
+                reading_history = []
+                for entry in hist:
+                    try:
+                        reading_history.append(self.handlers.articles.get_field_with_value('newsid', entry)[0].id)
+                    except IndexError:
+                        pass
+            except AttributeError:
+                try:
+                    reading_history = [self.handlers.articles.get_field_with_value('newsid', user_sessions.iloc[0].reading_history)]
+                except IndexError:
+                    pass
             interactions = {}
             for _, row in user_sessions.iterrows():
                 interactions[row.timestamp] = row.interactions

@@ -7,7 +7,7 @@
     "inclusion"
     ],
   "append": "N",
-  "test_size": 0,
+  "test_size": 10000,
   "articles": {
     "folder": "data\\articles\\",
     "alternative_schema": "N",

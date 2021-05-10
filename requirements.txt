@@ -6,7 +6,7 @@ whoswho~=0.2
 nltk~=3.5
 gensim~=3.8
 spacy~=3.0
-scikit-learn~=0.24
+scikit-learn~=0.24nano
 minimock
 stop_words
 regex
@@ -18,3 +18,7 @@ textblob~=0.15.3
 textblob_de~=0.4.3
 textblob_nl~=0.0.1
 pymongo
+bs4
+lxml
+python -m spacy download en_core_web_lg
+python-louvain

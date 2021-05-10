@@ -62,10 +62,10 @@ class StoryIdentifier:
             documents_3_days = self.handlers.articles.get_all_in_timerange(past_three_days, today)
             documents_1_day = self.handlers.articles.get_all_in_timerange(yesterday, today)
             for x in documents_1_day:
-                for y in documents_3_days:
-                    cosine = self.cos.calculate_cosine_similarity(x.id, y.id)
-                    if cosine > self.threshold:
-                        cosines.append({'x': x.id, 'y': y.id, 'cosine': cosine})
+                    for y in documents_3_days:
+                        cosine = self.cos.calculate_cosine_similarity(x.id, y.id)
+                        if cosine > self.threshold:
+                            cosines.append({'x': x.id, 'y': y.id, 'cosine': cosine})
         return cosines
 
     @staticmethod
@@ -81,8 +81,8 @@ class StoryIdentifier:
         # create partitions, or stories
         partition = community.best_partition(G)
         return partition
-        # else:
-        #    return {}
+            # else:
+            #    return {}
 
     def update_articles(self, stories, documents):
         docs = [{'id': doc_id, 'story': story_id} for doc_id, story_id in stories.items()]

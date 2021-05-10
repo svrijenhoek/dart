@@ -30,9 +30,9 @@ class Article(Document):
             self.nwords = self.source['nwords']
             self.nsentences = self.source['nsentences']
         except KeyError:
-            self.complexity = None
-            self.nwords = None
-            self.nsentences = None
+            self.complexity = 0
+            self.nwords = 0
+            self.nsentences = 0
         try:
             self.url = self.source['url']
         except KeyError:
