@@ -34,21 +34,8 @@ class StoryIdentifier:
         first_date = datetime.strptime("2019-10-01", '%Y-%m-%d')
         last_date = datetime.strptime("2019-12-07", '%Y-%m-%d')
         # last_date = datetime.strptime(self.config["recommendation_dates"][-1], '%Y-%m-%d')
-        delta = last_date - first_date
 
-        cosines = []
-
-        number_of_threads = 3
-        pool = ThreadPool(processes=number_of_threads)
-        split = delta / number_of_threads
-
-        first_thread = pool.apply_async(self.get_cosines_in_timerange, (first_date, first_date+split))
-        second_thread = pool.apply_async(self.get_cosines_in_timerange, (first_date+split, last_date - split))
-        third_thread = pool.apply_async(self.get_cosines_in_timerange, (last_date - split, last_date))
-
-        [cosines.append(i) for i in first_thread.get()]
-        [cosines.append(i) for i in second_thread.get()]
-        [cosines.append(i) for i in third_thread.get()]
+        cosines = self.get_cosines_in_timerange(first_date, last_date)
 
         stories = self.identify(cosines)
         self.add_stories(stories)
