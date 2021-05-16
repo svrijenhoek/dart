@@ -26,6 +26,8 @@ class StoryIdentifier:
         self.config = config
         self.cos = dart.handler.NLP.cosine_similarity.CosineSimilarity(self.config['language'])
         self.threshold = 0.50
+        self.categories = ["news", "sports", "finance", "weather", "travel", "video", "foodanddrink", "lifestyle", "autos",
+                           "health", "tv", "music", "movies", "entertainment"]
 
     def execute(self):
         # first_date, last_date = self.handlers.articles.get_first_and_last_dates()
@@ -58,14 +60,17 @@ class StoryIdentifier:
             today = first_date + timedelta(days=i)
             print(today)
             yesterday = today - timedelta(days=1)
-            past_two_days = today - timedelta(days=2)
-            documents_2_days = self.handlers.articles.get_all_in_timerange(past_two_days, today)
+            past_three_days = today - timedelta(days=3)
+            documents_3_days = self.handlers.articles.get_all_in_timerange(past_three_days, today)
             documents_1_day = self.handlers.articles.get_all_in_timerange(yesterday, today)
-            for x in documents_1_day:
-                    for y in documents_2_days:
-                        cosine = self.cos.calculate_cosine_similarity(x.id, y.id)
-                        if cosine > self.threshold:
-                            cosines.append({'x': x.id, 'y': y.id, 'cosine': cosine})
+            for category in self.categories:
+                subset_3 = [document for document in documents_3_days if document.source['category'] == category]
+                subset_1 = [document for document in documents_1_day if document.source['category'] == category]
+                for x in subset_1:
+                        for y in subset_3:
+                            cosine = self.cos.calculate_cosine_similarity(x.id, y.id)
+                            if cosine > self.threshold:
+                                cosines.append({'x': x.id, 'y': y.id, 'cosine': cosine})
         return cosines
 
     @staticmethod
