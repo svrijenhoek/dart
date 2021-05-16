@@ -58,11 +58,11 @@ class StoryIdentifier:
             today = first_date + timedelta(days=i)
             print(today)
             yesterday = today - timedelta(days=1)
-            past_three_days = today - timedelta(days=3)
-            documents_3_days = self.handlers.articles.get_all_in_timerange(past_three_days, today)
+            past_two_days = today - timedelta(days=2)
+            documents_2_days = self.handlers.articles.get_all_in_timerange(past_two_days, today)
             documents_1_day = self.handlers.articles.get_all_in_timerange(yesterday, today)
             for x in documents_1_day:
-                    for y in documents_3_days:
+                    for y in documents_2_days:
                         cosine = self.cos.calculate_cosine_similarity(x.id, y.id)
                         if cosine > self.threshold:
                             cosines.append({'x': x.id, 'y': y.id, 'cosine': cosine})
