@@ -143,18 +143,18 @@ class StoryIdentifier:
 
         # account for all the documents that are not part of stories
         # disabled during refactoring
-        count = len(stories)
-        documents_in_stories = [docid for docid in stories.keys()]
-        all_documents = [doc.id for doc in self.handlers.articles.get_all_articles()]
-        single_articles = sorted(set(all_documents).difference(documents_in_stories))
-        for article_id in single_articles:
-            article = self.handlers.articles.get_by_id(article_id)
-            keywords = self.cos.most_relevant_terms([article_id])
-            self.handlers.stories.add_story(article.publication_date, article.publication_date, count, article.id,
-                                            keywords, article.classification, article.title)
+        # count = len(stories)
+        # documents_in_stories = [docid for docid in stories.keys()]
+        # all_documents = [doc.id for doc in self.handlers.articles.get_all_articles()]
+        # single_articles = sorted(set(all_documents).difference(documents_in_stories))
+        # for article_id in single_articles:
+        #     article = self.handlers.articles.get_by_id(article_id)
+        #     keywords = self.cos.most_relevant_terms([article_id])
+        #     self.handlers.stories.add_story(article.publication_date, article.publication_date, count, article.id,
+        #                                     keywords, article.classification, article.title)
             # self.handlers.stories.add_to_queue(article.publication_date, article.publication_date, count, article.id,
             # keywords, article.classification, article.title)
-            count += 1
+            # count += 1
         # self.handlers.stories.add_bulk()
 
     @staticmethod
