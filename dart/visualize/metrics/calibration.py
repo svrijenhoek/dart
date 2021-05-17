@@ -128,8 +128,8 @@ class Calibration:
                                             'std': np.std(complexity_calibration_scores)})
         df = pd.DataFrame(topic_data)
         self.visualize(df, "Calibration (topics)")
-        df = pd.DataFrame(complexity_data)
-        self.visualize(df, "Calibration (complexity)")
+        # df = pd.DataFrame(complexity_data)
+        # self.visualize(df, "Calibration (complexity)")
 
     @staticmethod
     def visualize(df, title):

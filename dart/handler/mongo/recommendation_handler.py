@@ -72,7 +72,8 @@ class RecommendationHandler(BaseHandler):
 
     def get_recommendations_to_user_at_date(self, user_id, date, recommendation_type):
         date = datetime.strptime(date, "%Y-%m-%d")
-        query = {"userid": user_id, "date": date}
+        date_upper = date + timedelta(days=1)
+        query = {"userid": user_id, "date": {"$gte": date, "$lt": date_upper}}
         cursor = self.connector.find('recommendations', recommendation_type, query)
         return [Recommendation(i) for i in cursor]
 
