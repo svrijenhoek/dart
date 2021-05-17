@@ -70,7 +70,7 @@ class Fragmentation:
     def compare_recommendations(x, y):
         if x and y:
             output = rbo(x, y, 0.9)
-            return output.min
+            return output.ext
         else:
             return 0
 

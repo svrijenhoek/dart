@@ -237,7 +237,7 @@ class Representation:
         Iterate over all dates and recommendation types to calculate distance in attention distributions.
         Visualize output.
         """
-        behavior_file = open('data/recommendations/behaviors.tsv')
+        behavior_file = open('data/recommendations/behaviors_large.tsv')
         behaviors_csv = csv.reader(behavior_file, delimiter="\t")
         behaviors = []
         for line in behaviors_csv:
