@@ -165,12 +165,13 @@ class ArticleHandler(BaseHandler):
 
     def get_multiple_by_newsid(self, docids):
         articles = []
+        error = 0
         for newsid in docids:
             try:
                 article = self.get_field_with_value('newsid', newsid)[0]
                 articles.append(article)
             except IndexError:
-                print(newsid)
+                error += 1
         return articles
 
     def get_by_url(self, index, url):

@@ -1,9 +1,4 @@
-from datetime import datetime, timedelta
-import pandas as pd
-import numpy as np
 from collections import Counter
-
-import dart.visualize.visualize as visualize
 
 
 class AlternativeVoices:
@@ -20,7 +15,7 @@ class AlternativeVoices:
         minority: non-male
 
     Ethnicity:
-       majority: people with a 'German' ethnicity or place of birth
+       majority: people with a 'United States' ethnicity or place of birth
        minority: other
 
     Actual calculation is done following the formula specified in Equation 8 from http://proceedings.mlr.press/v81/burke18a.html
@@ -28,14 +23,7 @@ class AlternativeVoices:
     We recognize there are a multitude of problems with this approach, and welcome suggestions for better ones.
     """
 
-    def __init__(self, handlers, config):
-        self.handlers = handlers
-        self.config = config
-
-        self.users = self.handlers.users.get_all_users()
-        if self.config['test_size'] > 0:
-            self.users = self.users[1:self.config['test_size']]
-
+    def __init__(self):
         self.ethnicity_scores = {}
         self.gender_scores = {}
 
@@ -106,7 +94,7 @@ class AlternativeVoices:
             else:
                 persons = filter(lambda x: x['label'] == 'PERSON', article.entities)
                 for person in persons:
-                    if 'citizen' in person and "Germany" in person['citizen']:
+                    if 'citizen' in person and "United States" in person['citizen']:
                         if 'gender' in person:
                             if 'male' in person['gender']:
                                 article_majority += 1
@@ -123,58 +111,13 @@ class AlternativeVoices:
             minority += article_minority
         return minority, majority
 
-    def execute(self):
-        """
-        Iterate over all dates and recommendation types to calculate distance in attention distributions.
-        Visualize output.
-        """
-        ethnicity_data = []
-        gender_data = []
-        no_dates = len(self.config["recommendation_dates"])
-        marker = no_dates/10
-        for x, date in enumerate(self.config["recommendation_dates"]):
-            if x % marker < 1:
-                print(str(datetime.now()) + "\t\t\t{:.0f}% completed".format(x/no_dates*100))
-            # retrieve all articles in the specified time range
-            upper = datetime.strptime(date, '%Y-%m-%d')
-            lower = upper - timedelta(days=self.config["recommendation_range"])
-            pool = self.handlers.articles.get_all_in_timerange(lower, upper)
-            pool_ethnicity = self.get_ethnicity_score(pool, True)
-            pool_gender = self.get_gender_score(pool)
-            # for each recommendation type (custom, most_popular, random)
-            for recommendation_type in self.handlers.recommendations.get_recommendation_types():
-                ethnicity_inclusion_scores = []
-                gender_inclusion_scores = []
-                for user in self.users:
-                    # get the recommendations issued to this user
-                    recommendation = self.handlers.recommendations.get_recommendations_to_user_at_date(
-                        user.id,
-                        date,
-                        recommendation_type)
-                    if recommendation:
-                        articles = self.handlers.articles.get_multiple_by_id(recommendation[0].articles)
-                        recommendation_ethnicity = self.get_ethnicity_score(articles)
-                        ethnicity_inclusion = self.calculate_alternative_voices(pool_ethnicity, recommendation_ethnicity)
-                        ethnicity_inclusion_scores.append(ethnicity_inclusion)
-                        recommendation_gender = self.get_gender_score(articles)
-                        gender_inclusion = self.calculate_alternative_voices(pool_gender, recommendation_gender)
-                        gender_inclusion_scores.append(gender_inclusion)
-                ethnicity_data.append({'date': date, 'type': recommendation_type,
-                                       'mean': np.mean(ethnicity_inclusion_scores),
-                                       'std': np.std(ethnicity_inclusion_scores)})
-                gender_data.append({'date': date, 'type': recommendation_type,
-                                   'mean': np.mean(gender_inclusion_scores),
-                                   'std': np.std(gender_inclusion_scores)})
-        ethnicity_df = pd.DataFrame(ethnicity_data)
-        gender_df = pd.DataFrame(gender_data)
-        self.visualize(ethnicity_df, gender_df)
+    def calculate(self, pool, recommendation):
+        pool_ethnicity = self.get_ethnicity_score(pool)
+        pool_gender = self.get_gender_score(pool)
+        recommendation_ethnicity = self.get_ethnicity_score(recommendation)
+        recommendation_gender = self.get_gender_score(recommendation)
 
-    def visualize(self, ethnicity_df, gender_df):
-        visualize.Visualize.print_mean(ethnicity_df)
-        visualize.Visualize.plot(ethnicity_df, "Inclusion (ethnicity)")
+        ethnicity_inclusion = self.calculate_alternative_voices(pool_ethnicity, recommendation_ethnicity)
+        gender_inclusion = self.calculate_alternative_voices(pool_gender, recommendation_gender)
 
-        visualize.Visualize.print_mean(gender_df)
-        visualize.Visualize.plot(gender_df, "Inclusion (gender)")
-
-        # visualize.Visualize.print_mean(gender_df)
-        # visualize.Visualize.plot(gender_df, "Inclusion (gender)")
+        return ethnicity_inclusion, gender_inclusion

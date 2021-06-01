@@ -8,7 +8,6 @@ import networkx as nx
 import community
 from collections import defaultdict
 from statistics import mode, StatisticsError
-from multiprocessing.pool import ThreadPool
 
 import itertools
 from difflib import SequenceMatcher
@@ -134,6 +133,7 @@ class StoryIdentifier:
                 classifications.append(article.classification)
                 titles.append(article.title)
                 dates.append(article.publication_date)
+                self.handlers.articles.update(doc_id, 'story', story_id)
             try:
                 classification = mode(classifications)
             except StatisticsError:

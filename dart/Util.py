@@ -1,9 +1,11 @@
 import json
+import csv
 import numpy as np
 import random
 import string
 import pandas
 import os
+from datetime import datetime
 
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 BASE_DIR = os.path.dirname(ROOT_DIR)
@@ -37,6 +39,7 @@ def read_full_config_file():
     dictionary['recommendations_folder'] = data['recommendations']['folder']
     dictionary['recommendations_load'] = data['recommendations']['load']
     dictionary['recommendations_schema'] = data['recommendations']['schema']
+    dictionary['behavior_file'] = data['recommendations']['behavior_file']
     dictionary['baseline_recommendations'] = data['recommendations']['baseline_recommendations']
     dictionary['recommendation_range'] = data['recommendations']['range']
     dictionary['recommendation_size'] = data['recommendations']['size']
@@ -80,5 +83,20 @@ def transform(doc, schema):
         return doc
     except KeyError:
         pass
+
+
+def read_behavior_file(file):
+    behavior_file = open(file)
+    behaviors_csv = csv.reader(behavior_file, delimiter="\t")
+    behaviors = []
+    for a in behaviors_csv:
+        impression_index = a[0]
+        userid = a[1]
+        date = datetime.strptime(a[2], "%m/%d/%Y %I:%M:%S %p")
+        history = a[3].split(" ")
+        items = a[4].strip().split(" ")
+        items_without_click = [item.split("-")[0] for item in items]
+        behaviors.append({'impression_index': impression_index, "userid": userid, 'date': date, 'history': history, 'items': items, 'items_without_click': items_without_click})
+    return behaviors
 
 

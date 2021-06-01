@@ -1,11 +1,6 @@
-import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from datetime import datetime, timedelta
-from collections import Counter
 from math import log
-import dart.visualize.visualize as visualize
-import csv
 
 
 class Representation:
@@ -17,13 +12,9 @@ class Representation:
     need to implement comparison with an equal and "pool inverse" distribution
     """
 
-    def __init__(self, handlers, config):
-        self.handlers = handlers
+    def __init__(self, config):
         self.config = config
         self.party_data = {}
-        self.users = self.handlers.users.get_all_users()
-        if self.config['test_size'] > 0:
-            self.users = self.users[1:self.config['test_size']]
         # to do: add support for English parties. Also disitnguish between UK/US, fix by adding a country parameter
         # beside the language parameter?
 
@@ -97,18 +88,6 @@ class Representation:
                     pass
         return k_l
 
-    def calculate_distance(self, recommendation_vectors, pool_vector, recommendation_type):
-        distances = []
-        # for each recommendation set
-        for recommendation_vector in recommendation_vectors:
-            distance = self.kullback_leibler(pool_vector, recommendation_vector, )
-            diff = np.array(recommendation_vector) - np.array(pool_vector)
-            distances.append(distance)
-            # keep track of the absolute differences for each party
-            for i, party in enumerate(self.political_parties):
-                self.party_data[recommendation_type][party[0]] += diff[i]
-        return distances
-
     def make_vector(self, articles):
         """
         Create a vector representing the relative representation of political parties in articles
@@ -131,59 +110,6 @@ class Representation:
         else:
             output = [x/sum for x in all_vector]
             return output
-
-    def get_recommendation_vectors(self, date, recommendation_type):
-        all_vectors = []
-        # for each user
-        for user in self.users:
-            # get the recommendations issued to this user
-            recommendation = self.handlers.recommendations.get_recommendations_to_user_at_date(
-                user.id,
-                date,
-                recommendation_type)
-            if recommendation:
-                articles = self.handlers.articles.get_multiple_by_id(recommendation[0].articles)
-                vector = self.make_vector(articles)
-                all_vectors.append(vector)
-        return all_vectors
-
-    def execute(self):
-        """
-        Iterate over all dates and recommendation types to calculate distance in attention distributions.
-        Visualize output.
-        """
-        data = []
-        no_dates = len(self.config["recommendation_dates"])
-        marker = no_dates/10
-        for x, date in enumerate(self.config["recommendation_dates"]):
-            if x % marker < 1:
-                print(str(datetime.now()) + "\t\t\t{:.0f}% completed".format(x/no_dates*100))
-            # retrieve all articles in the specified time range
-            upper = datetime.strptime(date, '%Y-%m-%d')
-            lower = upper - timedelta(days=self.config["recommendation_range"])
-            pool = self.handlers.articles.get_all_in_timerange(lower, upper)
-            # make a vector of party representation in the pool
-            pool_vector = self.make_vector(pool)
-            # for each recommendation type (custom, most_popular, random)
-            for recommendation_type in self.handlers.recommendations.get_recommendation_types():
-                self.party_data[recommendation_type] = Counter()
-                recommendation_vectors = self.get_recommendation_vectors(date, recommendation_type)
-                distances = self.calculate_distance(recommendation_vectors, pool_vector, recommendation_type)
-                data.append({'date': date, 'type': recommendation_type,
-                             'mean': np.mean(distances), 'std': np.std(distances)})
-        df = pd.DataFrame(data)
-        self.visualize(df, "Representation")
-        # normalize to account for different sizes of recommendations
-        for recommendation_type in self.party_data:
-            len_rec_type = len(df[df['type'] == recommendation_type].index)
-            for party in self.party_data[recommendation_type]:
-                self.party_data[recommendation_type][party] = self.party_data[recommendation_type][party] / len_rec_type
-        self.visualize_party(self.party_data)
-
-    @staticmethod
-    def visualize(df, title):
-        visualize.Visualize.print_mean(df)
-        visualize.Visualize.plot(df, title)
 
     def visualize_party(self, data):
         """
@@ -218,51 +144,8 @@ class Representation:
         plt.xlabel('parties', fontweight='bold')
         plt.xticks([r + barWidth for r in range(len(bars1))], labels, rotation='vertical')
 
-    def calculate_distance_mind(self, recommendation_vector, pool_vector, recommendation_type):
+    def calculate(self, pool, recommendation):
+        pool_vector = self.make_vector(pool)
+        recommendation_vector = self.make_vector(recommendation)
         distance = self.kullback_leibler(pool_vector, recommendation_vector, )
-        diff = np.array(recommendation_vector) - np.array(pool_vector)
-        # keep track of the absolute differences for each party
-        for i, party in enumerate(self.political_parties):
-            self.party_data[recommendation_type][party[0]] += diff[i]
-        return distance
-
-    def get_recommendation_vector_mind(self, impr_index, rec_type):
-        recommendation = self.handlers.recommendations.get_recommendation_with_index_and_type(impr_index, rec_type)
-        articles = self.handlers.articles.get_multiple_by_id(recommendation.articles)
-        vector = self.make_vector(articles)
-        return vector
-
-    def execute_mind(self):
-        """
-        Iterate over all dates and recommendation types to calculate distance in attention distributions.
-        Visualize output.
-        """
-        behavior_file = open('data/recommendations/behaviors_large.tsv')
-        behaviors_csv = csv.reader(behavior_file, delimiter="\t")
-        behaviors = []
-        for line in behaviors_csv:
-            behaviors.append(line)
-        data = []
-        for behavior in behaviors:
-            items = behavior[4].split(" ")
-            pool = [entry.split("-")[0] for entry in items]
-            pool_articles = self.handlers.articles.get_multiple_by_newsid(pool)
-            # make a vector of party representation in the pool
-            pool_vector = self.make_vector(pool_articles)
-            # for each recommendation type (custom, most_popular, random)
-            for recommendation_type in self.handlers.recommendations.get_recommendation_types():
-                self.party_data[recommendation_type] = Counter()
-                recommendation_vector = self.get_recommendation_vector_mind(behavior[0], recommendation_type)
-                distance = self.calculate_distance_mind(recommendation_vector, pool_vector, recommendation_type)
-                data.append({'date': behavior[2], 'type': recommendation_type,
-                            'distance': distance})
-        df = pd.DataFrame(data)
-        print(df)
-        # normalize to account for different sizes of recommendations
-        for recommendation_type in self.party_data:
-            len_rec_type = len(df[df['type'] == recommendation_type].index)
-            for party in self.party_data[recommendation_type]:
-                self.party_data[recommendation_type][party] = self.party_data[recommendation_type][party] / len_rec_type
-        self.visualize_party(self.party_data)
-
-
+        return np.mean(distance)
