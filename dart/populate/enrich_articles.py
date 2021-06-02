@@ -36,9 +36,7 @@ class Enricher:
         return annotated_entities
 
     def calculate_tags(self, tags):
-        """
-        calculates for each tag specified its representation in the selected article
-        """
+        """ calculates for each tag specified its representation in the selected article """
         df = pd.DataFrame.from_dict(tags)
         try:
             counts = df.tag.value_counts()

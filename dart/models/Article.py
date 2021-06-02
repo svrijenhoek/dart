@@ -1,5 +1,4 @@
 from dart.models.Document import Document
-import json
 
 
 class Article(Document):

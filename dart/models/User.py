@@ -1,5 +1,4 @@
 from dart.models.Document import Document
-from datetime import datetime
 
 
 class User(Document):

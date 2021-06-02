@@ -17,7 +17,6 @@ class StoryIdentifier:
     """
     Class that aims to identify news stories in a set of news articles according to the principles noted in
     Nicholls et al.
-
     """
 
     def __init__(self, handlers, config):
