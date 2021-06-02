@@ -5,7 +5,6 @@ import numpy as np
 
 
 class Affect:
-
     """
     Class that calculates the average Affect score based on absolute sentiment polarity values.
     This approach is an initial approximation of the concept, and should be refined in the future.

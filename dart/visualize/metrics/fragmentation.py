@@ -3,7 +3,6 @@ from dart.external.rbo import rbo
 
 
 class Fragmentation:
-
     """
     Class that calculates to what extent users have seen the same news stories.
     A "story" is considered a set of articles that are about the same 'event'.

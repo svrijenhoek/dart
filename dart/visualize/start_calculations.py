@@ -35,8 +35,8 @@ class MetricsCalculator:
 
     def create_sample(self, behavior_file):
         sample = []
-        slice = random.sample(behavior_file, 20)
-        for entry in slice:
+        random_selection = random.sample(behavior_file, 20)
+        for entry in random_selection:
             line = {}
             for recommendation_type in self.recommendation_types:
                 recommendation = self.handlers.recommendations.get_recommendation_with_index_and_type(entry['impression_index'], recommendation_type)

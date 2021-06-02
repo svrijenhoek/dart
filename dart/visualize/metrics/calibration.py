@@ -2,7 +2,6 @@ import numpy as np
 
 
 class Calibration:
-
     """
     Class that calibrates recommender Calibration.
     Theory: https://dl.acm.org/doi/10.1145/3240323.3240372

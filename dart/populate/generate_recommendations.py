@@ -8,7 +8,6 @@ import csv
 
 
 class RecommendationGenerator:
-
     """
     Class that generates baseline recommendations based on the articles stored in the 'articles' Elasticsearch index.
     Eight articles are 'recommended' following to the following three methods:

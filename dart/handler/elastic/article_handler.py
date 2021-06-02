@@ -5,7 +5,6 @@ from datetime import datetime
 
 
 class ArticleHandler(BaseHandler):
-
     """
     Data handler for all articles. Returns lists of Articles, and adds documents to Elasticsearch.
     Standard queries for:

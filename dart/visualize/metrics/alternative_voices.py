@@ -2,7 +2,6 @@ from collections import Counter
 
 
 class AlternativeVoices:
-
     """
     Class that calculates the number of mentions of minority vs majority people. In the current implementation, what
     entails a minority / majority is hardcoded. In this case, for the implementation for a German media company,

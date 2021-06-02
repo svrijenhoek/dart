@@ -4,7 +4,6 @@ from math import log
 
 
 class Representation:
-
     """
     Calculates Representation of entities linked to different political parties using KL Divergence.
     Currently the implementation is only suitable for the Participatory model, where we compare the party distribution

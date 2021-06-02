@@ -10,9 +10,6 @@ class MongoConnector:
     def find_one(self, database, collection, field, value):
         return self.client[database][collection].find_one({field: value})
 
-    def find(self, database, collection, field, value):
-        return self.client[database][collection].find({field: value})
-
     def find(self, database, collection, query):
         return self.client[database][collection].find(query)
 
