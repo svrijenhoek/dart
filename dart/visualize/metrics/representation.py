@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from math import log
+from scipy.special import rel_entr
 
 
 class Representation:
@@ -74,19 +75,6 @@ class Representation:
                 return True
         return False
 
-    @staticmethod
-    def kullback_leibler(p, q):
-        k_l = 0.0
-        for i in range(len(p)):
-            p_i = p[i]
-            q_i = q[i]
-            if q_i != 0.0:
-                try:
-                    k_l += (p_i * log(p_i / q_i))
-                except ValueError:
-                    pass
-        return k_l
-
     def make_vector(self, articles):
         """
         Create a vector representing the relative representation of political parties in articles
@@ -146,5 +134,5 @@ class Representation:
     def calculate(self, pool, recommendation):
         pool_vector = self.make_vector(pool)
         recommendation_vector = self.make_vector(recommendation)
-        distance = self.kullback_leibler(pool_vector, recommendation_vector, )
+        distance = rel_entr(pool_vector, recommendation_vector, )
         return np.mean(distance)

@@ -40,6 +40,10 @@ class ArticleHandler(BaseHandler):
         articles = super(ArticleHandler, self).get_all_documents('articles')
         return [Article(i) for i in articles]
 
+    def get_all_articles_in_dict(self):
+        articles = super(ArticleHandler, self).get_all_documents('articles')
+        return {Article(i).id: Article(i) for i in articles}
+
     def add_field(self, docid, field, value):
         body = {
             "doc": {field: value}}

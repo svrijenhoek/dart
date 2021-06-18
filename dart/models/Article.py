@@ -68,6 +68,10 @@ class Article(Document):
             self.story = self.source['story']
         except KeyError:
             self.story = None
+        try:
+            self.sentiment = self.source['sentiment']
+        except KeyError:
+            self.sentiment = None
 
     def get(self, x):
         return self.source[x]

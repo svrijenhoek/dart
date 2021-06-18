@@ -1,4 +1,6 @@
 import numpy as np
+from scipy.stats import entropy
+from scipy.special import rel_entr
 
 
 class Calibration:
@@ -16,12 +18,11 @@ class Calibration:
         """Compute the topic distribution for a given list of Items."""
         count = 0
         distr = {}
-        for item in items:
-            if not item == 'unavailable':
-                for topic in item:
-                    topic_freq = distr.get(topic, 0.)
-                    distr[topic] = topic_freq + 1
-                    count += 1
+        for topic in items:
+            if not topic == 'unavailable':
+                topic_freq = distr.get(topic, 0.)
+                distr[topic] = topic_freq + 1
+                count += 1
 
         # we normalize the summed up probability so it sums up to 1
         # and round it to three decimal places, adding more precision
@@ -38,14 +39,6 @@ class Calibration:
             del distr[item]
 
         return distr
-
-    def calculate_categorical_divergence(self, l1, l2):
-        freq_rec = self.compute_topic_distr(l1)
-        freq_history = self.compute_topic_distr(l2)
-        if freq_rec and freq_history:
-            return self.compute_kl_divergence(freq_history, freq_rec)
-        else:
-            return
 
     @staticmethod
     def compute_kl_divergence(interacted_distr, reco_distr, alpha=0.01):
@@ -66,7 +59,23 @@ class Calibration:
 
         return kl_div
 
+    def calculate_categorical_divergence(self, l1, l2):
+        freq_rec = self.compute_topic_distr(l1)
+        freq_history = self.compute_topic_distr(l2)
+        # for item in freq_history:
+        #     if item not in freq_rec:
+        #         freq_rec[item] = 0
+        # for item in freq_rec:
+        #     if item not in freq_history:
+        #         freq_history[item] = 0
+        # sorted_freq = [v for k, v in dict(sorted(freq_rec.items())).items()]
+        # sorted_hist = [v for k, v in dict(sorted(freq_history.items())).items()]
+        # vec = rel_entr(sorted_freq, sorted_hist)
+        # vec = np.ma.masked_invalid(vec).compressed()
+        divergence = self.compute_kl_divergence(freq_history, freq_rec)
+        return divergence
+    
     def calculate(self, reading_history, recommendation):
         return self.calculate_categorical_divergence(
-            [article.source['subcategory'] for article in recommendation],
-            [article.source['subcategory'] for article in reading_history])
+            [article.source['category'] for article in recommendation],
+            [article.source['category'] for article in reading_history])
