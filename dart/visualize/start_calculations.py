@@ -6,7 +6,7 @@ import dart.visualize.metrics.alternative_voices
 import pandas as pd
 import time
 
-from datetime import datetime
+from datetime import datetime, date
 import random
 import dart.Util as Util
 
@@ -40,15 +40,16 @@ class MetricsCalculator:
         self.articles = self.handlers.articles.get_all_articles_in_dict()
         self.mapping = self.news_id_to_id()
 
+        self.stories = {key: [] for key in self.recommendation_types}
+
     def create_sample(self):
         sample = []
-        random_selection = random.sample(self.behavior_file, 10)
+        random_selection = [random.randrange(len(self.stories[self.recommendation_types[0]]))
+                            for _ in range(min(len(self.stories[self.recommendation_types[0]]), 100))]
         for entry in random_selection:
             line = {}
             for recommendation_type in self.recommendation_types:
-                recommendation = self.handlers.recommendations.get_recommendation_with_index_and_type(entry['impression_index'], recommendation_type)
-                sample_articles = [self.articles[article] for article in recommendation.articles]
-                line[recommendation_type] = sample_articles
+                line[recommendation_type] = self.stories[recommendation_type][entry]
             sample.append(line)
         return sample
 
@@ -84,6 +85,7 @@ class MetricsCalculator:
                 data.append({'impr_index': impr_index, 'rec_type': recommendation_type,
                           'calibration': calibration, 'fragmentation': fragmentation,
                           'affect': affect, 'representation': representation, 'alternative_ethnicity': alternative_voices[0], 'alternative_gender': alternative_voices[1]})
+                self.stories[recommendation_type].append([article.story for article in recommendation_articles])
         df = pd.DataFrame(data)
         print(df.groupby('rec_type').mean())
         print(df.groupby('rec_type').std())
@@ -91,5 +93,13 @@ class MetricsCalculator:
         print(end - start)
         print(str(datetime.now()) + "\tdone")
         # print(df)
+
+        output_filename = 'output/'\
+                          + datetime.now().strftime("%Y-%m-%d") \
+                          + '_' + str(self.config['test_size'])\
+                          + '.csv'
+        df.groupby('rec_type').mean().to_csv(output_filename, encoding='utf-8', mode='w')
+        df.groupby('rec_type').std().to_csv(output_filename, encoding='utf-8', mode='a')
+
 
 

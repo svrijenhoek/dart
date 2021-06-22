@@ -18,8 +18,7 @@ class Fragmentation:
         fragmentations = []
         stories_x = [article.story for article in recommendation]
         for y in sample:
-            stories_y = [article.story for article in y]
-            fragmentations.append(self.compare_recommendations(stories_x, stories_y))
+            fragmentations.append(self.compare_recommendations(stories_x, y))
         return np.mean(fragmentations)
 
     @staticmethod
