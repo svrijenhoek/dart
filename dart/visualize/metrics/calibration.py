@@ -1,3 +1,4 @@
+import math
 import numpy as np
 from scipy.stats import entropy
 from scipy.special import rel_entr
@@ -15,6 +16,17 @@ class Calibration:
 
 
     @staticmethod
+    def harmonic_number(n):
+        """Returns an approximate value of n-th harmonic number.
+
+        http://en.wikipedia.org/wiki/Harmonic_number
+        """
+        # Euler-Mascheroni constant
+        gamma = 0.57721566490153286060651209008240243104215933593992
+        return gamma + math.log(n) + 0.5/n - 1./(12*n**2) + 1./(120*n**4)
+
+    
+    @staticmethod
     def compute_topic_distr(items, adjusted=False):
         """Compute the topic distribution for a given list of Items.
             Params:
@@ -23,7 +35,7 @@ class Calibration:
         count = 0
         distr = {}
         n = len(items)
-        sum_one_over_ranks = n*(n+1)/2
+        sum_one_over_ranks = harmonic_number(n)
         for indx, topic in enumerate(items):
             rank = indx + 1
             if not topic == 'unavailable':
