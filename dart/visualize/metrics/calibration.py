@@ -71,8 +71,8 @@ class Calibration:
         return kl_div
 
     def calculate_categorical_divergence(self, l1, l2):
-        freq_rec = self.compute_topic_distr(l1.reverse())
-        freq_history = self.compute_topic_distr(l2.reverse())
+        freq_rec = self.compute_topic_distr(l1.reverse(), adjusted=True)
+        freq_history = self.compute_topic_distr(l2.reverse(), adjusted=True)
         # for item in freq_history:
         #     if item not in freq_rec:
         #         freq_rec[item] = 0
