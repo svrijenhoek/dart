@@ -91,15 +91,15 @@ class MetricsCalculator:
         print(df.groupby('rec_type').std())
         end = time.time()
         print(end - start)
-        print(str(datetime.now()) + "\tdone")
-        # print(df)
 
         output_filename = 'output/'\
                           + datetime.now().strftime("%Y-%m-%d") \
-                          + '_' + str(self.config['test_size'])\
-                          + '.csv'
-        df.groupby('rec_type').mean().to_csv(output_filename, encoding='utf-8', mode='w')
-        df.groupby('rec_type').std().to_csv(output_filename, encoding='utf-8', mode='a')
+                          + '_' + str(self.config['test_size'])
+        df.groupby('rec_type').mean().to_csv(output_filename + '_summary.csv', encoding='utf-8', mode='w')
+        df.groupby('rec_type').std().to_csv(output_filename + '_summary.csv', encoding='utf-8', mode='a')
+        df.to_csv(output_filename + '_full.csv', encoding='utf-8')
+
+        print(str(datetime.now()) + "\tdone")
 
 
 
