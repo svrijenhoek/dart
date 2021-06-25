@@ -13,15 +13,25 @@ class Calibration:
     def __init__(self):
         pass
 
+
     @staticmethod
-    def compute_topic_distr(items):
-        """Compute the topic distribution for a given list of Items."""
+    def compute_topic_distr(items, adjusted=False):
+        """Compute the topic distribution for a given list of Items.
+            Params:
+                items: a list of item indexes (the 1st item is the most 'relevant' or with higher rank)
+        """
         count = 0
         distr = {}
-        for topic in items:
+        n = len(items)
+        sum_one_over_ranks = n*(n+1)/2
+        for indx, topic in enumerate(items):
+            rank = indx + 1
             if not topic == 'unavailable':
                 topic_freq = distr.get(topic, 0.)
-                distr[topic] = topic_freq + 1
+                if adjusted:
+                    distr[topic] = ((topic_freq + 1)/rank)/sum_one_over_ranks
+                else:
+                    distr[topic] = topic_freq + 1
                 count += 1
 
         # we normalize the summed up probability so it sums up to 1
@@ -39,6 +49,7 @@ class Calibration:
             del distr[item]
 
         return distr
+
 
     @staticmethod
     def compute_kl_divergence(interacted_distr, reco_distr, alpha=0.01):
@@ -60,8 +71,8 @@ class Calibration:
         return kl_div
 
     def calculate_categorical_divergence(self, l1, l2):
-        freq_rec = self.compute_topic_distr(l1)
-        freq_history = self.compute_topic_distr(l2)
+        freq_rec = self.compute_topic_distr(l1.reverse())
+        freq_history = self.compute_topic_distr(l2.reverse())
         # for item in freq_history:
         #     if item not in freq_rec:
         #         freq_rec[item] = 0
