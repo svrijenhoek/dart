@@ -14,7 +14,6 @@ class Calibration:
     def __init__(self):
         pass
 
-
     @staticmethod
     def harmonic_number(n):
         """Returns an approximate value of n-th harmonic number.
@@ -25,43 +24,36 @@ class Calibration:
         gamma = 0.57721566490153286060651209008240243104215933593992
         return gamma + math.log(n) + 0.5/n - 1./(12*n**2) + 1./(120*n**4)
 
-    
     @staticmethod
     def compute_topic_distr(items, adjusted=False):
-        """Compute the topic distribution for a given list of Items.
-            Params:
-                items: a list of item indexes (the 1st item is the most 'relevant' or with higher rank)
-        """
-        count = 0
-        distr = {}
+        """Compute the genre distribution for a given list of Items."""
         n = len(items)
         sum_one_over_ranks = harmonic_number(n)
-        for indx, topic in enumerate(items):
+        count = 0
+        distr = {}
+        for indx, item in enumerate(items):
             rank = indx + 1
-            if not topic == 'unavailable':
-                topic_freq = distr.get(topic, 0.)
-                if adjusted:
-                    distr[topic] = ((topic_freq + 1)/rank)/sum_one_over_ranks
-                else:
-                    distr[topic] = topic_freq + 1
-                count += 1
+            for topic in item.source['category']:
+                if not topic == 'unavailable':
+                    topic_freq = distr.get(topic, 0.)
+                    distr[topic] = topic_freq + 1*1/rank/sum_one_over_ranks if adjusted else topic_freq + 1
+                    count += 1
 
         # we normalize the summed up probability so it sums up to 1
         # and round it to three decimal places, adding more precision
         # doesn't add much value and clutters the output
         to_remove = []
-        for item, topic_freq in distr.items():
+        for topic, topic_freq in distr.items():
             normed_topic_freq = round(topic_freq / count, 2)
             if normed_topic_freq == 0:
-                to_remove.append(item)
+                to_remove.append(topic)
             else:
-                distr[item] = normed_topic_freq
+                distr[topic] = normed_topic_freq
 
-        for item in to_remove:
-            del distr[item]
+        for topic in to_remove:
+            del distr[topic]
 
         return distr
-
 
     @staticmethod
     def compute_kl_divergence(interacted_distr, reco_distr, alpha=0.01):
@@ -83,8 +75,8 @@ class Calibration:
         return kl_div
 
     def calculate_categorical_divergence(self, l1, l2):
-        freq_rec = self.compute_topic_distr(l1.reverse(), adjusted=True)
-        freq_history = self.compute_topic_distr(l2.reverse(), adjusted=True)
+        freq_rec = self.compute_topic_distr(l1, adjusted=True)
+        freq_history = self.compute_topic_distr(l2, adjusted=True)
         # for item in freq_history:
         #     if item not in freq_rec:
         #         freq_rec[item] = 0
@@ -98,7 +90,10 @@ class Calibration:
         divergence = self.compute_kl_divergence(freq_history, freq_rec)
         return divergence
     
+    # def calculate(self, reading_history, recommendation):
+    #     return self.calculate_categorical_divergence(
+    #         [article.source['category'] for article in recommendation],
+    #         [article.source['category'] for article in reading_history])
+    
     def calculate(self, reading_history, recommendation):
-        return self.calculate_categorical_divergence(
-            [article.source['category'] for article in recommendation],
-            [article.source['category'] for article in reading_history])
+        return self.calculate_categorical_divergence(recommendation.reverse(), reading_history.reverse())
