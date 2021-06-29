@@ -1,6 +1,4 @@
 import numpy as np
-from scipy.stats import entropy
-from scipy.special import rel_entr
 
 
 class Calibration:
@@ -62,19 +60,9 @@ class Calibration:
     def calculate_categorical_divergence(self, l1, l2):
         freq_rec = self.compute_topic_distr(l1)
         freq_history = self.compute_topic_distr(l2)
-        # for item in freq_history:
-        #     if item not in freq_rec:
-        #         freq_rec[item] = 0
-        # for item in freq_rec:
-        #     if item not in freq_history:
-        #         freq_history[item] = 0
-        # sorted_freq = [v for k, v in dict(sorted(freq_rec.items())).items()]
-        # sorted_hist = [v for k, v in dict(sorted(freq_history.items())).items()]
-        # vec = rel_entr(sorted_freq, sorted_hist)
-        # vec = np.ma.masked_invalid(vec).compressed()
         divergence = self.compute_kl_divergence(freq_history, freq_rec)
         return divergence
-    
+
     def calculate(self, reading_history, recommendation):
         return self.calculate_categorical_divergence(
             [article.source['category'] for article in recommendation],

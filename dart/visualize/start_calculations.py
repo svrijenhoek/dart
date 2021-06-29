@@ -66,6 +66,7 @@ class MetricsCalculator:
         for impression in self.behavior_file:
             impr_index = impression['impression_index']
             try:
+                # TO DO: REVERSE
                 reading_history = [self.articles[self.mapping[article]] for article in impression['history']
                                    if article in self.mapping]
             except KeyError:
