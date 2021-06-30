@@ -28,7 +28,7 @@ class MetricsCalculator:
         self.config = config
 
         self.recommendation_types = ['lstur', 'naml', 'random'] # self.handlers.recommendations.get_recommendation_types()
-        self.Calibration = dart.visualize.metrics.calibration.Calibration()
+        self.Calibration = dart.visualize.metrics.calibration.Calibration(self.config)
         self.Fragmentation = dart.visualize.metrics.fragmentation.Fragmentation()
         self.Affect = dart.visualize.metrics.affect.Affect(self.config)
         self.Representation = dart.visualize.metrics.representation.Representation(self.config)
