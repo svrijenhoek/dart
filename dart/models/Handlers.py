@@ -1,5 +1,4 @@
 import dart.handler.elastic.article_handler
-import dart.handler.elastic.output_handler
 import dart.handler.elastic.connector
 import dart.handler.mongo.recommendation_handler
 import dart.handler.mongo.story_handler
@@ -25,6 +24,5 @@ class Handlers:
         self.articles = dart.handler.elastic.article_handler.ArticleHandler(elastic_connector)
         self.users = dart.handler.mongo.user_handler.UserHandler(mongo_connector)
         self.recommendations = dart.handler.mongo.recommendation_handler.RecommendationHandler(mongo_connector)
-        self.output = dart.handler.elastic.output_handler.OutputHandler(elastic_connector)
         self.stories = dart.handler.mongo.story_handler.StoryHandler(mongo_connector)
         self.entities = dart.handler.mongo.entity_handler.EntityHandler(mongo_connector)

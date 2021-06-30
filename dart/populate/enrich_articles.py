@@ -7,6 +7,7 @@ import dart.handler.NLP.cluster_entities
 import dart.handler.other.openstreetmap
 import dart.handler.other.wikidata
 import dart.handler.NLP.classify_on_entities
+import dart.handler.NLP.sentiment
 import dart.Util
 
 import sys
@@ -27,6 +28,7 @@ class Enricher:
                                                                                     self.handlers)
         self.classifier = dart.handler.NLP.classify_on_entities.Classifier(self.language)
         self.clusterer = dart.handler.NLP.cluster_entities.Clustering(0.9, 'a', 'b', 'metric')
+        self.sentiment = dart.handler.NLP.sentiment.Sentiment(self.language)
 
     def annotate_entities(self, entities):
         annotated_entities = []
@@ -36,9 +38,7 @@ class Enricher:
         return annotated_entities
 
     def calculate_tags(self, tags):
-        """
-        calculates for each tag specified its representation in the selected article
-        """
+        """ calculates for each tag specified its representation in the selected article """
         df = pd.DataFrame.from_dict(tags)
         try:
             counts = df.tag.value_counts()
@@ -67,6 +67,7 @@ class Enricher:
 
         doc['entities'] = enriched_entities
         doc['entities_base'] = entities
+        doc['sentiment'] = self.sentiment.get_sentiment_score(article.text)
         # doc['tags'] = tags
 
         # if not article.nsentences or not article.nwords or not article.complexity:
@@ -87,6 +88,7 @@ class Enricher:
                 classification, scope = self.classifier.classify(doc['entities'], article.text)
             doc['classification'] = classification
             doc['scope'] = scope
+
 
         doc['annotated'] = 'Y'
         self.handlers.articles.update_doc(article.id, doc)

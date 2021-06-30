@@ -106,9 +106,12 @@ class EntityEnricher:
 
     def resolve_politicians(self, name, data):
         df = self.political_data
-        row = df.loc[df['name'] == name]
-        if not row.empty:
-            data['current_party'] = row.iloc[0].group
+        try:
+            row = df.loc[df['name'] == name]
+            if not row.empty:
+                data['current_party'] = row.iloc[0].group
+        except KeyError:
+            pass
         return data
 
     def retrieve_geolocation(self, entity):

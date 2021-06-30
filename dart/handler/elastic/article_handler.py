@@ -5,7 +5,6 @@ from datetime import datetime
 
 
 class ArticleHandler(BaseHandler):
-
     """
     Data handler for all articles. Returns lists of Articles, and adds documents to Elasticsearch.
     Standard queries for:
@@ -40,6 +39,10 @@ class ArticleHandler(BaseHandler):
     def get_all_articles(self):
         articles = super(ArticleHandler, self).get_all_documents('articles')
         return [Article(i) for i in articles]
+
+    def get_all_articles_in_dict(self):
+        articles = super(ArticleHandler, self).get_all_documents('articles')
+        return {Article(i).id: Article(i) for i in articles}
 
     def add_field(self, docid, field, value):
         body = {
@@ -162,6 +165,17 @@ class ArticleHandler(BaseHandler):
     def get_multiple_by_id(self, docids):
         docs = super(ArticleHandler, self).get_multiple_by_docid('articles', docids)
         return [Article(doc) for doc in docs if doc['found']]
+
+    def get_multiple_by_newsid(self, docids):
+        articles = []
+        error = 0
+        for newsid in docids:
+            try:
+                article = self.get_field_with_value('newsid', newsid)[0]
+                articles.append(article)
+            except IndexError:
+                error += 1
+        return articles
 
     def get_by_url(self, index, url):
         body = {

@@ -16,7 +16,6 @@ module_logger = logging.getLogger('add_documents')
 
 
 class AddDocuments:
-
     """
     Class that adds articles into an ElasticSearch index. Articles are first annotated using spaCy's tagger and
     Named Entity Recognizer.

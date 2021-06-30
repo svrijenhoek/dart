@@ -4,7 +4,7 @@ import itertools
 import numpy as np
 import collections, functools, operator
 from stop_words import get_stop_words
-from statistics import median, StatisticsError
+from statistics import StatisticsError
 
 
 # basically copied from https://www.datasciencecentral.com/profiles/blogs/

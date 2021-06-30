@@ -3,9 +3,7 @@ import json
 
 
 class WikidataHandler:
-    """
-    Class that constructs Wikidata queries, executes them and reads responses
-    """
+    """ Class that constructs Wikidata queries, executes them and reads responses """
 
     def __init__(self, language):
         self.url = 'https://query.wikidata.org/sparql'

@@ -8,7 +8,6 @@ import networkx as nx
 import community
 from collections import defaultdict
 from statistics import mode, StatisticsError
-from multiprocessing.pool import ThreadPool
 
 import itertools
 from difflib import SequenceMatcher
@@ -18,7 +17,6 @@ class StoryIdentifier:
     """
     Class that aims to identify news stories in a set of news articles according to the principles noted in
     Nicholls et al.
-
     """
 
     def __init__(self, handlers, config):
@@ -26,27 +24,16 @@ class StoryIdentifier:
         self.config = config
         self.cos = dart.handler.NLP.cosine_similarity.CosineSimilarity(self.config['language'])
         self.threshold = 0.50
+        self.categories = ["news", "sports", "finance", "weather", "travel", "video", "foodanddrink", "lifestyle", "autos",
+                           "health", "tv", "music", "movies", "entertainment"]
 
     def execute(self):
         # first_date, last_date = self.handlers.articles.get_first_and_last_dates()
         first_date = datetime.strptime("2019-10-01", '%Y-%m-%d')
         last_date = datetime.strptime("2019-12-07", '%Y-%m-%d')
         # last_date = datetime.strptime(self.config["recommendation_dates"][-1], '%Y-%m-%d')
-        delta = last_date - first_date
 
-        cosines = []
-
-        number_of_threads = 3
-        pool = ThreadPool(processes=number_of_threads)
-        split = delta / number_of_threads
-
-        first_thread = pool.apply_async(self.get_cosines_in_timerange, (first_date, first_date+split))
-        second_thread = pool.apply_async(self.get_cosines_in_timerange, (first_date+split, last_date - split))
-        third_thread = pool.apply_async(self.get_cosines_in_timerange, (last_date - split, last_date))
-
-        [cosines.append(i) for i in first_thread.get()]
-        [cosines.append(i) for i in second_thread.get()]
-        [cosines.append(i) for i in third_thread.get()]
+        cosines = self.get_cosines_in_timerange(first_date, last_date)
 
         stories = self.identify(cosines)
         self.add_stories(stories)
@@ -61,11 +48,14 @@ class StoryIdentifier:
             past_three_days = today - timedelta(days=3)
             documents_3_days = self.handlers.articles.get_all_in_timerange(past_three_days, today)
             documents_1_day = self.handlers.articles.get_all_in_timerange(yesterday, today)
-            for x in documents_1_day:
-                for y in documents_3_days:
-                    cosine = self.cos.calculate_cosine_similarity(x.id, y.id)
-                    if cosine > self.threshold:
-                        cosines.append({'x': x.id, 'y': y.id, 'cosine': cosine})
+            for category in self.categories:
+                subset_3 = [document for document in documents_3_days if document.source['category'] == category]
+                subset_1 = [document for document in documents_1_day if document.source['category'] == category]
+                for x in subset_1:
+                        for y in subset_3:
+                            cosine = self.cos.calculate_cosine_similarity(x.id, y.id)
+                            if cosine > self.threshold:
+                                cosines.append({'x': x.id, 'y': y.id, 'cosine': cosine})
         return cosines
 
     @staticmethod
@@ -81,8 +71,8 @@ class StoryIdentifier:
         # create partitions, or stories
         partition = community.best_partition(G)
         return partition
-        # else:
-        #    return {}
+            # else:
+            #    return {}
 
     def update_articles(self, stories, documents):
         docs = [{'id': doc_id, 'story': story_id} for doc_id, story_id in stories.items()]
@@ -142,6 +132,7 @@ class StoryIdentifier:
                 classifications.append(article.classification)
                 titles.append(article.title)
                 dates.append(article.publication_date)
+                self.handlers.articles.update(doc_id, 'story', story_id)
             try:
                 classification = mode(classifications)
             except StatisticsError:
@@ -151,18 +142,18 @@ class StoryIdentifier:
 
         # account for all the documents that are not part of stories
         # disabled during refactoring
-        count = len(stories)
-        documents_in_stories = [docid for docid in stories.keys()]
-        all_documents = [doc.id for doc in self.handlers.articles.get_all_articles()]
-        single_articles = sorted(set(all_documents).difference(documents_in_stories))
-        for article_id in single_articles:
-            article = self.handlers.articles.get_by_id(article_id)
-            keywords = self.cos.most_relevant_terms([article_id])
-            self.handlers.stories.add_story(article.publication_date, article.publication_date, count, article.id,
-                                            keywords, article.classification, article.title)
+        # count = len(stories)
+        # documents_in_stories = [docid for docid in stories.keys()]
+        # all_documents = [doc.id for doc in self.handlers.articles.get_all_articles()]
+        # single_articles = sorted(set(all_documents).difference(documents_in_stories))
+        # for article_id in single_articles:
+        #     article = self.handlers.articles.get_by_id(article_id)
+        #     keywords = self.cos.most_relevant_terms([article_id])
+        #     self.handlers.stories.add_story(article.publication_date, article.publication_date, count, article.id,
+        #                                     keywords, article.classification, article.title)
             # self.handlers.stories.add_to_queue(article.publication_date, article.publication_date, count, article.id,
             # keywords, article.classification, article.title)
-            count += 1
+            # count += 1
         # self.handlers.stories.add_bulk()
 
     @staticmethod
