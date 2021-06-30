@@ -78,8 +78,6 @@ class Calibration:
         return divergence
 
     def calculate(self, reading_history, recommendation):
-        reading_history.reverse()
-        recommendation.reverse()
         if reading_history and recommendation:
             return self.calculate_categorical_divergence(recommendation, reading_history)
         else:
