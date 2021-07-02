@@ -22,8 +22,25 @@ class Affect:
         distr = {}
         for bin in list(range(enc.n_bins)):
             distr[bin] = round(np.count_nonzero(arr_binned == bin) / arr_binned.shape[0], 2) 
-        
         return distr
+
+    @staticmethod
+    def compute_kl_divergence(interacted_distr, reco_distr, alpha=0.01):
+        """
+        KL (p || q), the lower the better.
+        alpha is not really a tuning parameter, it's just there to make the
+        computation more numerically stable.
+        """
+        kl_div = 0.
+        for genre, score in interacted_distr.items():
+            try:
+                reco_score = reco_distr.get(genre, 0.)
+                reco_score = (1 - alpha) * reco_score + alpha * score
+                kl_div += score * np.log2(score / reco_score)
+            except ZeroDivisionError:
+                print(interacted_distr)
+                print(reco_distr)
+        return kl_div
 
     def calculate(self, pool, recommendation):
         # pool_scores = np.mean([abs(article.sentiment) for article in pool])
@@ -34,7 +51,7 @@ class Affect:
         arr_pool = np.array([abs(item.sentiment) for item in pool])
         bins_discretizer.fit(arr_pool)
         arr_recommendation = np.array([abs(item.sentiment) for item in recommendation])
-        distr_pool  = compute_polarity_distr(self, arr_pool, bins_discretizer)
-        distr_recommendation = compute_polarity_distr(self, arr_recommendation, bins_discretizer)
-        # TODO: calc the KL (distr_pool || distr_recommendation)
-        return diff
+        distr_pool  = self.compute_polarity_distr(self, arr_pool, bins_discretizer)
+        distr_recommendation = self.compute_polarity_distr(self, arr_recommendation, bins_discretizer)
+        divergence = self.compute_kl_divergence(distr_pool, distr_recommendation)
+        return divergence
