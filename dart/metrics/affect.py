@@ -17,10 +17,10 @@ class Affect:
             Args:
             Return"
         """
-        assert len(pool) > 0
+        assert len(arr) > 0
         arr_binned = bins_discretizer.transform(arr)
         distr = {}
-        for bin in list(range(enc.n_bins)):
+        for bin in list(range(bins_discretizer.n_bins)):
             distr[bin] = round(np.count_nonzero(arr_binned == bin) / arr_binned.shape[0], 2) 
         return distr
 
