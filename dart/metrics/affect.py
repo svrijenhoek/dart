@@ -70,9 +70,9 @@ class Affect:
         # diff = recommendation_scores - pool_scores
         n_bins = 5
         bins_discretizer = KBinsDiscretizer(encode='ordinal', n_bins=n_bins, strategy='quantile')
-        arr_pool = np.array([abs(item.sentiment) for item in pool])
+        arr_pool = np.array([abs(item.sentiment) for item in pool]).reshape(-1, 1)
         bins_discretizer.fit(arr_pool)
-        arr_recommendation = np.array([abs(item.sentiment) for item in recommendation])
+        arr_recommendation = np.array([abs(item.sentiment) for item in recommendation]).reshape(-1, 1)
         distr_pool  = self.compute_polarity_distr(self, arr_pool, bins_discretizer, adjusted=True)
         distr_recommendation = self.compute_polarity_distr(self, arr_recommendation, bins_discretizer, adjusted=True)
         divergence = self.compute_kl_divergence(distr_pool, distr_recommendation)
