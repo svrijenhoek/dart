@@ -33,6 +33,7 @@ class Affect:
         sum_one_over_ranks = self.harmonic_number(n)
         arr_binned = bins_discretizer.transform(arr)
         distr = {}
+        count = 0
         if adjusted:
             for bin in list(range(bins_discretizer.n_bins)):
                 for indx, ele in enumerate(arr_binned[:,0]):
@@ -40,10 +41,26 @@ class Affect:
                         rank = indx + 1
                         bin_freq = distr.get(bin, 0.)
                         distr[bin] = bin_freq + 1 * 1 / rank / sum_one_over_ranks
+                        count += 1
+
+            # we normalize the summed up probability so it sums up to 1
+            # and round it to three decimal places, adding more precision
+            # doesn't add much value and clutters the output
+            to_remove = []
+            for bin, bin_freq in distr.items():
+                normed_bin_freq = round(bin_freq / count, 2)
+                if normed_bin_freq == 0:
+                    to_remove.append(bin)
+                else:
+                    distr[bin] = normed_bin_freq
+
+            for bin in to_remove:
+                del distr[bin]
 
         else:
             for bin in list(range(bins_discretizer.n_bins)):
-                distr[bin] = round(np.count_nonzero(arr_binned == bin) / arr_binned.shape[0], 2) 
+                distr[bin] = round(np.count_nonzero(arr_binned == bin) / arr_binned.shape[0], 2)
+            # TODO: do we also need to remove the 0 frequency bins here? 
         return distr
 
     @staticmethod
@@ -65,10 +82,7 @@ class Affect:
         return kl_div
 
     def calculate(self, pool, recommendation):
-        # pool_scores = np.mean([abs(article.sentiment) for article in pool])
-        # recommendation_scores = np.mean([abs(article.sentiment) for article in recommendation])
-        # diff = recommendation_scores - pool_scores
-        n_bins = 5
+        n_bins = len(recommendation)
         bins_discretizer = KBinsDiscretizer(encode='ordinal', n_bins=n_bins, strategy='quantile')
         arr_pool = np.array([abs(item.sentiment) for item in pool]).reshape(-1, 1)
         bins_discretizer.fit(arr_pool)
