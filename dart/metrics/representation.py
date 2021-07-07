@@ -58,6 +58,7 @@ class Representation:
         This means checking the political party that mentioned politicians belong to. Could be extended to also checking
         mentioned organisations, but checking the fulltext for this proved more efficient.
         """
+        # TODO: discuss whether it should be a count of mentions per article or a binary value per article!
         short_party = party[0]
         full_party = party[1]
         # only consider entities of type person
