@@ -1,7 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from math import log
-from scipy.special import rel_entr
+from dart.external.kl_divergence import compute_kl_divergence
 
 
 class Representation:
@@ -79,60 +77,18 @@ class Representation:
         """
         Create a vector representing the relative representation of political parties in articles
         """
-        all_vector = [0]*len(self.political_parties)
+        # all_vector = [0]*len(self.political_parties)
+        vector = {party[0]: 0 for party in self.political_parties}
         for article in articles:
-            article_vector = [0]*len(self.political_parties)
             # for each party specified in the configuration file
             for ix, party in enumerate(self.political_parties):
-                # check if the party is either mentioned in one of the article's articles or mentioned in the text
+                # check if the party is either mentioned in one of the article's entities or mentioned in the text
                 if self.in_entities(article.entities, party): # or self.in_fulltext(article.text, party):
                     # binary approach; being mentioned once is enough
-                    article_vector[ix] = 1
-            all_vector = [x + y for x, y in zip(all_vector, article_vector)]
-        # normalize for the length of the article
-        sum = np.sum(all_vector)
-        if sum == 0:
-            # return a perfectly even distribution
-            return [1/len(self.political_parties)]*len(self.political_parties)
-        else:
-            output = [x/sum for x in all_vector]
-            return output
-
-    def visualize_party(self, data):
-        """
-        Bar plot visualizing for each party how often they are mentioned significantly more or less than was to be
-        expected from the pool
-        """
-        plt.figure("Representation (diff)")
-        labels = self.political_parties[:, 0]
-        # set width of bar
-        barWidth = 0.20
-        for recommendation_type in data:
-            for label in labels:
-                if label not in data[recommendation_type]:
-                    data[recommendation_type][label] = 0
-        # set height of bar
-        bars1 = [data['random'][label] for label in labels]
-        bars2 = [data['npa'][label] for label in labels]
-        bars3 = [data['lstur'][label] for label in labels]
-        # bars4 = [data['political'][label] for label in labels]
-        # bars4 = [data['political'][label] for label in labels]
-        # Set position of bar on X axis
-        r1 = np.arange(len(bars1))
-        r2 = [x + barWidth for x in r1]
-        r3 = [x + barWidth for x in r2]
-        # r4 = [x + barWidth for x in r3]
-        # Make the plot
-        plt.bar(r1, bars1, width=barWidth, edgecolor='white', label='random')
-        plt.bar(r2, bars2, width=barWidth, edgecolor='white', label='npa')
-        plt.bar(r3, bars3, width=barWidth, edgecolor='white', label='lstur')
-        # plt.bar(r4, bars4, width=barWidth, edgecolor='white', label='political')
-        # Add xticks on the middle of the group bars
-        plt.xlabel('parties', fontweight='bold')
-        plt.xticks([r + barWidth for r in range(len(bars1))], labels, rotation='vertical')
+                    vector[party[0]] += 1
+        return vector
 
     def calculate(self, pool, recommendation):
         pool_vector = self.make_vector(pool)
         recommendation_vector = self.make_vector(recommendation)
-        distance = rel_entr(pool_vector, recommendation_vector, )
-        return np.mean(distance)
+        return compute_kl_divergence(pool_vector, recommendation_vector)

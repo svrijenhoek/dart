@@ -1,5 +1,5 @@
-import math
-import numpy as np
+from dart.external.discount import harmonic_number
+from dart.external.kl_divergence import compute_kl_divergence
 
 
 class Calibration:
@@ -11,22 +11,11 @@ class Calibration:
 
     def __init__(self, config):
         self.discount = config['discount']
-        pass
 
-    @staticmethod
-    def harmonic_number(n):
-        """Returns an approximate value of n-th harmonic number.
-
-        http://en.wikipedia.org/wiki/Harmonic_number
-        """
-        # Euler-Mascheroni constant
-        gamma = 0.57721566490153286060651209008240243104215933593992
-        return gamma + math.log(n) + 0.5 / n - 1. / (12 * n ** 2) + 1. / (120 * n ** 4)
-
-    def compute_topic_distr(self, items, adjusted=False):
+    def compute_distr(self, items, adjusted=False):
         """Compute the genre distribution for a given list of Items."""
         n = len(items)
-        sum_one_over_ranks = self.harmonic_number(n)
+        sum_one_over_ranks = harmonic_number(n)
         count = 0
         distr = {}
         for indx, item in enumerate(items):
@@ -53,32 +42,11 @@ class Calibration:
 
         return distr
 
-    @staticmethod
-    def compute_kl_divergence(interacted_distr, reco_distr, alpha=0.01):
-        """
-        KL (p || q), the lower the better.
-        alpha is not really a tuning parameter, it's just there to make the
-        computation more numerically stable.
-        """
-        kl_div = 0.
-        for genre, score in interacted_distr.items():
-            try:
-                reco_score = reco_distr.get(genre, 0.)
-                reco_score = (1 - alpha) * reco_score + alpha * score
-                kl_div += score * np.log2(score / reco_score)
-            except ZeroDivisionError:
-                print(interacted_distr)
-                print(reco_distr)
-        return kl_div
-
-    def calculate_categorical_divergence(self, l1, l2):
-        freq_rec = self.compute_topic_distr(l1, adjusted=True)
-        freq_history = self.compute_topic_distr(l2, adjusted=True)
-        divergence = self.compute_kl_divergence(freq_history, freq_rec)
-        return divergence
-
     def calculate(self, reading_history, recommendation):
         if reading_history and recommendation:
-            return self.calculate_categorical_divergence(recommendation, reading_history)
+            freq_rec = self.compute_distr(recommendation, adjusted=True)
+            freq_history = self.compute_distr(reading_history, adjusted=True)
+            divergence = compute_kl_divergence(freq_history, freq_rec)
+            return divergence
         else:
             return

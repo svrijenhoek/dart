@@ -42,16 +42,10 @@ class RunRecommendations:
 
     def __init__(self, config, handlers):
         self.handlers = handlers
-        self.timerange = config["recommendation_range"]
         self.size = config["recommendation_size"]
-        self.dates = config["recommendation_dates"]
 
         self.users = self.handlers.users.get_all_users()
         self.baseline_recommendations = config['baseline_recommendations']
-        self.exhaustive = config["exhaustive"]
-        self.load_recommendations = config['recommendations_load']
-        if self.load_recommendations == 'Y':
-            self.folder = config['recommendations_folder']
 
     def generate_recommendations(self, user, date, upper, lower, generator):
         # generate random selection

@@ -49,7 +49,7 @@ class ElasticsearchConnector:
             print(body)
 
     # add multiple documents at once
-    def add_bulk(self, index, doc_type, bodies):
+    def add_bulk(self, index, bodies):
         actions = []
         for body in bodies:
             dump = json.dumps(body)

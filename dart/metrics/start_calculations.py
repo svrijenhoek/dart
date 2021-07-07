@@ -79,16 +79,17 @@ class MetricsCalculator:
                 recommendation = self.handlers.recommendations.get_recommendation_with_index_and_type(impr_index, recommendation_type)
                 recommendation_articles = [self.articles[_id] for _id in recommendation.articles]
 
-                calibration = self.Calibration.calculate(reading_history, recommendation_articles)
-                frag_sample = [entry[recommendation_type] for entry in sample]
-                fragmentation = self.Fragmentation.calculate(frag_sample, recommendation_articles)
-                affect = self.Affect.calculate(pool, recommendation_articles)
-                representation = self.Representation.calculate(pool, recommendation_articles)
-                alternative_voices = self.AlternativeVoices.calculate(pool, recommendation_articles)
+                if recommendation_articles:
+                    calibration = self.Calibration.calculate(reading_history, recommendation_articles)
+                    frag_sample = [entry[recommendation_type] for entry in sample]
+                    fragmentation = self.Fragmentation.calculate(frag_sample, recommendation_articles)
+                    affect = self.Affect.calculate(pool, recommendation_articles)
+                    representation = self.Representation.calculate(pool, recommendation_articles)
+                    alternative_voices = self.AlternativeVoices.calculate(pool, recommendation_articles)
 
-                data.append({'impr_index': impr_index, 'rec_type': recommendation_type,
-                          'calibration': calibration, 'fragmentation': fragmentation,
-                          'affect': affect, 'representation': representation, 'alternative_ethnicity': alternative_voices[0], 'alternative_gender': alternative_voices[1]})
+                    data.append({'impr_index': impr_index, 'rec_type': recommendation_type,
+                              'calibration': calibration, 'fragmentation': fragmentation,
+                              'affect': affect, 'representation': representation, 'alternative_ethnicity': alternative_voices[0], 'alternative_gender': alternative_voices[1]})
                 self.stories[recommendation_type].append([article.story for article in recommendation_articles])
 
         df = pd.DataFrame(data)

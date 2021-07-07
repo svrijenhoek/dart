@@ -26,7 +26,7 @@ class Sentiment:
             blob = TextBlobDE(text)
         return blob
 
-    def get_sentiment_score(self, article):
-        blob = self.analyze(article.text)
+    def get_sentiment_score(self, text):
+        blob = self.analyze(text)
         return blob.polarity
 

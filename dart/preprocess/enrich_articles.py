@@ -1,7 +1,7 @@
 import pandas as pd
 
 import dart.handler.NLP.annotator
-# import dart.handler.NLP.textpipe_handler
+import dart.handler.other.textstat
 import dart.handler.NLP.enrich_entities
 import dart.handler.NLP.cluster_entities
 import dart.handler.other.openstreetmap
@@ -21,8 +21,7 @@ class Enricher:
         self.metrics = config['metrics']
         self.language = config['language']
         self.annotator = dart.handler.NLP.annotator.Annotator(self.language)
-        # self.textpipe = dart.handler.NLP.textpipe_handler.Textpipe(self.language)
-        self.spacy_tags = ['DET', 'ADP', 'PRON']
+        self.textstat = dart.handler.other.textstat.TextStatHandler(self.language)
         self.enricher = dart.handler.NLP.enrich_entities.EntityEnricher(self.metrics, self.language,
                                                                         pd.read_csv(config['politics_file']),
                                                                                     self.handlers)
@@ -37,30 +36,12 @@ class Enricher:
             annotated_entities.append(entity)
         return annotated_entities
 
-    def calculate_tags(self, tags):
-        """ calculates for each tag specified its representation in the selected article """
-        df = pd.DataFrame.from_dict(tags)
-        try:
-            counts = df.tag.value_counts()
-        except AttributeError:
-            print("what's going on here!")
-        result = {}
-        for tag in self.spacy_tags:
-            try:
-                count = counts[tag]
-                percentage = count / len(df)
-                result[tag] = percentage
-            except KeyError:
-                result[tag] = 0
-        return result
-
     def annotate_document(self, article):
         doc = {'id': article.id}
         if not article.entities:
             _, entities, tags = self.annotator.annotate(article.text)
         else:
             entities = article.entities
-            tags = article.tags
         aggregated_entities = self.clusterer.execute(entities)
 
         enriched_entities = self.annotate_entities(aggregated_entities)
@@ -68,18 +49,8 @@ class Enricher:
         doc['entities'] = enriched_entities
         doc['entities_base'] = entities
         doc['sentiment'] = self.sentiment.get_sentiment_score(article.text)
-        # doc['tags'] = tags
 
-        # if not article.nsentences or not article.nwords or not article.complexity:
-        #     # rewrite
-        #     nwords, nsentences, complexity = self.textpipe.analyze(article.text)
-        #     doc['nwords'] = nwords
-        #     doc['nsentences'] = nsentences
-        #     doc['complexity'] = complexity
-
-        if 'emotive' in self.metrics and not article.tag_percentages and tags:
-            percentages = self.calculate_tags(tags)
-            doc['tag_percentages'] = percentages
+        doc['complexity'] = self.textstat.flesch_kincaid_score(article.text)
 
         if 'classify' in self.metrics:
             if 'entities' not in doc:
@@ -88,7 +59,6 @@ class Enricher:
                 classification, scope = self.classifier.classify(doc['entities'], article.text)
             doc['classification'] = classification
             doc['scope'] = scope
-
 
         doc['annotated'] = 'Y'
         self.handlers.articles.update_doc(article.id, doc)

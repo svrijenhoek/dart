@@ -21,6 +21,9 @@ class ArticleHandler(BaseHandler):
     def add_document(self, doc):
         self.connector.add_document('articles', '_doc', doc)
 
+    def add_bulk(self, queue):
+        self.connector.add_bulk('articles', queue)
+
     def update(self, docid, field, value):
         body = {
             "doc": {field: value}

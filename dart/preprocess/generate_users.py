@@ -7,21 +7,11 @@ import dart.Util as Util
 class UserSimulator:
 
     def __init__(self, config, handlers):
+        self.config = config
         self.handlers = handlers
-        self.n_users = config["user_number"]
-        self.load_users = config["user_load"]
-
-        if self.load_users == "Y":
-            self.alternative_schema = config["user_alternative_schema"]
-            self.folder = config["user_folder"]
-            if self.alternative_schema == "Y":
-                self.schema = Util.read_json_file(config['user_schema'])
-            self.user_reading_history_based_on = config["user_reading_history_based_on"]
-
-        self.base_date = config['reading_history_date']
         self.queue = []
 
-    def execute(self):
+    def execute_legacy(self):
         for path, _, files in os.walk(self.folder):
             for name in files:
                 # assumes all files are json-l, change this to something more robust!
@@ -38,7 +28,7 @@ class UserSimulator:
                         json_doc['reading_history'] = {'base': []}
                     self.handlers.users.add_user(json_doc)
 
-    def execute_tsv(self, file_location):
+    def execute(self, file_location):
         tsv_file = open(file_location, encoding="utf-8")
         df = pd.read_table(tsv_file, names=["id", "userid", "timestamp", "reading_history", "interactions"])
         userids = df.userid.unique()
