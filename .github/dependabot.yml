@@ -1,0 +1,22 @@
+version: 2
+updates:
+- package-ecosystem: pip
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  reviewers:
+  - svrijenhoek
+  assignees:
+  - svrijenhoek
+  ignore:
+  - dependency-name: scipy
+    versions:
+    - 1.6.1
+    - 1.6.2
+  - dependency-name: pylint
+    versions:
+    - 2.7.0
+  - dependency-name: elasticsearch
+    versions:
+    - 7.11.0
