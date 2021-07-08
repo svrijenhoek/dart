@@ -1,4 +1,5 @@
 import numpy as np
+from dart.external.discount import harmonic_number
 from dart.external.kl_divergence import compute_kl_divergence
 
 
@@ -57,6 +58,7 @@ class Representation:
         This means checking the political party that mentioned politicians belong to. Could be extended to also checking
         mentioned organisations, but checking the fulltext for this proved more efficient.
         """
+        # TODO: discuss whether it should be a count of mentions per article or a binary value per article!
         short_party = party[0]
         full_party = party[1]
         # only consider entities of type person
@@ -73,22 +75,39 @@ class Representation:
                 return True
         return False
 
-    def make_vector(self, articles):
-        """
-        Create a vector representing the relative representation of political parties in articles
-        """
-        # all_vector = [0]*len(self.political_parties)
-        vector = {party[0]: 0 for party in self.political_parties}
-        for article in articles:
+    def compute_distr(self, articles, adjusted=False):
+        """Compute the genre distribution for a given list of Items."""
+        n = len(articles)
+        sum_one_over_ranks = harmonic_number(n)
+        count = 0
+        distr = {}
+        for indx, item in enumerate(articles):
+            rank = indx + 1
             # for each party specified in the configuration file
             for ix, party in enumerate(self.political_parties):
                 # check if the party is either mentioned in one of the article's entities or mentioned in the text
-                if self.in_entities(article.entities, party): # or self.in_fulltext(article.text, party):
-                    # binary approach; being mentioned once is enough
-                    vector[party[0]] += 1
-        return vector
+                if self.in_entities(item.entities, party):
+                    party_freq = distr.get(party, 0.)
+                    distr[party] = party_freq + 1 * 1 / rank / sum_one_over_ranks if adjusted else party_freq + 1
+                    count += 1
+
+        # we normalize the summed up probability so it sums up to 1
+        # and round it to three decimal places, adding more precision
+        # doesn't add much value and clutters the output
+        to_remove = []
+        for topic, party_freq in distr.items():
+            normed_topic_freq = round(party_freq / count, 2)
+            if normed_topic_freq == 0:
+                to_remove.append(topic)
+            else:
+                distr[topic] = normed_topic_freq
+
+        for topic in to_remove:
+            del distr[topic]
+
+        return distr
 
     def calculate(self, pool, recommendation):
-        pool_vector = self.make_vector(pool)
-        recommendation_vector = self.make_vector(recommendation)
+        pool_vector = self.compute_distr(pool, adjusted=True)
+        recommendation_vector = self.compute_distr(recommendation, adjusted=True)
         return compute_kl_divergence(pool_vector, recommendation_vector)
