@@ -3,6 +3,7 @@ import metrics.calibration
 import metrics.fragmentation
 import metrics.representation
 import metrics.alternative_voices
+import metrics.visualize
 import pandas as pd
 import time
 
@@ -100,6 +101,8 @@ class MetricsCalculator:
         print(df.groupby('rec_type').mean())
         print(df.groupby('rec_type').std())
         print(str(datetime.now()) + "\tdone")
+
+        metrics.visualize.Visualize.violin_plot(df)
 
     def write_to_file(self, df):
         output_filename = 'output/'\

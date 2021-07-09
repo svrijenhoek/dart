@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import pandas as pd
+import seaborn as sns
 
 
 class Visualize:
@@ -18,3 +19,13 @@ class Visualize:
         df.groupby('type')['mean'].plot(legend=True, title=title)
         plt.xticks(rotation='vertical')
         plt.draw()
+
+    @staticmethod
+    def violin_plot(df):
+        # metrics = ['calibration', 'fragmentation', 'representation', 'alternative_ethnicity', 'alternative_gender']
+        columns = list(df.columns)[2:]
+        fig, axs = plt.subplots(ncols=len(columns))
+        for i, column in enumerate(columns):
+            sns.violinplot(data=df, x=column, y="rec_type", inner="quart", split=True, ax=axs[i])
+        plt.show(block=True)
+        fig.savefig('output/visualization.png')
