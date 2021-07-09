@@ -3,7 +3,6 @@ from dart.external.discount import harmonic_number
 from dart.external.kl_divergence import compute_kl_divergence
 
 
-
 class Fragmentation:
     """
     Class that calculates to what extent users have seen the same news stories.
@@ -21,25 +20,23 @@ class Fragmentation:
         distr = {}
         for indx, item in enumerate(items):
             rank = indx + 1
-            for topic in list(item.source['story'].split(" ")):
-                if not topic == 'unavailable':
-                    topic_freq = distr.get(topic, 0.)
-                    distr[topic] = topic_freq + 1 * 1 / rank / sum_one_over_ranks if adjusted else topic_freq + 1
-                    count += 1
+            story_freq = distr.get(item, 0.)
+            distr[item] = story_freq + 1 * 1 / rank / sum_one_over_ranks if adjusted else story_freq + 1
+            count += 1
 
         # we normalize the summed up probability so it sums up to 1
         # and round it to three decimal places, adding more precision
         # doesn't add much value and clutters the output
         to_remove = []
-        for topic, topic_freq in distr.items():
-            normed_topic_freq = round(topic_freq / count, 2)
-            if normed_topic_freq == 0:
-                to_remove.append(topic)
-            else:
-                distr[topic] = normed_topic_freq
+        for story, story_freq in distr.items():
+            normed_story_freq = round(story_freq / count, 2)
+            if normed_story_freq == 0:
+                to_remove.append(story)
+            # else:
+            #     distr[story] = normed_story_freq
 
-        for topic in to_remove:
-            del distr[topic]
+        for story in to_remove:
+            del distr[story]
 
         return distr
 
@@ -47,7 +44,8 @@ class Fragmentation:
         fragmentations = []
         stories_x = [article.story for article in recommendation]
         for y in sample:
-            fragmentations.append(self.compare_recommendations(stories_x, y))
+            if y:
+                fragmentations.append(self.compare_recommendations(stories_x, y))
         return np.mean(fragmentations)
 
     def compare_recommendations(self, x, y):
