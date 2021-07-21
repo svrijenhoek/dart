@@ -5,7 +5,9 @@ import metrics.representation
 import metrics.alternative_voices
 import metrics.visualize
 import pandas as pd
+import numpy as np
 import time
+import pickle
 
 from datetime import datetime
 import random
@@ -24,8 +26,7 @@ class MetricsCalculator:
     - Inclusion
     """
 
-    def __init__(self, handlers, config):
-        self.handlers = handlers
+    def __init__(self, config):
         self.config = config
 
         self.recommendation_types = ['lstur', 'naml', 'random'] # self.handlers.recommendations.get_recommendation_types()
@@ -38,27 +39,16 @@ class MetricsCalculator:
         self.behavior_file = Util.read_behavior_file(self.config['behavior_file'])
         if self.config['test_size'] > 0:
             self.behavior_file = self.behavior_file[:self.config['test_size']]
-        self.articles = self.handlers.articles.get_all_articles_in_dict()
-        self.mapping = self.news_id_to_id()
-
-        self.stories = {key: [] for key in self.recommendation_types}
+        self.articles = pickle.load(open("data\\articles.pickle", "rb"))
+        self.recommendations = pickle.load(open("data\\recommendations.pickle", "rb"))
 
     def create_sample(self):
-        sample = []
-        random_selection = [random.randrange(len(self.stories[self.recommendation_types[0]]))
-                            for _ in range(min(len(self.stories[self.recommendation_types[0]]), 100))]
-        for entry in random_selection:
-            line = {}
-            for recommendation_type in self.recommendation_types:
-                line[recommendation_type] = self.stories[recommendation_type][entry]
-            sample.append(line)
-        return sample
+        unique_impressions = self.recommendations.impr_index.unique()
+        sample_impressions = np.random.choice(unique_impressions, size=20).tolist()
+        return self.recommendations[self.recommendations['impr_index'].isin(sample_impressions)]
 
-    def news_id_to_id(self):
-        mapping = {}
-        for _id, article in self.articles.items():
-            mapping[article.source['newsid']] = _id
-        return mapping
+    def retrieve_articles(self, newsids):
+        return self.articles[self.articles['newsid'].isin(newsids)]
 
     def execute(self):
         data = []
@@ -67,23 +57,26 @@ class MetricsCalculator:
         for impression in self.behavior_file:
             impr_index = impression['impression_index']
             try:
-                reading_history = [self.articles[self.mapping[article]] for article in impression['history']
-                                   if article in self.mapping]
-                reading_history.reverse()
+                hist = [article for article in impression['history']]
+                hist.reverse()
+                reading_history = self.retrieve_articles(hist)
             except KeyError:
                 reading_history = []
-            pool = [self.articles[self.mapping[article]] for article in impression['items_without_click']
-                    if article in self.mapping]
+            pool = self.retrieve_articles(article for article in impression['items_without_click'])
             sample = self.create_sample()
 
             for recommendation_type in self.recommendation_types:
-                recommendation = self.handlers.recommendations.get_recommendation_with_index_and_type(impr_index, recommendation_type)
-                recommendation_articles = [self.articles[_id] for _id in recommendation.articles]
+                recommendation = self.recommendations.loc[
+                    (self.recommendations['impr_index'] == impr_index ) &
+                    (self.recommendations['type']== recommendation_type)]
+                recommendation_articles = self.retrieve_articles([_id for _id in recommendation.iloc[0].articles])
 
-                if recommendation_articles:
+                if not recommendation_articles.empty:
                     calibration = self.Calibration.calculate(reading_history, recommendation_articles)
-                    frag_sample = [entry[recommendation_type] for entry in sample]
-                    fragmentation = self.Fragmentation.calculate(frag_sample, recommendation_articles)
+                    frag_sample = sample[sample['type'] == recommendation_type]
+                    frag_articles = [self.retrieve_articles([_id for _id in articles])
+                                     for articles in frag_sample['articles']]
+                    fragmentation = self.Fragmentation.calculate(frag_articles, recommendation_articles)
                     affect = self.Affect.calculate(pool, recommendation_articles)
                     representation = self.Representation.calculate(pool, recommendation_articles)
                     alternative_voices = self.AlternativeVoices.calculate(pool, recommendation_articles)
@@ -91,7 +84,6 @@ class MetricsCalculator:
                     data.append({'impr_index': impr_index, 'rec_type': recommendation_type,
                               'calibration': calibration, 'fragmentation': fragmentation,
                               'affect': affect, 'representation': representation, 'alternative_ethnicity': alternative_voices[0], 'alternative_gender': alternative_voices[1]})
-                self.stories[recommendation_type].append([article.story for article in recommendation_articles])
 
         df = pd.DataFrame(data)
         self.write_to_file(df)

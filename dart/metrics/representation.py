@@ -79,16 +79,17 @@ class Representation:
         """Compute the genre distribution for a given list of Items."""
         n = len(articles)
         sum_one_over_ranks = harmonic_number(n)
+        rank = 0
         count = 0
         distr = {}
-        for indx, item in enumerate(articles):
-            rank = indx + 1
+        for indx, item in enumerate(np.array(articles.entities)):
+            rank += 1
             # for each party specified in the configuration file
             for ix, party in enumerate(self.political_parties):
                 # check if the party is either mentioned in one of the article's entities or mentioned in the text
-                if self.in_entities(item.entities, party):
-                    party_freq = distr.get(party, 0.)
-                    distr[party] = party_freq + 1 * 1 / rank / sum_one_over_ranks if adjusted else party_freq + 1
+                if self.in_entities(item, party):
+                    party_freq = distr.get(party[0], 0.)
+                    distr[party[0]] = party_freq + 1 * 1 / rank / sum_one_over_ranks if adjusted else party_freq + 1
                     count += 1
 
         # we normalize the summed up probability so it sums up to 1

@@ -18,13 +18,10 @@ class Calibration:
         sum_one_over_ranks = harmonic_number(n)
         count = 0
         distr = {}
-        for indx, item in enumerate(items):
-            rank = indx + 1
-            for topic in list(item.source['category'].split(" ")):
-                if not topic == 'unavailable':
-                    topic_freq = distr.get(topic, 0.)
-                    distr[topic] = topic_freq + 1 * 1 / rank / sum_one_over_ranks if adjusted else topic_freq + 1
-                    count += 1
+        for _, item in items.iterrows():
+            count += 1
+            topic_freq = distr.get(item.subcategory, 0.)
+            distr[item.subcategory] = topic_freq + 1 * 1 / count / sum_one_over_ranks if adjusted else topic_freq + 1
 
         # we normalize the summed up probability so it sums up to 1
         # and round it to three decimal places, adding more precision
@@ -43,9 +40,9 @@ class Calibration:
         return distr
 
     def calculate(self, reading_history, recommendation):
-        if reading_history and recommendation:
-            freq_rec = self.compute_distr(recommendation, adjusted=True)
-            freq_history = self.compute_distr(reading_history, adjusted=True)
+        if not reading_history.empty:
+            freq_rec = self.compute_distr(recommendation, adjusted=False)
+            freq_history = self.compute_distr(reading_history, adjusted=False)
             divergence = compute_kl_divergence(freq_history, freq_rec)
             return divergence
         else:

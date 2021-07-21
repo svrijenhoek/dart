@@ -39,10 +39,12 @@ class Affect:
         return distr
 
     def calculate(self, pool, recommendation):
-        arr_pool = np.array([abs(item.sentiment) for item in pool]).reshape(-1, 1)
-        arr_recommendation = np.array([abs(item.sentiment) for item in recommendation]).reshape(-1, 1)
+        pool_affect = np.array(pool.sentiment.apply(lambda x: abs(x))).reshape(-1, 1)
+        recommendation_affect = np.array(recommendation.sentiment.apply(lambda x: abs(x))).reshape(-1, 1)
+        # arr_pool = np.array([abs(item.sentiment) for item in pool]).reshape(-1, 1)
+        # arr_recommendation = np.array([abs(item.sentiment) for item in recommendation]).reshape(-1, 1)
 
-        self.bins_discretizer.fit(arr_pool)
-        distr_pool = self.compute_distr(arr_pool, self.bins_discretizer)
-        distr_recommendation = self.compute_distr(arr_recommendation, self.bins_discretizer)
+        self.bins_discretizer.fit(pool_affect)
+        distr_pool = self.compute_distr(pool_affect, self.bins_discretizer)
+        distr_recommendation = self.compute_distr(recommendation_affect, self.bins_discretizer)
         return compute_kl_divergence(distr_pool, distr_recommendation)

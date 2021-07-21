@@ -42,10 +42,10 @@ class Fragmentation:
 
     def calculate(self, sample, recommendation):
         fragmentations = []
-        stories_x = [article.story for article in recommendation]
+        stories_x = recommendation.story.tolist()
         for y in sample:
-            if y:
-                fragmentations.append(self.compare_recommendations(stories_x, y))
+            stories_y = y.story.tolist()
+            fragmentations.append(self.compare_recommendations(stories_x, stories_y))
         return np.mean(fragmentations)
 
     def compare_recommendations(self, x, y):

@@ -32,8 +32,8 @@ class AlternativeVoices:
         article_majority = 0
         article_minority = 0
         if article.id in self.ethnicity_scores:
-            article_majority = self.ethnicity_scores[article.id]['majority']
-            article_minority = self.ethnicity_scores[article.id]['minority']
+            article_majority = self.ethnicity_scores[article.newsid]['majority']
+            article_minority = self.ethnicity_scores[article.newsid]['minority']
         else:
             persons = filter(lambda x: x['label'] == 'PERSON', article.entities)
             for person in persons:
@@ -55,15 +55,15 @@ class AlternativeVoices:
                                 if store: self.minorities[person['text']]
                 else:
                     if store: self.irrelevants[person['text']] += 1
-            self.ethnicity_scores[article.id] = {'majority': article_majority, 'minority': article_minority}
+            self.ethnicity_scores[article.newsid] = {'majority': article_majority, 'minority': article_minority}
         return article_majority, article_minority
 
     def get_gender_score(self, article, store):
         article_minority = 0
         article_majority = 0
         if article.id in self.gender_scores:
-            article_majority = self.gender_scores[article.id]['majority']
-            article_minority = self.gender_scores[article.id]['minority']
+            article_majority = self.gender_scores[article.newsid]['majority']
+            article_minority = self.gender_scores[article.newsid]['minority']
         else:
             persons = filter(lambda x: x['label'] == 'PERSON', article.entities)
             for person in persons:
@@ -79,17 +79,18 @@ class AlternativeVoices:
                 else:
                     if store: self.irrelevants[person['text']] += 1
 
-            self.gender_scores[article.id] = {'majority': article_majority, 'minority': article_minority}
+            self.gender_scores[article.newsid] = {'majority': article_majority, 'minority': article_minority}
         return article_majority, article_minority
 
     def get_dist(self, articles, value, adjusted=False):
         n = len(articles)
+        count = 0
         sum_one_over_ranks = harmonic_number(n)
         distr = {}
         majority = 0
         minority = 0
-        for indx, article in enumerate(articles):
-            rank = indx + 1
+        for indx, article in articles.iterrows():
+            rank = count + 1
             if value == 'gender':
                 article_majority, article_minority = self.get_gender_score(article, True)
             else:
@@ -103,6 +104,7 @@ class AlternativeVoices:
                     prob_minority = article_minority / (article_majority+article_minority)
                 majority += prob_majority
                 minority += prob_minority
+            count += 1
         distr[0] = majority
         distr[1] = majority
         return distr
