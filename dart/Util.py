@@ -6,6 +6,8 @@ import string
 import pandas
 import os
 from datetime import datetime
+import pickle
+from pathlib import Path
 
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 BASE_DIR = os.path.dirname(ROOT_DIR)
@@ -25,12 +27,13 @@ def read_full_config_file():
     dictionary['metrics'] = data['metrics']
     dictionary['discount'] = data['discount']
     dictionary['language'] = data['language']
-    dictionary['popularity_file'] = data['popularity_file']
 
-    dictionary['behavior_file'] = data['recommendations']['behavior_file']
-    dictionary['baseline_recommendations'] = data['recommendations']['baseline_recommendations']
-    dictionary['recommendation_size'] = data['recommendations']['size']
+    dictionary['behavior_file'] = data['behavior_file']
+    dictionary['baseline_recommendations'] = data['baseline_recommendations']
+    dictionary['recommendation_size'] = data['size']
     dictionary["politics_file"] = data["political_file"]
+    dictionary["articles"] = data["articles"]
+    dictionary["recommendations"] = data["recommendations"]
     return dictionary
 
 
@@ -70,7 +73,7 @@ def transform(doc, schema):
 
 
 def read_behavior_file(file):
-    behavior_file = open(file)
+    behavior_file = open(Path(file))
     behaviors_csv = csv.reader(behavior_file, delimiter="\t")
     behaviors = []
     for a in behaviors_csv:
@@ -82,5 +85,9 @@ def read_behavior_file(file):
         items_without_click = [item.split("-")[0] for item in items]
         behaviors.append({'impression_index': impression_index, "userid": userid, 'date': date, 'history': history, 'items': items, 'items_without_click': items_without_click})
     return behaviors
+
+
+def read_pickle(path):
+    return pickle.load(open(Path(path), "rb"))
 
 

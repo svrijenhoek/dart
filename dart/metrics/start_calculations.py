@@ -10,7 +10,6 @@ import time
 import pickle
 
 from datetime import datetime
-import random
 import dart.Util as Util
 
 
@@ -26,7 +25,7 @@ class MetricsCalculator:
     - Inclusion
     """
 
-    def __init__(self, config):
+    def __init__(self, config, articles, recommendations, behavior_file):
         self.config = config
 
         self.recommendation_types = ['lstur', 'naml', 'random'] # self.handlers.recommendations.get_recommendation_types()
@@ -36,11 +35,11 @@ class MetricsCalculator:
         self.Representation = metrics.representation.Representation(self.config)
         self.AlternativeVoices = metrics.alternative_voices.AlternativeVoices()
 
-        self.behavior_file = Util.read_behavior_file(self.config['behavior_file'])
+        self.articles = articles
+        self.recommendations = recommendations
+        self.behavior_file = behavior_file
         if self.config['test_size'] > 0:
             self.behavior_file = self.behavior_file[:self.config['test_size']]
-        self.articles = pickle.load(open("data\\articles.pickle", "rb"))
-        self.recommendations = pickle.load(open("data\\recommendations.pickle", "rb"))
 
     def create_sample(self):
         unique_impressions = self.recommendations.impr_index.unique()

@@ -8,13 +8,12 @@
     "inclusion"
     ],
   "append": "Y",
-  "test_size": 10000,
-  "popularity_file": "data\\popularity.csv",
+  "test_size": 100,
   "language": "english",
-  "recommendations": {
-    "baseline_recommendations": ["random"],
-    "behavior_file": "data\\recommendations\\behaviors_small.tsv",
-    "size": 8
-  },
-  "political_file": "data\\term-116.csv"
+  "baseline_recommendations": ["random"],
+  "size": 8,
+  "articles": "data/articles.pickle",
+  "recommendations": "data/recommendations.pickle",
+  "political_file": "data/term-116.csv",
+  "behavior_file": "data/recommendations/behaviors_small.tsv"
 }
