@@ -2,6 +2,8 @@ from datetime import datetime, timedelta
 import os
 import json
 import numpy as np
+import pandas as pd
+import pickle
 
 import random
 import csv
@@ -128,51 +130,44 @@ class RunRecommendations:
         # self.generate_reading_histories()
 
     def execute_tsv(self):
-        # for text
-        # lstur = []
-        # file = open('data/recommendations/lstur_pred_demo.txt')
-        # for line in file:
-        #     split = line.split("\t")
-        #     lstur.append({"impr_index": split[0], "pred_rank": split[1]})
-        #
-        # npa = []
-        # file = open('data/recommendations/npa_pred_demo.txt')
-        # for line in file:
-        #     split = line.split(" ")
-        #     npa.append({"impr_index": split[0], "pred_rank": split[1]})
-
         # for JSON
         lstur = []
-        file = open('data/recommendations/lstur_pred_large.json')
+        file = open('data/recommendations/lstur_pred_small.json')
         for line in file:
             json_line = json.loads(line)
             lstur.append(json_line)
         #
         naml = []
-        file = open('data/recommendations/naml_pred_large.json')
+        file = open('data/recommendations/naml_pred_small.json')
         for line in file:
             json_line = json.loads(line)
             naml.append(json_line)
 
         npa = []
-        file = open('data/recommendations/npa_pred_large.json')
+        file = open('data/recommendations/npa_pred_small.json')
         for line in file:
             json_line = json.loads(line)
             npa.append(json_line)
 
         nrms = []
-        file = open('data/recommendations/nrms_pred_large.json')
+        file = open('data/recommendations/nrms_pred_small.json')
         for line in file:
             json_line = json.loads(line)
             nrms.append(json_line)
 
-        behavior_file = open('data/recommendations/behaviors_large.tsv')
+        pop = []
+        file = open('data/recommendations/pop_pred_small.json')
+        for line in file:
+            json_line = json.loads(line)
+            pop.append(json_line)
+
+        behavior_file = open('data/recommendations/behaviors_small.tsv')
         behaviors_csv = csv.reader(behavior_file, delimiter="\t")
         behaviors = []
         for line in behaviors_csv:
             behaviors.append(line)
 
-        for (a, b, c, d, e) in zip(behaviors, lstur, npa, naml, nrms):
+        for (a, b, c, d, e, f) in zip(behaviors, lstur, npa, naml, nrms, pop):
             impression_index = a[0]
             userid = a[1]
             date = datetime.strptime(a[2], "%m/%d/%Y %I:%M:%S %p")
@@ -181,11 +176,13 @@ class RunRecommendations:
             npa_row = c['pred_rank']
             naml_row = d['pred_rank']
             nrms_row = e['pred_rank']
+            pop_row = f['pred_rank']
             npa_list = []
             lstur_list = []
             naml_list = []
             nrms_list = []
             random_list = []
+            pop_list = []
             for x in range(1, min(5, len(items) + 1)):
                 try:
                     npa_list.append(
@@ -193,6 +190,7 @@ class RunRecommendations:
                     lstur_list.append(self.handlers.articles.get_field_with_value('newsid', items[lstur_row.index(x)].split("-")[0])[0].id)
                     naml_list.append(self.handlers.articles.get_field_with_value('newsid', items[naml_row.index(x)].split("-")[0])[0].id)
                     nrms_list.append(self.handlers.articles.get_field_with_value('newsid', items[nrms_row.index(x)].split("-")[0])[0].id)
+                    pop_list.append(self.handlers.articles.get_field_with_value('newsid', items[pop_row.index(x)].split("-")[0])[0].id)
                     random_index = random.randint(0, len(items))
                     random_list.append(
                         self.handlers.articles.get_field_with_value('newsid', items[random_index].split("-")[0])[0].id)
@@ -203,11 +201,15 @@ class RunRecommendations:
                                   'articles': npa_list}
             naml_recommendation = {'impr_index': impression_index, 'userid': userid, 'type': 'naml', 'date': date, 'articles': naml_list}
             nrms_recommendation = {'impr_index': impression_index, 'userid': userid, 'type': 'nrms', 'date': date, 'articles': nrms_list}
+            pop_recommendation = {'impr_index': impression_index, 'userid': userid, 'type': 'pop', 'date': date, 'articles': pop_list}
+
             random_recommendation = {'impr_index': impression_index, 'userid': userid, 'type': 'random', 'date': date,
                                      'articles': random_list}
             self.handlers.recommendations.add_recommendation(lstur_recommendation, 'lstur')
             self.handlers.recommendations.add_recommendation(npa_recommendation, 'npa')
             self.handlers.recommendations.add_recommendation(naml_recommendation, 'naml')
             self.handlers.recommendations.add_recommendation(nrms_recommendation, 'nrms')
+            self.handlers.recommendations.add_recommendation(pop_recommendation, 'pop')
             self.handlers.recommendations.add_recommendation(random_recommendation, 'random')
+
 

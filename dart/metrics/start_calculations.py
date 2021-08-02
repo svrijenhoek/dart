@@ -7,10 +7,8 @@ import metrics.visualize
 import pandas as pd
 import numpy as np
 import time
-import pickle
 
 from datetime import datetime
-import dart.Util as Util
 
 
 class MetricsCalculator:
@@ -28,7 +26,7 @@ class MetricsCalculator:
     def __init__(self, config, articles, recommendations, behavior_file):
         self.config = config
 
-        self.recommendation_types = ['lstur', 'naml', 'random'] # self.handlers.recommendations.get_recommendation_types()
+        self.recommendation_types = ['lstur', 'naml', 'pop', 'random'] # self.handlers.recommendations.get_recommendation_types()
         self.Calibration = metrics.calibration.Calibration(self.config)
         self.Fragmentation = metrics.fragmentation.Fragmentation()
         self.Affect = metrics.affect.Affect(self.config)
@@ -43,7 +41,7 @@ class MetricsCalculator:
 
     def create_sample(self):
         unique_impressions = self.recommendations.impr_index.unique()
-        sample_impressions = np.random.choice(unique_impressions, size=20).tolist()
+        sample_impressions = np.random.choice(unique_impressions, size=50).tolist()
         return self.recommendations[self.recommendations['impr_index'].isin(sample_impressions)]
 
     def retrieve_articles(self, newsids):

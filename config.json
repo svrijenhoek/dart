@@ -8,7 +8,7 @@
     "inclusion"
     ],
   "append": "Y",
-  "test_size": 100,
+  "test_size": 0,
   "language": "english",
   "baseline_recommendations": ["random"],
   "size": 8,
