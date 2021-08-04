@@ -76,7 +76,7 @@ def tsv_to_pickle():
         naml_list = []
         pop_list = []
         random_list = []
-        for x in range(1, min(5, len(items) + 1)):
+        for x in range(1, min(9, len(items) + 1)):
             try:
                 lstur_list.append(items[lstur_row.index(x)].split("-")[0])
                 naml_list.append(items[naml_row.index(x)].split("-")[0])

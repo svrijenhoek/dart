@@ -45,6 +45,6 @@ class Affect:
         # arr_recommendation = np.array([abs(item.sentiment) for item in recommendation]).reshape(-1, 1)
 
         self.bins_discretizer.fit(pool_affect)
-        distr_pool = self.compute_distr(pool_affect, self.bins_discretizer)
-        distr_recommendation = self.compute_distr(recommendation_affect, self.bins_discretizer)
+        distr_pool = self.compute_distr(pool_affect, self.bins_discretizer, False)
+        distr_recommendation = self.compute_distr(recommendation_affect, self.bins_discretizer, True)
         return compute_kl_divergence(distr_pool, distr_recommendation)

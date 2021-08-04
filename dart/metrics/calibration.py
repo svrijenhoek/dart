@@ -41,7 +41,7 @@ class Calibration:
 
     def calculate(self, reading_history, recommendation):
         if not reading_history.empty:
-            freq_rec = self.compute_distr(recommendation, adjusted=False)
+            freq_rec = self.compute_distr(recommendation, adjusted=True)
             freq_history = self.compute_distr(reading_history, adjusted=False)
             divergence = compute_kl_divergence(freq_history, freq_rec)
             return divergence

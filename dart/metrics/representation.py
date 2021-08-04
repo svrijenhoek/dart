@@ -109,6 +109,11 @@ class Representation:
         return distr
 
     def calculate(self, pool, recommendation):
-        pool_vector = self.compute_distr(pool, adjusted=True)
-        recommendation_vector = self.compute_distr(recommendation, adjusted=True)
-        return compute_kl_divergence(pool_vector, recommendation_vector)
+        pool_news = pool.loc[pool['category'] == 'news']
+        recommendation_news = recommendation.loc[recommendation['category'] == 'news']
+        if not pool_news.empty and not recommendation_news.empty:
+            pool_vector = self.compute_distr(pool_news, adjusted=False)
+            recommendation_vector = self.compute_distr(recommendation_news, adjusted=True)
+            return compute_kl_divergence(pool_vector, recommendation_vector)
+        else:
+            return

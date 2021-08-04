@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+from pathlib import Path
 
 
 class Visualize:
@@ -21,11 +22,11 @@ class Visualize:
         plt.draw()
 
     @staticmethod
-    def violin_plot(df):
+    def violin_plot(df, filename):
         # metrics = ['calibration', 'fragmentation', 'representation', 'alternative_ethnicity', 'alternative_gender']
         columns = list(df.columns)[2:]
         fig, axs = plt.subplots(ncols=len(columns))
         for i, column in enumerate(columns):
             sns.violinplot(data=df, x=column, y="rec_type", inner="quart", split=True, ax=axs[i])
         plt.show(block=True)
-        fig.savefig('output/visualization.png')
+        fig.savefig(Path('output/images/'+filename+'.png'))

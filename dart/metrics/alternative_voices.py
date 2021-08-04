@@ -110,8 +110,8 @@ class AlternativeVoices:
         return distr
 
     def calculate(self, pool, recommendation):
-        pool_ethnicity = self.get_dist(pool, 'ethnicity', True)
-        pool_gender = self.get_dist(pool, 'gender', True)
+        pool_ethnicity = self.get_dist(pool, 'ethnicity', False)
+        pool_gender = self.get_dist(pool, 'gender', False)
         recommendation_ethnicity = self.get_dist(recommendation, 'ethnicity', True)
         recommendation_gender = self.get_dist(recommendation, 'gender', True)
 

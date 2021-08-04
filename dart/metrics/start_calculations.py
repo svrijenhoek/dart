@@ -9,6 +9,7 @@ import numpy as np
 import time
 
 from datetime import datetime
+from pathlib import Path
 
 
 class MetricsCalculator:
@@ -41,7 +42,7 @@ class MetricsCalculator:
 
     def create_sample(self):
         unique_impressions = self.recommendations.impr_index.unique()
-        sample_impressions = np.random.choice(unique_impressions, size=50).tolist()
+        sample_impressions = np.random.choice(unique_impressions, size=20).tolist()
         return self.recommendations[self.recommendations['impr_index'].isin(sample_impressions)]
 
     def retrieve_articles(self, newsids):
@@ -83,7 +84,6 @@ class MetricsCalculator:
                               'affect': affect, 'representation': representation, 'alternative_ethnicity': alternative_voices[0], 'alternative_gender': alternative_voices[1]})
 
         df = pd.DataFrame(data)
-        self.write_to_file(df)
 
         end = time.time()
         print(end - start)
@@ -91,15 +91,15 @@ class MetricsCalculator:
         print(df.groupby('rec_type').std())
         print(str(datetime.now()) + "\tdone")
 
-        metrics.visualize.Visualize.violin_plot(df)
-
-    def write_to_file(self, df):
-        output_filename = 'output/'\
-                          + datetime.now().strftime("%Y-%m-%d") \
+        filename = datetime.now().strftime("%Y-%m-%d") \
                           + '_' + str(self.config['test_size'])
-        df.groupby('rec_type').mean().to_csv(output_filename + '_summary.csv', encoding='utf-8', mode='w')
-        df.groupby('rec_type').std().to_csv(output_filename + '_summary.csv', encoding='utf-8', mode='a')
-        df.to_csv(output_filename + '_full.csv', encoding='utf-8')
+        self.write_to_file(df, filename)
+        metrics.visualize.Visualize.violin_plot(df, filename)
+
+    def write_to_file(self, df, filename):
+        df.groupby('rec_type').mean().to_csv(Path('output/'+filename + '_summary.csv'), encoding='utf-8', mode='w')
+        df.groupby('rec_type').std().to_csv(Path('output/'+filename + '_summary.csv'), encoding='utf-8', mode='a')
+        df.to_csv(Path('output/'+filename + '_full.csv'), encoding='utf-8')
 
 
 
