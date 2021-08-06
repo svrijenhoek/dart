@@ -26,23 +26,24 @@ class Calibration:
         # we normalize the summed up probability so it sums up to 1
         # and round it to three decimal places, adding more precision
         # doesn't add much value and clutters the output
-        to_remove = []
-        for topic, topic_freq in distr.items():
-            normed_topic_freq = round(topic_freq / count, 2)
-            if normed_topic_freq == 0:
-                to_remove.append(topic)
-            else:
-                distr[topic] = normed_topic_freq
+        if not adjusted:
+            to_remove = []
+            for topic, topic_freq in distr.items():
+                normed_topic_freq = round(topic_freq / count, 2)
+                if normed_topic_freq == 0:
+                    to_remove.append(topic)
+                else:
+                    distr[topic] = normed_topic_freq
 
-        for topic in to_remove:
-            del distr[topic]
+            for topic in to_remove:
+                del distr[topic]
 
         return distr
 
     def calculate(self, reading_history, recommendation):
         if not reading_history.empty:
             freq_rec = self.compute_distr(recommendation, adjusted=True)
-            freq_history = self.compute_distr(reading_history, adjusted=False)
+            freq_history = self.compute_distr(reading_history, adjusted=True)
             divergence = compute_kl_divergence(freq_history, freq_rec)
             return divergence
         else:

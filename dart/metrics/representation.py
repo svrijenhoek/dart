@@ -95,16 +95,17 @@ class Representation:
         # we normalize the summed up probability so it sums up to 1
         # and round it to three decimal places, adding more precision
         # doesn't add much value and clutters the output
-        to_remove = []
-        for topic, party_freq in distr.items():
-            normed_topic_freq = round(party_freq / count, 2)
-            if normed_topic_freq == 0:
-                to_remove.append(topic)
-            else:
-                distr[topic] = normed_topic_freq
+        if not adjusted:
+            to_remove = []
+            for topic, party_freq in distr.items():
+                normed_topic_freq = round(party_freq / count, 2)
+                if normed_topic_freq == 0:
+                    to_remove.append(topic)
+                else:
+                    distr[topic] = normed_topic_freq
 
-        for topic in to_remove:
-            del distr[topic]
+            for topic in to_remove:
+                del distr[topic]
 
         return distr
 
