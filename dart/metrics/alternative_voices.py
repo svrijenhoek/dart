@@ -86,7 +86,7 @@ class AlternativeVoices:
         n = len(articles)
         count = 0
         sum_one_over_ranks = harmonic_number(n)
-        distr = {}
+        distr = {0: 0, 1: 0}
         majority = 0
         minority = 0
         for indx, article in articles.iterrows():
@@ -105,8 +105,10 @@ class AlternativeVoices:
                 majority += prob_majority
                 minority += prob_minority
             count += 1
-        distr[0] = majority
-        distr[1] = majority
+        r = minority + majority
+        if r > 0:
+            distr[0] = minority / r
+            distr[1] = majority / r
         return distr
 
     def calculate(self, pool, recommendation):
