@@ -18,12 +18,14 @@ elastic_connector = dart.handler.elastic.connector.ElasticsearchConnector()
 mongo_connector = dart.handler.mongo.connector.MongoConnector()
 handlers = dart.models.Handlers.Handlers(elastic_connector, mongo_connector)
 
-# create articles pickle
-# articles = [article['_source'] for article in handlers.articles.get_all_documents('articles')]
-# df = pd.DataFrame(articles)
-# file = os.path.join(BASE_DIR, Path('data/articles1.pickle'))
-# with open(file, 'wb') as f:
-#     pickle.dump(df, f)
+
+def articles_to_pickle():
+    # create articles pickle
+    articles = [article['_source'] for article in handlers.articles.get_all_documents('articles')]
+    df = pd.DataFrame(articles)
+    file = os.path.join(BASE_DIR, Path('data/articles1.pickle'))
+    with open(file, 'wb') as f:
+        pickle.dump(df, f)
 
 # create recommendations pickle
 # recommendations = []
@@ -37,7 +39,7 @@ handlers = dart.models.Handlers.Handlers(elastic_connector, mongo_connector)
 
 
 # to do: add popularity
-def tsv_to_pickle():
+def recommendations_to_pickle():
     # for JSON
     lstur = []
     file = open(os.path.join(BASE_DIR, Path('data/recommendations/lstur_pred_small.json')))
@@ -96,4 +98,5 @@ def tsv_to_pickle():
         pickle.dump(df, f)
 
 
-tsv_to_pickle()
+articles_to_pickle()
+recommendations_to_pickle()
