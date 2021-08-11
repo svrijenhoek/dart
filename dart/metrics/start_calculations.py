@@ -1,9 +1,9 @@
-import metrics.affect
-import metrics.calibration
-import metrics.fragmentation
-import metrics.representation
-import metrics.alternative_voices
-import metrics.visualize
+import dart.metrics.affect
+import dart.metrics.calibration
+import dart.metrics.fragmentation
+import dart.metrics.representation
+import dart.metrics.alternative_voices
+import dart.metrics.visualize
 import pandas as pd
 import numpy as np
 import time
@@ -28,11 +28,11 @@ class MetricsCalculator:
         self.config = config
 
         self.recommendation_types = ['lstur', 'naml', 'pop', 'random'] # self.handlers.recommendations.get_recommendation_types()
-        self.Calibration = metrics.calibration.Calibration(self.config)
-        self.Fragmentation = metrics.fragmentation.Fragmentation()
-        self.Affect = metrics.affect.Affect(self.config)
-        self.Representation = metrics.representation.Representation(self.config)
-        self.AlternativeVoices = metrics.alternative_voices.AlternativeVoices()
+        self.Calibration = dart.metrics.calibration.Calibration(self.config)
+        self.Fragmentation = dart.metrics.fragmentation.Fragmentation()
+        self.Affect = dart.metrics.affect.Affect(self.config)
+        self.Representation = dart.metrics.representation.Representation(self.config)
+        self.AlternativeVoices = dart.metrics.alternative_voices.AlternativeVoices()
 
         self.articles = articles
         self.recommendations = recommendations
@@ -94,7 +94,7 @@ class MetricsCalculator:
         filename = datetime.now().strftime("%Y-%m-%d") \
                           + '_' + str(self.config['test_size'])
         self.write_to_file(df, filename)
-        metrics.visualize.Visualize.violin_plot(df, filename)
+        dart.metrics.visualize.Visualize.violin_plot(df, filename)
 
     def write_to_file(self, df, filename):
         df.groupby('rec_type').mean().to_csv(Path('output/'+filename + '_summary.csv'), encoding='utf-8', mode='w')
