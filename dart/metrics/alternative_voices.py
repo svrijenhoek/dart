@@ -95,15 +95,14 @@ class AlternativeVoices:
                 article_majority, article_minority = self.get_gender_score(article, True)
             else:
                 article_majority, article_minority = self.get_ethnicity_score(article, True)
-            if article_minority > 0 and article_majority > 0:
-                if adjusted:
-                    prob_majority = article_majority / (article_majority+article_minority) * 1/rank/sum_one_over_ranks
-                    prob_minority = article_minority / (article_majority+article_minority) * 1/rank/sum_one_over_ranks
-                else:
-                    prob_majority = article_majority / (article_majority+article_minority)
-                    prob_minority = article_minority / (article_majority+article_minority)
-                majority += prob_majority
-                minority += prob_minority
+            if adjusted:
+                alt_majority = article_majority  * 1/rank/sum_one_over_ranks
+                alt_minority = article_minority  * 1/rank/sum_one_over_ranks
+            else:
+                alt_majority = article_majority
+                alt_minority = article_minority
+            majority += alt_majority
+            minority += alt_minority
             count += 1
         r = minority + majority
         if r > 0:
