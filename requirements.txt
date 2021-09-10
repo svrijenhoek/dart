@@ -21,6 +21,5 @@ textblob_nl~=0.0.1
 pymongo
 bs4
 lxml
-python -m spacy download en_core_web_lg
 python-louvain
 textstat
