@@ -5,7 +5,7 @@ requests~=2.25
 whoswho~=0.2
 nltk~=3.6
 gensim~=4.0
-spacy~=3.0
+spacy
 scikit-learn~=0.24
 nano
 minimock
