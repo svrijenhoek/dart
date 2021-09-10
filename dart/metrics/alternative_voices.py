@@ -23,12 +23,13 @@ class AlternativeVoices:
     def __init__(self):
         self.ethnicity_scores = {}
         self.gender_scores = {}
+        self.mainstream_scores = {}
 
         self.minorities = Counter()
         self.majorities = Counter()
         self.irrelevants = Counter()
 
-    def get_ethnicity_score(self, article, store):
+    def get_ethnicity_score(self, article):
         article_majority = 0
         article_minority = 0
         if article.id in self.ethnicity_scores:
@@ -41,24 +42,18 @@ class AlternativeVoices:
                     if 'ethnicity' in person:
                         if 'white people' in person['ethnicity'] or person['ethnicity'] == []:
                             article_majority += 1
-                            if store: self.majorities[person['text']] += 1
                         else:
                             article_minority += 1
-                            if store: self.minorities[person['text']] += 1
                     else:
                         if 'place_of_birth' in person:
                             if 'United States' in person['place_of_birth']:
                                 article_majority += 1
-                                if store: self.majorities[person['text']]
                             else:
                                 article_minority += 1
-                                if store: self.minorities[person['text']]
-                else:
-                    if store: self.irrelevants[person['text']] += 1
             self.ethnicity_scores[article.newsid] = {'majority': article_majority, 'minority': article_minority}
         return article_majority, article_minority
 
-    def get_gender_score(self, article, store):
+    def get_gender_score(self, article):
         article_minority = 0
         article_majority = 0
         if article.id in self.gender_scores:
@@ -71,15 +66,25 @@ class AlternativeVoices:
                     if 'gender' in person:
                         if 'male' in person['gender']:
                             article_majority += 1
-                            if store: self.majorities[person['text']] += 1
                         else:
                             article_minority += 1
-                            if store: self.minorities[person['text']] += 1
-
-                else:
-                    if store: self.irrelevants[person['text']] += 1
-
             self.gender_scores[article.newsid] = {'majority': article_majority, 'minority': article_minority}
+        return article_majority, article_minority
+
+    def get_mainstream_score(self, article):
+        article_minority = 0
+        article_majority = 0
+        if article.id in self.mainstream_scores:
+            article_majority = self.mainstream_scores[article.newsid]['majority']
+            article_minority = self.mainstream_scores[article.newsid]['minority']
+        else:
+            persons = filter(lambda x: x['label'] == 'PERSON', article.entities)
+            for person in persons:
+                if 'givenname' in person:
+                    article_majority += 1
+                else:
+                    article_minority += 1
+            self.mainstream_scores[article.newsid] = {'majority': article_majority, 'minority': article_minority}
         return article_majority, article_minority
 
     def get_dist(self, articles, value, adjusted=False):
@@ -92,9 +97,12 @@ class AlternativeVoices:
         for indx, article in articles.iterrows():
             rank = count + 1
             if value == 'gender':
-                article_majority, article_minority = self.get_gender_score(article, True)
-            else:
-                article_majority, article_minority = self.get_ethnicity_score(article, True)
+                article_majority, article_minority = self.get_gender_score(article)
+            elif value == 'ethnicity':
+                article_majority, article_minority = self.get_ethnicity_score(article)
+            elif value == 'mainstream':
+                article_majority, article_minority = self.get_mainstream_score(article)
+
             if article_minority > 0 and article_majority > 0:
                 if adjusted:
                     prob_majority = article_majority / (article_majority+article_minority) * 1/rank/sum_one_over_ranks
@@ -114,10 +122,13 @@ class AlternativeVoices:
     def calculate(self, pool, recommendation):
         pool_ethnicity = self.get_dist(pool, 'ethnicity', False)
         pool_gender = self.get_dist(pool, 'gender', False)
+        pool_mainstream = self.get_dist(pool, 'mainstream', False)
         recommendation_ethnicity = self.get_dist(recommendation, 'ethnicity', True)
         recommendation_gender = self.get_dist(recommendation, 'gender', True)
+        recommendation_mainstream = self.get_dist(recommendation, 'mainstream', True)
 
         ethnicity_inclusion = compute_kl_divergence(pool_ethnicity, recommendation_ethnicity)
         gender_inclusion = compute_kl_divergence(pool_gender, recommendation_gender)
+        mainstream_inclusion = compute_kl_divergence(pool_mainstream, recommendation_mainstream)
 
-        return ethnicity_inclusion, gender_inclusion
+        return ethnicity_inclusion, gender_inclusion, mainstream_inclusion

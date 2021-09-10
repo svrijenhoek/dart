@@ -27,16 +27,17 @@ class Fragmentation:
         # we normalize the summed up probability so it sums up to 1
         # and round it to three decimal places, adding more precision
         # doesn't add much value and clutters the output
-        to_remove = []
-        for story, story_freq in distr.items():
-            normed_story_freq = round(story_freq / count, 2)
-            if normed_story_freq == 0:
-                to_remove.append(story)
-            # else:
-            #     distr[story] = normed_story_freq
+        if not adjusted:
+            to_remove = []
+            for story, story_freq in distr.items():
+                normed_story_freq = round(story_freq / count, 2)
+                if normed_story_freq == 0:
+                    to_remove.append(story)
+                # else:
+                #     distr[story] = normed_story_freq
 
-        for story in to_remove:
-            del distr[story]
+            for story in to_remove:
+                del distr[story]
 
         return distr
 

@@ -1,9 +1,9 @@
-import metrics.affect
-import metrics.calibration
-import metrics.fragmentation
-import metrics.representation
-import metrics.alternative_voices
-import metrics.visualize
+import dart.metrics.affect
+import dart.metrics.calibration
+import dart.metrics.fragmentation
+import dart.metrics.representation
+import dart.metrics.alternative_voices
+import dart.metrics.visualize
 import pandas as pd
 import numpy as np
 import time
@@ -28,11 +28,11 @@ class MetricsCalculator:
         self.config = config
 
         self.recommendation_types = ['lstur', 'naml', 'pop', 'random'] # self.handlers.recommendations.get_recommendation_types()
-        self.Calibration = metrics.calibration.Calibration(self.config)
-        self.Fragmentation = metrics.fragmentation.Fragmentation()
-        self.Affect = metrics.affect.Affect(self.config)
-        self.Representation = metrics.representation.Representation(self.config)
-        self.AlternativeVoices = metrics.alternative_voices.AlternativeVoices()
+        self.Calibration = dart.metrics.calibration.Calibration(self.config)
+        self.Fragmentation = dart.metrics.fragmentation.Fragmentation()
+        self.Affect = dart.metrics.affect.Affect(self.config)
+        self.Representation = dart.metrics.representation.Representation(self.config)
+        self.AlternativeVoices = dart.metrics.alternative_voices.AlternativeVoices()
 
         self.articles = articles
         self.recommendations = recommendations
@@ -60,28 +60,34 @@ class MetricsCalculator:
                 reading_history = self.retrieve_articles(hist)
             except KeyError:
                 reading_history = []
-            pool = self.retrieve_articles(article for article in impression['items_without_click'])
+            pool_articles = self.retrieve_articles(article for article in impression['items_without_click'])
             sample = self.create_sample()
 
             for recommendation_type in self.recommendation_types:
                 recommendation = self.recommendations.loc[
-                    (self.recommendations['impr_index'] == impr_index ) &
-                    (self.recommendations['type']== recommendation_type)]
+                    (self.recommendations['impr_index'] == impr_index) &
+                    (self.recommendations['type'] == recommendation_type)]
                 recommendation_articles = self.retrieve_articles([_id for _id in recommendation.iloc[0].articles])
 
-                if not recommendation_articles.empty:
+                if not recommendation_articles.empty and not pool_articles.empty:
                     calibration = self.Calibration.calculate(reading_history, recommendation_articles)
                     frag_sample = sample[sample['type'] == recommendation_type]
                     frag_articles = [self.retrieve_articles([_id for _id in articles])
                                      for articles in frag_sample['articles']]
                     fragmentation = self.Fragmentation.calculate(frag_articles, recommendation_articles)
-                    affect = self.Affect.calculate(pool, recommendation_articles)
-                    representation = self.Representation.calculate(pool, recommendation_articles)
-                    alternative_voices = self.AlternativeVoices.calculate(pool, recommendation_articles)
+                    affect = self.Affect.calculate(pool_articles, recommendation_articles)
+                    representation = self.Representation.calculate(pool_articles, recommendation_articles)
+                    alternative_voices = self.AlternativeVoices.calculate(pool_articles, recommendation_articles)
 
-                    data.append({'impr_index': impr_index, 'rec_type': recommendation_type,
-                              'calibration': calibration, 'fragmentation': fragmentation,
-                              'affect': affect, 'representation': representation, 'alternative_ethnicity': alternative_voices[0], 'alternative_gender': alternative_voices[1]})
+                    data.append({'impr_index': impr_index,
+                                 'rec_type': recommendation_type,
+                                 'calibration': calibration,
+                                 'fragmentation': fragmentation,
+                                 'affect': affect,
+                                 'representation': representation,
+                                 'alternative_voices': alternative_voices[2],
+                                 'alternative_voices_ethnicity': alternative_voices[0],
+                                 'alternative_voices_gender': alternative_voices[1]})
 
         df = pd.DataFrame(data)
 
@@ -91,10 +97,9 @@ class MetricsCalculator:
         print(df.groupby('rec_type').std())
         print(str(datetime.now()) + "\tdone")
 
-        filename = datetime.now().strftime("%Y-%m-%d") \
-                          + '_' + str(self.config['test_size'])
+        filename = datetime.now().strftime("%Y-%m-%d") + '_' + str(self.config['test_size'])
         self.write_to_file(df, filename)
-        metrics.visualize.Visualize.violin_plot(df, filename)
+        dart.metrics.visualize.Visualize.violin_plot(df, filename)
 
     def write_to_file(self, df, filename):
         df.groupby('rec_type').mean().to_csv(Path('output/'+filename + '_summary.csv'), encoding='utf-8', mode='w')
