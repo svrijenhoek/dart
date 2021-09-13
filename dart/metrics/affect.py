@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.preprocessing import KBinsDiscretizer
 from dart.external.kl_divergence import compute_kl_divergence
 from dart.external.discount import harmonic_number
+import warnings
 
 
 class Affect:
@@ -14,13 +15,13 @@ class Affect:
     def __init__(self, config):
         n_bins = 5
         self.bins_discretizer = KBinsDiscretizer(encode='ordinal', n_bins=n_bins, strategy='uniform')
+        warnings.filterwarnings("ignore", category=UserWarning)
 
     def compute_distr(self, arr, bins_discretizer, adjusted=False):
         """
             Args:
             Return"
         """
-        assert len(arr) > 0
         n = len(arr)
         sum_one_over_ranks = harmonic_number(n)
         arr_binned = bins_discretizer.transform(arr)
