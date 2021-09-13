@@ -49,12 +49,16 @@ class MetricsCalculator:
         return self.articles[self.articles['newsid'].isin(newsids)]
 
     def execute(self):
+        success = 0
+        failure = 0
+
         data = []
         print(str(datetime.now()) + "\tstarting calculations")
         start = time.time()
         all_entries = len(self.behavior_file)
+        mod = round(all_entries/10)
         for i, impression in enumerate(self.behavior_file):
-            if i % 10 == 0:
+            if i % mod == 0:
                 print("{}/{}".format(i, all_entries))
             impr_index = impression['impression_index']
             try:
@@ -91,6 +95,9 @@ class MetricsCalculator:
                                  'alternative_voices': alternative_voices[2],
                                  'alternative_voices_ethnicity': alternative_voices[0],
                                  'alternative_voices_gender': alternative_voices[1]})
+                    success += 1
+                else:
+                    failure += 1
 
         df = pd.DataFrame(data)
 
@@ -98,6 +105,10 @@ class MetricsCalculator:
         print(end - start)
         print(df.groupby('rec_type').mean())
         print(df.groupby('rec_type').std())
+
+        print(str(success) +" successfully calculated")
+        print(str(failure) + " failed")
+
         print(str(datetime.now()) + "\tdone")
 
         output_folder = self.config["output_folder"]
