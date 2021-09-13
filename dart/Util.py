@@ -34,6 +34,7 @@ def read_full_config_file():
     dictionary["politics_file"] = data["political_file"]
     dictionary["articles"] = data["articles"]
     dictionary["recommendations"] = data["recommendations"]
+    dictionary["output_folder"] = data["output_folder"]
     return dictionary
 
 

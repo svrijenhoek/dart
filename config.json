@@ -15,5 +15,6 @@
   "articles": "data/articles.pickle",
   "recommendations": "data/recommendations.pickle",
   "political_file": "data/term-116.csv",
-  "behavior_file": "data/recommendations/behaviors_small.tsv"
+  "behavior_file": "data/recommendations/behaviors_small.tsv",
+  "output_folder": "output/"
 }
