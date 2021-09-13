@@ -22,17 +22,17 @@ class Visualize:
         plt.draw()
 
     @staticmethod
-    def violin_plot(df, output_folder, filename):
+    def violin_plot(df, output_folder):
         columns = list(df.columns)[2:7]
         fig, axs = plt.subplots(ncols=len(columns))
         for i, column in enumerate(columns):
             sns.violinplot(data=df, x=column, y="rec_type", inner="quart", split=True, ax=axs[i])
         plt.show(block=True)
-        fig.savefig(Path(output_folder+filename+'.png'))
+        fig.savefig(Path(output_folder+'metrics.png'))
 
         columns = list(df.columns)[6:]
         fig, axs = plt.subplots(ncols=len(columns))
         for i, column in enumerate(columns):
             sns.violinplot(data=df, x=column, y="rec_type", inner="quart", split=True, ax=axs[i])
         plt.show(block=True)
-        fig.savefig(Path(output_folder+filename+'_alternative_voices.png'))
+        fig.savefig(Path(output_folder+'alternative_voices.png'))

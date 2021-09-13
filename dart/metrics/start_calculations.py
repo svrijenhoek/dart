@@ -100,15 +100,14 @@ class MetricsCalculator:
         print(df.groupby('rec_type').std())
         print(str(datetime.now()) + "\tdone")
 
-        filename = datetime.now().strftime("%Y-%m-%d") + '_' + str(self.config['test_size'])
         output_folder = self.config["output_folder"]
-        self.write_to_file(df, output_folder, filename)
-        dart.metrics.visualize.Visualize.violin_plot(df, output_folder, filename)
+        self.write_to_file(df, output_folder)
+        dart.metrics.visualize.Visualize.violin_plot(df, output_folder)
 
-    def write_to_file(self, df, output_folder, filename):
-        df.groupby('rec_type').mean().to_csv(Path(output_folder+filename + '_summary.csv'), encoding='utf-8', mode='w')
-        df.groupby('rec_type').std().to_csv(Path(output_folder+filename + '_summary.csv'), encoding='utf-8', mode='a')
-        df.to_csv(Path(output_folder+filename + '_full.csv'), encoding='utf-8')
+    def write_to_file(self, df, output_folder):
+        df.groupby('rec_type').mean().to_csv(Path(output_folder + 'summary.csv'), encoding='utf-8', mode='w')
+        df.groupby('rec_type').std().to_csv(Path(output_folder + 'summary.csv'), encoding='utf-8', mode='a')
+        df.to_csv(Path(output_folder + 'full.csv'), encoding='utf-8')
 
 
 
