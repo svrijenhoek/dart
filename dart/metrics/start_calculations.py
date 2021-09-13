@@ -52,7 +52,10 @@ class MetricsCalculator:
         data = []
         print(str(datetime.now()) + "\tstarting calculations")
         start = time.time()
-        for impression in self.behavior_file:
+        all_entries = len(self.behavior_file)
+        for i, impression in enumerate(self.behavior_file):
+            if i % 10 == 0:
+                print("{}/{}".format(i, all_entries))
             impr_index = impression['impression_index']
             try:
                 hist = [article for article in impression['history']]
