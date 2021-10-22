@@ -1,5 +1,9 @@
 from dart.external.discount import harmonic_number
 from dart.external.kl_divergence import compute_kl_divergence
+from sklearn.preprocessing import KBinsDiscretizer
+import warnings
+import numpy as np
+import dart.handler.other.textstat
 
 
 class Calibration:
@@ -10,7 +14,11 @@ class Calibration:
     """
 
     def __init__(self, config):
-        self.discount = config['discount']
+        n_bins = 5
+        self.bins_discretizer = KBinsDiscretizer(encode='ordinal', n_bins=n_bins, strategy='quantile')
+        warnings.filterwarnings("ignore", category=UserWarning)
+        self.language = config['language']
+        self.textstat = dart.handler.other.textstat.TextStatHandler(self.language)
 
     def compute_distr(self, items, adjusted=False):
         """Compute the genre distribution for a given list of Items."""
@@ -40,11 +48,55 @@ class Calibration:
 
         return distr
 
-    def calculate(self, reading_history, recommendation):
+    def compute_distr_complexity(self, arr, bins_discretizer, adjusted=False):
+        """
+            Args:
+            Return"
+        """
+        n = len(arr)
+        sum_one_over_ranks = harmonic_number(n)
+        arr_binned = bins_discretizer.transform(arr)
+        distr = {}
+        if adjusted:
+            for bin in list(range(bins_discretizer.n_bins)):
+                for indx, ele in enumerate(arr_binned[:, 0]):
+                    if ele == bin:
+                        rank = indx + 1
+                        bin_freq = distr.get(bin, 0.)
+                        distr[bin] = bin_freq + 1 * 1 / rank / sum_one_over_ranks
+
+        else:
+            for bin in list(range(bins_discretizer.n_bins)):
+                distr[bin] = round(np.count_nonzero(arr_binned == bin) / arr_binned.shape[0], 3)
+        return distr
+
+    def topic_divergence(self, reading_history, recommendation):
+        freq_rec = self.compute_distr(recommendation, adjusted=True)
+        freq_history = self.compute_distr(reading_history, adjusted=True)
+        divergence = compute_kl_divergence(freq_history, freq_rec)
+        return divergence
+
+    def complexity_divergence(self, reading_history, recommendation):
+        if 'complexity' in reading_history.columns:
+            reading_history_complexity = np.array(reading_history.complexity).reshape(-1, 1)
+            recommendation_complexity = np.array(recommendation.complexity).reshape(-1, 1)
+        else:
+            reading_history_complexity = np.array(reading_history.text.apply(lambda x: self.textstat.flesch_kincaid_score(x))).reshape(-1, 1)
+            recommendation_complexity = np.array(
+                recommendation.text.apply(lambda x: self.textstat.flesch_kincaid_score(x))).reshape(-1, 1)
+
+        self.bins_discretizer.fit(reading_history_complexity)
+        distr_pool = self.compute_distr_complexity(reading_history_complexity, self.bins_discretizer, False)
+        distr_recommendation = self.compute_distr_complexity(recommendation_complexity, self.bins_discretizer, True)
+        return compute_kl_divergence(distr_pool, distr_recommendation)
+
+    def calculate(self, reading_history, recommendation, complexity = True):
         if not reading_history.empty:
-            freq_rec = self.compute_distr(recommendation, adjusted=True)
-            freq_history = self.compute_distr(reading_history, adjusted=True)
-            divergence = compute_kl_divergence(freq_history, freq_rec)
-            return divergence
+            topic_divergence = self.topic_divergence(reading_history, recommendation)
+            if complexity:
+                complexity_divergence = self.complexity_divergence(reading_history, recommendation)
+            else:
+                complexity_divergence = 0
+            return topic_divergence, complexity_divergence
         else:
             return

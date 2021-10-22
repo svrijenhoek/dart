@@ -1,6 +1,7 @@
 from collections import Counter
 from dart.external.discount import harmonic_number
 from dart.external.kl_divergence import compute_kl_divergence
+import numpy as np
 
 
 class AlternativeVoices:
@@ -41,15 +42,15 @@ class AlternativeVoices:
                 if 'citizen' in person and "United States" in person['citizen']:
                     if 'ethnicity' in person:
                         if 'white people' in person['ethnicity'] or person['ethnicity'] == []:
-                            article_majority += 1
+                            article_majority += len(person['spans'])
                         else:
-                            article_minority += 1
+                            article_minority += len(person['spans'])
                     else:
                         if 'place_of_birth' in person:
                             if 'United States' in person['place_of_birth']:
-                                article_majority += 1
+                                article_majority += len(person['spans'])
                             else:
-                                article_minority += 1
+                                article_minority += len(person['spans'])
             self.ethnicity_scores[article.newsid] = {'majority': article_majority, 'minority': article_minority}
         return article_majority, article_minority
 
@@ -65,9 +66,9 @@ class AlternativeVoices:
                 if 'citizen' in person and "United States" in person['citizen']:
                     if 'gender' in person:
                         if 'male' in person['gender']:
-                            article_majority += 1
+                            article_majority += len(person['spans'])
                         else:
-                            article_minority += 1
+                            article_minority += len(person['spans'])
             self.gender_scores[article.newsid] = {'majority': article_majority, 'minority': article_minority}
         return article_majority, article_minority
 
@@ -81,9 +82,9 @@ class AlternativeVoices:
             persons = filter(lambda x: x['label'] == 'PERSON', article.entities)
             for person in persons:
                 if 'givenname' in person:
-                    article_majority += 1
+                    article_majority += len(person['spans'])
                 else:
-                    article_minority += 1
+                    article_minority += len(person['spans'])
             self.mainstream_scores[article.newsid] = {'majority': article_majority, 'minority': article_minority}
         return article_majority, article_minority
 
@@ -119,16 +120,29 @@ class AlternativeVoices:
             distr[1] = majority / r
         return distr
 
-    def calculate(self, pool, recommendation):
-        pool_ethnicity = self.get_dist(pool, 'ethnicity', False)
-        pool_gender = self.get_dist(pool, 'gender', False)
-        pool_mainstream = self.get_dist(pool, 'mainstream', False)
-        recommendation_ethnicity = self.get_dist(recommendation, 'ethnicity', True)
-        recommendation_gender = self.get_dist(recommendation, 'gender', True)
-        recommendation_mainstream = self.get_dist(recommendation, 'mainstream', True)
+    def calculate(self, full_pool, full_recommendation):
+        pool = full_pool.loc[full_pool['category'] == 'news']
+        recommendation = full_recommendation.loc[full_recommendation['category'] == 'news']
 
-        ethnicity_inclusion = compute_kl_divergence(pool_ethnicity, recommendation_ethnicity)
-        gender_inclusion = compute_kl_divergence(pool_gender, recommendation_gender)
-        mainstream_inclusion = compute_kl_divergence(pool_mainstream, recommendation_mainstream)
+        if not recommendation.empty and not pool.empty:
+            pool_ethnicity = self.get_dist(pool, 'ethnicity', False)
+            recommendation_ethnicity = self.get_dist(recommendation, 'ethnicity', True)
+            ethnicity_inclusion = np.nan
+            if recommendation_ethnicity != {0: 0, 1: 0}:
+                ethnicity_inclusion = compute_kl_divergence(pool_ethnicity, recommendation_ethnicity)
 
-        return ethnicity_inclusion, gender_inclusion, mainstream_inclusion
+            pool_gender = self.get_dist(pool, 'gender', False)
+            recommendation_gender = self.get_dist(recommendation, 'gender', True)
+            gender_inclusion = np.nan
+            if recommendation_gender != {0: 0, 1: 0}:
+                gender_inclusion = compute_kl_divergence(pool_gender, recommendation_gender)
+
+            pool_mainstream = self.get_dist(pool, 'mainstream', False)
+            recommendation_mainstream = self.get_dist(recommendation, 'mainstream', True)
+            mainstream_inclusion = np.nan
+            if recommendation_mainstream != {0: 0, 1: 0}:
+                mainstream_inclusion = compute_kl_divergence(pool_mainstream, recommendation_mainstream)
+
+            return ethnicity_inclusion, gender_inclusion, mainstream_inclusion
+        else:
+            return

@@ -14,7 +14,7 @@ class Affect:
 
     def __init__(self, config):
         n_bins = 5
-        self.bins_discretizer = KBinsDiscretizer(encode='ordinal', n_bins=n_bins, strategy='uniform')
+        self.bins_discretizer = KBinsDiscretizer(encode='ordinal', n_bins=n_bins, strategy='quantile')
         warnings.filterwarnings("ignore", category=UserWarning)
 
     def compute_distr(self, arr, bins_discretizer, adjusted=False):
@@ -36,7 +36,7 @@ class Affect:
 
         else:
             for bin in list(range(bins_discretizer.n_bins)):
-                distr[bin] = round(np.count_nonzero(arr_binned == bin) / arr_binned.shape[0], 2)
+                distr[bin] = round(np.count_nonzero(arr_binned == bin) / arr_binned.shape[0], 3)
         return distr
 
     def calculate(self, pool, recommendation):

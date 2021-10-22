@@ -86,25 +86,31 @@ class MetricsCalculator:
                     representation = self.Representation.calculate(pool_articles, recommendation_articles)
                     alternative_voices = self.AlternativeVoices.calculate(pool_articles, recommendation_articles)
 
-                    data.append({'impr_index': impr_index,
-                                 'rec_type': recommendation_type,
-                                 'calibration': calibration,
-                                 'fragmentation': fragmentation,
-                                 'affect': affect,
-                                 'representation': representation,
-                                 'alternative_voices': alternative_voices[2],
-                                 'alternative_voices_ethnicity': alternative_voices[0],
-                                 'alternative_voices_gender': alternative_voices[1]})
+                    row = {'impr_index': impr_index,
+                        'rec_type': recommendation_type}
+                    if calibration:
+                        row['calibration_topic'] = calibration[0]
+                        row['calibration_complexity'] = calibration[1]
+                    if fragmentation: row['fragmentation'] = fragmentation
+                    if affect: row['affect'] = affect
+                    if representation: row['representation'] = representation
+                    if alternative_voices:
+                        row['alternative_voices'] = alternative_voices[2]
+                        row['alternative_voices_ethnicity'] = alternative_voices[0]
+                        row['alternative_voices_gender'] = alternative_voices[1]
+
+                    data.append(row)
                     success += 1
                 else:
                     failure += 1
 
-        df = pd.DataFrame(data)
+        df = pd.DataFrame(data, columns=['impr_index', 'rec_type', 'calibration_topic', 'calibration_complexity', 'fragmentation',
+                                         'affect', 'representation', 'alternative_voices', 'alternative_voices_ethnicity', 'alternative_voices_gender'])
 
         end = time.time()
         print(end - start)
-        print(df.groupby('rec_type').mean())
-        print(df.groupby('rec_type').std())
+        print(df.groupby('rec_type').mean().T)
+        print(df.groupby('rec_type').std().T)
 
         print(str(success) +" successfully calculated")
         print(str(failure) + " failed")

@@ -1,6 +1,7 @@
 import numpy as np
 from dart.external.discount import harmonic_number
 from dart.external.kl_divergence import compute_kl_divergence
+from collections import defaultdict
 
 
 class Representation:
@@ -63,19 +64,21 @@ class Representation:
         full_party = party[1]
         # only consider entities of type person
         persons = filter(lambda x: x['label'] == 'PERSON', entities)
+        count = 0
         for person in persons:
             # if the person has a property 'party' (this avoids checking this value for people that are not politicians)
             if 'parties' in person:
                 if short_party in person['parties'] or full_party in person['parties']:
-                    return True
+                    count += len(person['spans'])
+
         organisations = filter(lambda x: x['label'] == 'ORG', entities)
         for organisation in organisations:
             # if the person has a property 'party' (this avoids checking this value for people that are not politicians)
             if short_party == organisation['text'] or full_party == organisation['text']:
-                return True
-        return False
+                count += len(organisation['spans'])
+        return count
 
-    def compute_distr(self, articles, adjusted=False):
+    def compute_distr1(self, articles, adjusted=False):
         """Compute the genre distribution for a given list of Items."""
         n = len(articles)
         sum_one_over_ranks = harmonic_number(n)
@@ -87,10 +90,11 @@ class Representation:
             # for each party specified in the configuration file
             for ix, party in enumerate(self.political_parties):
                 # check if the party is either mentioned in one of the article's entities or mentioned in the text
-                if self.in_entities(item, party):
+                mentions = self.in_entities(item, party)
+                if mentions > 0:
                     party_freq = distr.get(party[0], 0.)
                     distr[party[0]] = party_freq + 1 * 1 / rank / sum_one_over_ranks if adjusted else party_freq + 1
-                    count += 1
+                    count += mentions
 
         # we normalize the summed up probability so it sums up to 1
         # and round it to three decimal places, adding more precision
@@ -107,6 +111,46 @@ class Representation:
             for topic in to_remove:
                 del distr[topic]
 
+        return distr
+
+    def compute_distr(self, articles, adjusted=False):
+        """Compute the genre distribution for a given list of Items."""
+        n = len(articles)
+        sum_one_over_ranks = harmonic_number(n)
+        rank = 0
+        count = 0
+        distr = {}
+        for indx, entities in enumerate(np.array(articles.entities)):
+            total = 0
+            rank += 1
+            d = defaultdict(int)
+            # for each party specified in the configuration file
+            persons = filter(lambda x: x['label'] == 'PERSON', entities)
+            for person in persons:
+                if 'party' in person and person['party']:
+                    d[person['party'][0]] += len(person['spans'])
+                    total += len(person['spans'])
+
+            for party, mentions in d.items():
+                    party_freq = distr.get(party, 0.)
+                    distr[party] = party_freq + mentions / total * 1 / rank / sum_one_over_ranks if adjusted else party_freq + mentions / total
+                    count += mentions
+
+        if not adjusted:
+            to_remove = []
+            for topic, party_freq in distr.items():
+                normed_topic_freq = round(party_freq / count, 2)
+                if normed_topic_freq == 0:
+                    to_remove.append(topic)
+                else:
+                    distr[topic] = normed_topic_freq
+
+            for topic in to_remove:
+                del distr[topic]
+
+        total = sum(distr.values())
+        if total < 1:
+            distr['other'] = 1 - total
         return distr
 
     def calculate(self, pool, recommendation):
