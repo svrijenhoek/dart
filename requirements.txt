@@ -15,7 +15,7 @@ matplotlib
 community~=1.0.0b1
 scipy~=1.6.3
 networkx~=2.5
-textblob~=0.15.3
+textblob~=0.17.1
 textblob_de~=0.4.3
 textblob_nl~=0.0.1
 pymongo
