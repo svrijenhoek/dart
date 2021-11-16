@@ -15,7 +15,7 @@ class Calibration:
 
     def __init__(self, config):
         n_bins = 5
-        self.bins_discretizer = KBinsDiscretizer(encode='ordinal', n_bins=n_bins, strategy='quantile')
+        self.bins_discretizer = KBinsDiscretizer(encode='ordinal', n_bins=n_bins, strategy='uniform')
         warnings.filterwarnings("ignore", category=UserWarning)
         self.language = config['language']
         self.textstat = dart.handler.other.textstat.TextStatHandler(self.language)
@@ -28,23 +28,8 @@ class Calibration:
         distr = {}
         for _, item in items.iterrows():
             count += 1
-            topic_freq = distr.get(item.subcategory, 0.)
-            distr[item.subcategory] = topic_freq + 1 * 1 / count / sum_one_over_ranks if adjusted else topic_freq + 1
-
-        # we normalize the summed up probability so it sums up to 1
-        # and round it to three decimal places, adding more precision
-        # doesn't add much value and clutters the output
-        if not adjusted:
-            to_remove = []
-            for topic, topic_freq in distr.items():
-                normed_topic_freq = round(topic_freq / count, 2)
-                if normed_topic_freq == 0:
-                    to_remove.append(topic)
-                else:
-                    distr[topic] = normed_topic_freq
-
-            for topic in to_remove:
-                del distr[topic]
+            topic_freq = distr.get(item.category, 0.)
+            distr[item.category] = topic_freq + 1 * 1 / count / sum_one_over_ranks if adjusted else topic_freq + 1 * 1 / n
 
         return distr
 
@@ -86,7 +71,7 @@ class Calibration:
                 recommendation.text.apply(lambda x: self.textstat.flesch_kincaid_score(x))).reshape(-1, 1)
 
         self.bins_discretizer.fit(reading_history_complexity)
-        distr_pool = self.compute_distr_complexity(reading_history_complexity, self.bins_discretizer, False)
+        distr_pool = self.compute_distr_complexity(reading_history_complexity, self.bins_discretizer, True)
         distr_recommendation = self.compute_distr_complexity(recommendation_complexity, self.bins_discretizer, True)
         return compute_kl_divergence(distr_pool, distr_recommendation)
 

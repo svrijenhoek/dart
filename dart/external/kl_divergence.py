@@ -8,9 +8,10 @@ def compute_kl_divergence(s, q, alpha=0.01):
     computation more numerically stable.
     """
     try:
-        assert 0.95 <= sum(s.values()) <= 1.01
-        assert 0.95 <= sum(q.values()) <= 1.01
+        assert 0.99 <= sum(s.values()) <= 1.01
+        assert 0.99 <= sum(q.values()) <= 1.01
     except AssertionError:
+        print("Assertion Error")
         pass
     kl_div = 0.
     for bin, s_score in s.items():

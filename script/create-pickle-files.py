@@ -23,7 +23,7 @@ def articles_to_pickle():
     # create articles pickle
     articles = [article['_source'] for article in handlers.articles.get_all_documents('articles')]
     df = pd.DataFrame(articles)
-    file = os.path.join(BASE_DIR, Path('data/articles1.pickle'))
+    file = os.path.join(BASE_DIR, Path('data/articles.pickle'))
     with open(file, 'wb') as f:
         pickle.dump(df, f)
 
@@ -42,31 +42,32 @@ def articles_to_pickle():
 def recommendations_to_pickle():
     # for JSON
     lstur = []
-    file = open(os.path.join(BASE_DIR, Path('data/recommendations/lstur_pred_small.json')))
+    file = open(os.path.join(BASE_DIR, Path('data/recommendations/lstur_pred_large.json')))
     for line in file:
         json_line = json.loads(line)
         lstur.append(json_line)
     #
     naml = []
-    file = open(os.path.join(BASE_DIR, Path('data/recommendations/naml_pred_small.json')))
+    file = open(os.path.join(BASE_DIR, Path('data/recommendations/naml_pred_large.json')))
     for line in file:
         json_line = json.loads(line)
         naml.append(json_line)
 
     pop = []
-    file = open(os.path.join(BASE_DIR, Path('data/recommendations/pop_pred_small.json')))
+    file = open(os.path.join(BASE_DIR, Path('data/recommendations/pop_pred_large.json')))
     for line in file:
         json_line = json.loads(line)
         pop.append(json_line)
+    sorted_pop = sorted(pop, key=lambda d: d['impr_index'])
 
-    behavior_file = open(os.path.join(BASE_DIR, Path('data/recommendations/behaviors_small.tsv')))
+    behavior_file = open(os.path.join(BASE_DIR, Path('data/recommendations/behaviors_large.tsv')))
     behaviors_csv = csv.reader(behavior_file, delimiter="\t")
     behaviors = []
     for line in behaviors_csv:
         behaviors.append(line)
 
     data = []
-    for (a, b, c, d) in zip(behaviors, lstur, naml, pop):
+    for (a, b, c, d) in zip(behaviors, lstur, naml, sorted_pop):
         impression_index = a[0]
         userid = a[1]
         date = datetime.strptime(a[2], "%m/%d/%Y %I:%M:%S %p")
@@ -98,5 +99,5 @@ def recommendations_to_pickle():
         pickle.dump(df, f)
 
 
-articles_to_pickle()
+# articles_to_pickle()
 recommendations_to_pickle()

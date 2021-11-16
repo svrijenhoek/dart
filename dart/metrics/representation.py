@@ -93,23 +93,23 @@ class Representation:
                 mentions = self.in_entities(item, party)
                 if mentions > 0:
                     party_freq = distr.get(party[0], 0.)
-                    distr[party[0]] = party_freq + 1 * 1 / rank / sum_one_over_ranks if adjusted else party_freq + 1
+                    distr[party[0]] = party_freq + 1 * 1 / rank / sum_one_over_ranks if adjusted else party_freq + 1 * 1 / n
                     count += mentions
 
         # we normalize the summed up probability so it sums up to 1
         # and round it to three decimal places, adding more precision
         # doesn't add much value and clutters the output
-        if not adjusted:
-            to_remove = []
-            for topic, party_freq in distr.items():
-                normed_topic_freq = round(party_freq / count, 2)
-                if normed_topic_freq == 0:
-                    to_remove.append(topic)
-                else:
-                    distr[topic] = normed_topic_freq
-
-            for topic in to_remove:
-                del distr[topic]
+        # if not adjusted:
+        #     to_remove = []
+        #     for topic, party_freq in distr.items():
+        #         normed_topic_freq = round(party_freq / count, 2)
+        #         if normed_topic_freq == 0:
+        #             to_remove.append(topic)
+        #         else:
+        #             distr[topic] = normed_topic_freq
+        #
+        #     for topic in to_remove:
+        #         del distr[topic]
 
         return distr
 
@@ -118,7 +118,6 @@ class Representation:
         n = len(articles)
         sum_one_over_ranks = harmonic_number(n)
         rank = 0
-        count = 0
         distr = {}
         for indx, entities in enumerate(np.array(articles.entities)):
             total = 0
@@ -134,23 +133,12 @@ class Representation:
             for party, mentions in d.items():
                     party_freq = distr.get(party, 0.)
                     distr[party] = party_freq + mentions / total * 1 / rank / sum_one_over_ranks if adjusted else party_freq + mentions / total
-                    count += mentions
 
-        if not adjusted:
-            to_remove = []
-            for topic, party_freq in distr.items():
-                normed_topic_freq = round(party_freq / count, 2)
-                if normed_topic_freq == 0:
-                    to_remove.append(topic)
-                else:
-                    distr[topic] = normed_topic_freq
+        if sum(distr.values()) > 0:
+            factor = 1.0 / sum(distr.values())
+            for key, value in distr.items():
+                distr[key] = value * factor
 
-            for topic in to_remove:
-                del distr[topic]
-
-        total = sum(distr.values())
-        if total < 1:
-            distr['other'] = 1 - total
         return distr
 
     def calculate(self, pool, recommendation):
@@ -159,6 +147,9 @@ class Representation:
         if not pool_news.empty and not recommendation_news.empty:
             pool_vector = self.compute_distr(pool_news, adjusted=False)
             recommendation_vector = self.compute_distr(recommendation_news, adjusted=True)
-            return compute_kl_divergence(pool_vector, recommendation_vector)
+            if pool_vector and recommendation_vector:
+                return compute_kl_divergence(pool_vector, recommendation_vector)
+            else:
+                return
         else:
             return

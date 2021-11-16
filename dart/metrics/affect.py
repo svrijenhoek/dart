@@ -14,7 +14,7 @@ class Affect:
 
     def __init__(self, config):
         n_bins = 5
-        self.bins_discretizer = KBinsDiscretizer(encode='ordinal', n_bins=n_bins, strategy='quantile')
+        self.bins_discretizer = KBinsDiscretizer(encode='ordinal', n_bins=n_bins, strategy='uniform')
         warnings.filterwarnings("ignore", category=UserWarning)
 
     def compute_distr(self, arr, bins_discretizer, adjusted=False):

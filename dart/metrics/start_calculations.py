@@ -5,8 +5,8 @@ import dart.metrics.representation
 import dart.metrics.alternative_voices
 import dart.metrics.visualize
 import pandas as pd
-import numpy as np
 import time
+from random import sample
 
 from datetime import datetime
 from pathlib import Path
@@ -38,11 +38,11 @@ class MetricsCalculator:
         self.recommendations = recommendations
         self.behavior_file = behavior_file
         if self.config['test_size'] > 0:
-            self.behavior_file = self.behavior_file[:self.config['test_size']]
+            self.behavior_file = sample(self.behavior_file, self.config['test_size'])
 
     def create_sample(self):
         unique_impressions = self.recommendations.impr_index.unique()
-        sample_impressions = np.random.choice(unique_impressions, size=20).tolist()
+        sample_impressions = sample(list(unique_impressions), 10)
         return self.recommendations[self.recommendations['impr_index'].isin(sample_impressions)]
 
     def retrieve_articles(self, newsids):
@@ -74,6 +74,7 @@ class MetricsCalculator:
                 recommendation = self.recommendations.loc[
                     (self.recommendations['impr_index'] == impr_index) &
                     (self.recommendations['type'] == recommendation_type)]
+
                 recommendation_articles = self.retrieve_articles([_id for _id in recommendation.iloc[0].articles])
 
                 if not recommendation_articles.empty and not pool_articles.empty:
