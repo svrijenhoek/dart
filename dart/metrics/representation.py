@@ -78,41 +78,6 @@ class Representation:
                 count += len(organisation['spans'])
         return count
 
-    def compute_distr1(self, articles, adjusted=False):
-        """Compute the genre distribution for a given list of Items."""
-        n = len(articles)
-        sum_one_over_ranks = harmonic_number(n)
-        rank = 0
-        count = 0
-        distr = {}
-        for indx, item in enumerate(np.array(articles.entities)):
-            rank += 1
-            # for each party specified in the configuration file
-            for ix, party in enumerate(self.political_parties):
-                # check if the party is either mentioned in one of the article's entities or mentioned in the text
-                mentions = self.in_entities(item, party)
-                if mentions > 0:
-                    party_freq = distr.get(party[0], 0.)
-                    distr[party[0]] = party_freq + 1 * 1 / rank / sum_one_over_ranks if adjusted else party_freq + 1 * 1 / n
-                    count += mentions
-
-        # we normalize the summed up probability so it sums up to 1
-        # and round it to three decimal places, adding more precision
-        # doesn't add much value and clutters the output
-        # if not adjusted:
-        #     to_remove = []
-        #     for topic, party_freq in distr.items():
-        #         normed_topic_freq = round(party_freq / count, 2)
-        #         if normed_topic_freq == 0:
-        #             to_remove.append(topic)
-        #         else:
-        #             distr[topic] = normed_topic_freq
-        #
-        #     for topic in to_remove:
-        #         del distr[topic]
-
-        return distr
-
     def compute_distr(self, articles, adjusted=False):
         """Compute the genre distribution for a given list of Items."""
         n = len(articles)

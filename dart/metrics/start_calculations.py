@@ -5,6 +5,7 @@ import dart.metrics.representation
 import dart.metrics.alternative_voices
 import dart.metrics.visualize
 import pandas as pd
+import numpy as np
 import time
 from random import sample
 
@@ -42,7 +43,7 @@ class MetricsCalculator:
 
     def create_sample(self):
         unique_impressions = self.recommendations.impr_index.unique()
-        sample_impressions = sample(list(unique_impressions), 10)
+        sample_impressions = np.random.choice(unique_impressions, size=10).tolist()
         return self.recommendations[self.recommendations['impr_index'].isin(sample_impressions)]
 
     def retrieve_articles(self, newsids):
