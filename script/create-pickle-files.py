@@ -23,20 +23,10 @@ def articles_to_pickle():
     # create articles pickle
     articles = [article['_source'] for article in handlers.articles.get_all_documents('articles')]
     df = pd.DataFrame(articles)
+    df.set_index('newsid')
     file = os.path.join(BASE_DIR, Path('data/articles.pickle'))
     with open(file, 'wb') as f:
         pickle.dump(df, f)
-
-# create recommendations pickle
-# recommendations = []
-# for recommendation_type in handlers.recommendations.get_recommendation_types():
-#     per_type = [rec for rec in mongo_connector.find('recommendations', recommendation_type, {})]
-#     recommendations = [*recommendations, *per_type]
-# df = pd.DataFrame(recommendations)
-# file = os.path.join(BASE_DIR, Path('data/recommendations.pickle'))
-# with open(file, 'wb') as f:
-#     pickle.dump(df, f)
-
 
 # to do: add popularity
 def recommendations_to_pickle():
@@ -88,13 +78,10 @@ def recommendations_to_pickle():
                 random_list.append(items[random_index].split("-")[0])
             except IndexError:
                 pass
-        data.append({'impr_index': impression_index, 'userid': userid, 'type': 'lstur', 'date': date, 'articles': lstur_list})
-        data.append({'impr_index': impression_index, 'userid': userid, 'type': 'naml', 'date': date, 'articles': naml_list})
-        data.append({'impr_index': impression_index, 'userid': userid, 'type': 'pop', 'date': date, 'articles': pop_list})
-        data.append({'impr_index': impression_index, 'userid': userid, 'type': 'random', 'date': date,
-                                     'articles': random_list})
+        data.append({'impr_index': impression_index, 'userid': userid, 'date': date, 'lstur': lstur_list, 'naml': naml_list, 'pop': pop_list, 'random': random_list})
     df = pd.DataFrame(data)
-    file = os.path.join(BASE_DIR, Path('data/recommendations.pickle'))
+    df = df.set_index('impr_index')
+    file = os.path.join(BASE_DIR, Path('data/recommendations_large.pickle'))
     with open(file, 'wb') as f:
         pickle.dump(df, f)
 

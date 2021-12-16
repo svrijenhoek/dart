@@ -41,12 +41,12 @@ class MetricsCalculator:
         if self.config['test_size'] > 0:
             self.behavior_file = sample(self.behavior_file, self.config['test_size'])
 
-        self.timer = {'calibration': 0, 'fragmentation': 0, 'affect': 0, 'representation': 0, 'alternative': 0}
+        self.timer = {'calibration': 0, 'fragmentation': 0, 'affect': 0, 'representation': 0, 'alternative': 0,
+                      'retrieving_articles': 0, 'sampling': 0}
 
     def create_sample(self):
-        unique_impressions = self.recommendations.impr_index.unique()
-        sample_impressions = np.random.choice(unique_impressions, size=5).tolist()
-        return self.recommendations[self.recommendations['impr_index'].isin(sample_impressions)]
+        sample_impressions = np.random.choice(self.unique_impressions, size=5).tolist()
+        return self.recommendations.loc[sample_impressions]
 
     def retrieve_articles(self, newsids):
         try:
@@ -64,6 +64,7 @@ class MetricsCalculator:
         all_entries = len(self.behavior_file)
         mod = round(all_entries/10)
         for i, impression in enumerate(self.behavior_file):
+            tx = time.time()
             if i % mod == 0:
                 print("{}/{}".format(i, all_entries))
             impr_index = impression['impression_index']
@@ -71,23 +72,22 @@ class MetricsCalculator:
             hist.reverse()
             reading_history = self.retrieve_articles(hist)
             pool_articles = self.retrieve_articles(article for article in impression['items_without_click'])
-            sample = self.create_sample()
-
+            ty = time.time()
+            sample = self.recommendations.sample(n=5)
+            tz = time.time()
+            self.timer['retrieving_articles'] += ty - tx
+            self.timer['sampling'] += tz - ty
+            recommendation = self.recommendations.loc[impr_index]
             for recommendation_type in self.recommendation_types:
-                recommendation = self.recommendations.loc[
-                    (self.recommendations['impr_index'] == impr_index) &
-                    (self.recommendations['type'] == recommendation_type)]
-
-                recommendation_articles = self.retrieve_articles([_id for _id in recommendation.iloc[0].articles])
-
+                recommendation_articles = self.retrieve_articles([_id for _id in recommendation[recommendation_type]])
                 if not recommendation_articles.empty and not pool_articles.empty:
                     t1 = time.time()
                     calibration = self.Calibration.calculate(reading_history, recommendation_articles)
                     t2 = time.time()
                     self.timer['calibration'] += t2-t1
-                    frag_sample = sample[sample['type'] == recommendation_type]
+                    # frag_sample = sample[sample[recommendation_type] == recommendation_type]
                     frag_articles = [self.retrieve_articles([_id for _id in articles])
-                                     for articles in frag_sample['articles']]
+                                     for articles in sample[recommendation_type]]
                     fragmentation = self.Fragmentation.calculate(frag_articles, recommendation_articles)
                     t3 = time.time()
                     self.timer['fragmentation'] += t3-t2
