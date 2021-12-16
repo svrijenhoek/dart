@@ -51,7 +51,7 @@ class AlternativeVoices:
                                 article_majority += len(person['spans'])
                             else:
                                 article_minority += len(person['spans'])
-            self.ethnicity_scores[article.newsid] = {'majority': article_majority, 'minority': article_minority}
+            self.ethnicity_scores[article.index[0]] = {'majority': article_majority, 'minority': article_minority}
         return article_majority, article_minority
 
     def get_gender_score(self, article):
@@ -69,7 +69,7 @@ class AlternativeVoices:
                             article_majority += len(person['spans'])
                         else:
                             article_minority += len(person['spans'])
-            self.gender_scores[article.newsid] = {'majority': article_majority, 'minority': article_minority}
+            self.gender_scores[article.index[0]] = {'majority': article_majority, 'minority': article_minority}
         return article_majority, article_minority
 
     def get_mainstream_score(self, article):
@@ -85,7 +85,7 @@ class AlternativeVoices:
                     article_majority += len(person['spans'])
                 else:
                     article_minority += len(person['spans'])
-            self.mainstream_scores[article.newsid] = {'majority': article_majority, 'minority': article_minority}
+            self.mainstream_scores[article.index[0]] = {'majority': article_majority, 'minority': article_minority}
         return article_majority, article_minority
 
     def get_dist(self, articles, value, adjusted=False):
@@ -125,17 +125,17 @@ class AlternativeVoices:
         recommendation = full_recommendation.loc[full_recommendation['category'] == 'news']
 
         if not recommendation.empty and not pool.empty:
-            pool_ethnicity = self.get_dist(pool, 'ethnicity', False)
-            recommendation_ethnicity = self.get_dist(recommendation, 'ethnicity', True)
-            ethnicity_inclusion = np.nan
-            if recommendation_ethnicity != {0: 0, 1: 0}:
-                ethnicity_inclusion = compute_kl_divergence(pool_ethnicity, recommendation_ethnicity)
-
-            pool_gender = self.get_dist(pool, 'gender', False)
-            recommendation_gender = self.get_dist(recommendation, 'gender', True)
-            gender_inclusion = np.nan
-            if recommendation_gender != {0: 0, 1: 0}:
-                gender_inclusion = compute_kl_divergence(pool_gender, recommendation_gender)
+            # pool_ethnicity = self.get_dist(pool, 'ethnicity', False)
+            # recommendation_ethnicity = self.get_dist(recommendation, 'ethnicity', True)
+            # ethnicity_inclusion = np.nan
+            # if recommendation_ethnicity != {0: 0, 1: 0}:
+            #     ethnicity_inclusion = compute_kl_divergence(pool_ethnicity, recommendation_ethnicity)
+            #
+            # pool_gender = self.get_dist(pool, 'gender', False)
+            # recommendation_gender = self.get_dist(recommendation, 'gender', True)
+            # gender_inclusion = np.nan
+            # if recommendation_gender != {0: 0, 1: 0}:
+            #     gender_inclusion = compute_kl_divergence(pool_gender, recommendation_gender)
 
             pool_mainstream = self.get_dist(pool, 'mainstream', False)
             recommendation_mainstream = self.get_dist(recommendation, 'mainstream', True)
@@ -143,6 +143,6 @@ class AlternativeVoices:
             if recommendation_mainstream != {0: 0, 1: 0}:
                 mainstream_inclusion = compute_kl_divergence(pool_mainstream, recommendation_mainstream)
 
-            return ethnicity_inclusion, gender_inclusion, mainstream_inclusion
+            return 0, 0, mainstream_inclusion # ethnicity_inclusion, gender_inclusion, mainstream_inclusion
         else:
             return

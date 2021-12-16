@@ -36,3 +36,10 @@ class Visualize:
             sns.violinplot(data=df, x=column, y="rec_type", inner="quart", split=True, ax=axs[i])
         plt.show(block=True)
         fig.savefig(Path(output_folder+'alternative_voices.png'))
+
+    @staticmethod
+    def boxplot(df):
+        df.boxplot(column=list(df.columns)[2:8], by='rec_type', grid=False)
+        df.boxplot(column=list(df.columns)[7:], by='rec_type', grid=False)
+        # df['alternative_voices'] = df['alternative_voices'].where(df['alternative_voices'] <= 1, 1)
+        plt.show(block=True)
