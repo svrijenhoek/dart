@@ -30,8 +30,11 @@ class Fragmentation:
         fragmentations = []
         stories_x = recommendation.story.tolist()
         for y in sample:
-            stories_y = y.story.tolist()
-            fragmentations.append(self.compare_recommendations(stories_x, stories_y))
+            try:
+                stories_y = y.story.tolist()
+                fragmentations.append(self.compare_recommendations(stories_x, stories_y))
+            except AttributeError:
+                pass
         return np.mean(fragmentations)
 
     def compare_recommendations(self, x, y):
