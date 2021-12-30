@@ -143,6 +143,6 @@ class AlternativeVoices:
             if recommendation_mainstream != {0: 0, 1: 0}:
                 mainstream_inclusion = compute_kl_divergence(pool_mainstream, recommendation_mainstream)
 
-            return 0, 0, mainstream_inclusion # ethnicity_inclusion, gender_inclusion, mainstream_inclusion
+            return mainstream_inclusion # ethnicity_inclusion, gender_inclusion, mainstream_inclusion
         else:
             return

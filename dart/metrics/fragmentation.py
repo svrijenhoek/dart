@@ -27,22 +27,27 @@ class Fragmentation:
         return distr
 
     def calculate(self, sample, recommendation):
-        fragmentations = []
+        fr = []
         stories_x = recommendation.story.tolist()
         for y in sample:
             try:
                 stories_y = y.story.tolist()
-                fragmentations.append(self.compare_recommendations(stories_x, stories_y))
+                values = self.compare_recommendations(stories_x, stories_y)
+                if values:
+                    fr.append(values)
             except AttributeError:
                 pass
-        return np.mean(fragmentations)
+        return [np.mean([f[0] for f in fr]), np.mean([f[1] for f in fr]), np.mean([f[2] for f in fr])]
 
     def compare_recommendations(self, x, y):
         if x and y:
             # output = rbo(x, y, 0.9)
             freq_x = self.compute_distr(x, adjusted=True)
             freq_y = self.compute_distr(y, adjusted=True)
-            divergence = 1/2*(compute_kl_divergence(freq_x, freq_y) + compute_kl_divergence(freq_y, freq_x))
-            return divergence
+            # xy = compute_kl_divergence(freq_x, freq_y)
+            # yx = compute_kl_divergence(freq_y, freq_x)
+            # kl = 1/2*(xy[0] + yx[0])
+            # jsd = 1/2*(xy[1] + yx[1])
+            return compute_kl_divergence(freq_x, freq_y)
         else:
-            return 0
+            return

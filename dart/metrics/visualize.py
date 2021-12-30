@@ -43,3 +43,23 @@ class Visualize:
         df.boxplot(column=list(df.columns)[7:], by='rec_type', grid=False)
         # df['alternative_voices'] = df['alternative_voices'].where(df['alternative_voices'] <= 1, 1)
         plt.show(block=True)
+
+    @staticmethod
+    def violin_plot_per_distance(df, output_folder):
+        pd.options.mode.chained_assignment = None
+        columns = list(df.columns)[2:8]
+        metrics = ['kl', 'kl_symm', 'jsd']
+        for i, column in enumerate(columns):
+            fig, axs = plt.subplots(ncols=len(metrics))
+            fig.suptitle(column)
+            df1 = df[['rec_type']]
+            try:
+                df1['kl'], df1['jsd'], df1['kl_symm'] = df[column].str
+                print(column)
+                print(df1.groupby('rec_type').mean())
+                for a, metric in enumerate(metrics):
+                    sns.violinplot(data=df1, x=metric, y="rec_type", inner="quart", split=True, ax=axs[a],
+                                   title=column)
+            except ValueError:
+                pass
+        plt.show(block=True)

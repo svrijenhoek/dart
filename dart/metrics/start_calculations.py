@@ -91,7 +91,7 @@ class MetricsCalculator:
                     fragmentation = self.Fragmentation.calculate(frag_articles, recommendation_articles)
                     t3 = time.time()
                     self.timer['fragmentation'] += t3-t2
-                    mean_affect, divergence_affect = self.Affect.calculate(pool_articles, recommendation_articles)
+                    affect = self.Affect.calculate(pool_articles, recommendation_articles)
                     t4 = time.time()
                     self.timer['affect'] += t4-t3
                     representation = self.Representation.calculate(pool_articles, recommendation_articles)
@@ -106,14 +106,20 @@ class MetricsCalculator:
                     if calibration:
                         row['calibration_topic'] = calibration[0]
                         row['calibration_complexity'] = calibration[1]
-                    if fragmentation: row['fragmentation'] = fragmentation
-                    if divergence_affect: row['affect'] = divergence_affect
-                    if representation: row['representation'] = representation
+                    if fragmentation:
+                        row['fragmentation'] = fragmentation
+                    if affect:
+                        row['affect'] = affect
+                    if representation:
+                        row['representation'] = representation
                     if alternative_voices:
-                        row['alternative_voices'] = alternative_voices[2]
-                        row['alternative_voices_ethnicity'] = alternative_voices[0]
-                        row['alternative_voices_gender'] = alternative_voices[1]
-                    if mean_affect: row['affect_mean'] = mean_affect
+                        try:
+                            row['alternative_voices'] = alternative_voices
+                        except TypeError:
+                            # print(alternative_voices)
+                            pass
+                        # row['alternative_voices_ethnicity'] = alternative_voices[0]
+                        # row['alternative_voices_gender'] = alternative_voices[1]
                     data.append(row)
                     success += 1
                 else:
@@ -121,12 +127,14 @@ class MetricsCalculator:
 
         print(self.timer)
         df = pd.DataFrame(data, columns=['impr_index', 'rec_type', 'calibration_topic', 'calibration_complexity', 'fragmentation',
-                                         'affect', 'representation', 'alternative_voices', 'alternative_voices_ethnicity', 'alternative_voices_gender', 'affect_mean'])
+                                         'affect', 'representation', 'alternative_voices'])
 
-        end = time.time()
-        print(end - start)
-        print(df.groupby('rec_type').mean().T)
-        print(df.groupby('rec_type').std().T)
+        #
+        # print(df.head())
+        # end = time.time()
+        # print(end - start)
+        # print(df.groupby('rec_type').mean().T)
+        # print(df.groupby('rec_type').std().T)
 
         print(str(success) +" successfully calculated")
         print(str(failure) + " failed")
@@ -134,11 +142,9 @@ class MetricsCalculator:
         print(str(datetime.now()) + "\tdone")
 
         output_folder = self.config["output_folder"]
-        self.write_to_file(df, output_folder)
-        dart.metrics.visualize.Visualize.boxplot(df)
-        dart.metrics.visualize.Visualize.violin_plot(df, output_folder)
-
-
+        # self.write_to_file(df, output_folder)
+        # dart.metrics.visualize.Visualize.boxplot(df)
+        dart.metrics.visualize.Visualize.violin_plot_per_distance(df, output_folder)
 
     def write_to_file(self, df, output_folder):
         df.groupby('rec_type').mean().to_csv(Path(output_folder + 'summary.csv'), encoding='utf-8', mode='w')
