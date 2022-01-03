@@ -3,32 +3,27 @@ from scipy.stats import entropy
 from numpy.linalg import norm
 
 
-# def compute_kl_divergence(s, q, alpha=0.01):
-#     """
-#     KL (p || q), the lower the better.
-#     alpha is not really a tuning parameter, it's just there to make the
-#     computation more numerically stable.
-#     """
-#     try:
-#         assert 0.99 <= sum(s.values()) <= 1.01
-#         assert 0.99 <= sum(q.values()) <= 1.01
-#     except AssertionError:
-#         print("Assertion Error")
-#         pass
-#     kl_div = 0.
-#     for bin, s_score in s.items():
-#         try:
-#             if not s_score == 0:
-#                 q_score = q.get(bin, 0.)
-#                 q_score = (1 - alpha) * q_score + alpha * s_score
-#                 kl_div += s_score * np.log2(s_score / q_score)
-#         except ZeroDivisionError:
-#             print(s_score)
-#             print(q_score)
-#             print()
-#     return kl_div
+def opt_merge_max_mappings(dict1, dict2):
+    """ Merges two dictionaries based on the largest value in a given mapping.
+    Parameters
+    ----------
+    dict1 : Dict[Any, Comparable]
+    dict2 : Dict[Any, Comparable]
+    Returns
+    -------
+    Dict[Any, Comparable]
+        The merged dictionary
+    """
+    # we will iterate over `other` to populate `merged`
+    merged, other = (dict1, dict2) if len(dict1) > len(dict2) else (dict2, dict1)
+    merged = dict(merged)
 
-def compute_kl_divergence(s, q, alpha=0.01):
+    for key in other:
+        if key not in merged or other[key] > merged[key]:
+            merged[key] = other[key]
+    return merged
+
+def compute_kl_divergence(s, q, alpha=0.001):
     """
     KL (p || q), the lower the better.
     alpha is not really a tuning parameter, it's just there to make the
@@ -41,42 +36,30 @@ def compute_kl_divergence(s, q, alpha=0.01):
         print("Assertion Error")
         pass
     kl_div = 0.
-    a = []
-    b = []
-    for bin, s_score in s.items():
-        try:
-            if not s_score == 0:
-                q_score = q.get(bin, 0.)
-                q_score = (1 - alpha) * q_score + alpha * s_score
-                # kl_div += s_score * np.log2(s_score / q_score)
-                a.append(s_score)
-                b.append(q_score)
-
-        except ZeroDivisionError:
-            print(s_score)
-            print(q_score)
-            print()
-    for bin, q_score in q.items():
-        if bin not in s:
-            # s_score = 0.000001
-            s_score = s.get(bin, 0.)
-            s_score = (1 - alpha) * s_score + alpha * q_score
-            a.append(s_score)
-            b.append(q_score)
-
-
-    kl = entropy(a, b, base=2)
-    jsd = JSD(a,b)
-    kl_symmetric = (kl + entropy(b, a, base=2))/2
+    ss = []
+    qq = []
+    merged_dic = opt_merge_max_mappings(s, q)
+    for key in sorted(merged_dic.keys()):
+        q_score = q.get(key, 0.)
+        s_score = s.get(key, 0.)
+        # by contruction they cannot be both 0
+        if s_score == 0 and q_score == 0:
+            raise Exception('Something is wrong in compute_kl_divergence')
+        elif s_score == 0:
+            ss_score = (1 - alpha) * s_score + alpha * q_score
+            ss.append(ss_score)
+            qq.append(q_score)
+        elif q_score == 0:
+            qq_score = (1 - alpha) * q_score + alpha * s_score
+            ss.append(s_score)
+            qq.append(qq_score)
+        else:
+            ss.append(s_score)
+            qq.append(q_score)
+    kl = entropy(ss, qq, base=2)
+    jsd = JSD(ss,qq)
+    kl_symmetric = (kl + entropy(qq, ss, base=2))/2
     return [kl, jsd, kl_symmetric]
-
-
-def KL(a, b):
-    a = np.asarray(a, dtype=np.float)
-    b = np.asarray(b, dtype=np.float)
-    # return np.sum(np.where(a != 0, a * np.log2(a / b), 0))
-    # return np.sum(np.where(a != 0, np.where(b != 0, a * np.log2(a / b), 0), 0))
-    return np.sum(a * np.log2(a / b))
 
 
 def KL_symmetric(a, b):
