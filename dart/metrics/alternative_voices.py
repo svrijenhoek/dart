@@ -139,10 +139,15 @@ class AlternativeVoices:
 
             pool_mainstream = self.get_dist(pool, 'mainstream', False)
             recommendation_mainstream = self.get_dist(recommendation, 'mainstream', True)
-            mainstream_inclusion = np.nan
+            divergence_with_discount = np.nan
             if recommendation_mainstream != {0: 0, 1: 0}:
-                mainstream_inclusion = compute_kl_divergence(pool_mainstream, recommendation_mainstream)
+                divergence_with_discount = compute_kl_divergence(pool_mainstream, recommendation_mainstream)
 
-            return mainstream_inclusion # ethnicity_inclusion, gender_inclusion, mainstream_inclusion
+            recommendation_mainstream = self.get_dist(recommendation, 'mainstream', False)
+            divergence_without_discount = np.nan
+            if recommendation_mainstream != {0: 0, 1: 0}:
+                divergence_without_discount = compute_kl_divergence(pool_mainstream, recommendation_mainstream)
+
+            return [divergence_with_discount, divergence_without_discount] # ethnicity_inclusion, gender_inclusion, mainstream_inclusion
         else:
             return

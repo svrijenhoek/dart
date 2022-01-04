@@ -58,8 +58,12 @@ class Calibration:
     def topic_divergence(self, reading_history, recommendation):
         freq_rec = self.compute_distr(recommendation, adjusted=True)
         freq_history = self.compute_distr(reading_history, adjusted=True)
-        divergence = compute_kl_divergence(freq_history, freq_rec)
-        return divergence
+        divergence_with_discount = compute_kl_divergence(freq_history, freq_rec)
+
+        freq_rec = self.compute_distr(recommendation, adjusted=False)
+        freq_history = self.compute_distr(reading_history, adjusted=False)
+        divergence_without_discount = compute_kl_divergence(freq_history, freq_rec)
+        return [divergence_with_discount, divergence_without_discount]
 
     def complexity_divergence(self, reading_history, recommendation):
         if 'complexity' in reading_history.columns:
@@ -71,9 +75,15 @@ class Calibration:
                 recommendation.text.apply(lambda x: self.textstat.flesch_kincaid_score(x))).reshape(-1, 1)
 
         self.bins_discretizer.fit(reading_history_complexity)
+
         distr_pool = self.compute_distr_complexity(reading_history_complexity, self.bins_discretizer, True)
         distr_recommendation = self.compute_distr_complexity(recommendation_complexity, self.bins_discretizer, True)
-        return compute_kl_divergence(distr_pool, distr_recommendation)
+        divergence_with_discount = compute_kl_divergence(distr_pool, distr_recommendation)
+
+        distr_pool = self.compute_distr_complexity(reading_history_complexity, self.bins_discretizer, False)
+        distr_recommendation = self.compute_distr_complexity(recommendation_complexity, self.bins_discretizer, False)
+        divergence_without_discount = compute_kl_divergence(distr_pool, distr_recommendation)
+        return [divergence_with_discount, divergence_without_discount]
 
     def calculate(self, reading_history, recommendation, complexity = True):
         if not reading_history.empty:

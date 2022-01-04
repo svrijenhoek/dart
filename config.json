@@ -7,14 +7,14 @@
     "representation",
     "inclusion"
     ],
-  "append": "Y",
-  "test_size": 0,
+  "append": "N",
+  "test_size": 1000,
   "language": "english",
   "baseline_recommendations": ["random"],
   "size": 8,
-  "articles": "data/articles.pickle",
-  "recommendations": "data/recommendations.pickle",
+  "articles": "data/articles_large.pickle",
+  "recommendations": "data/recommendations_large_all_recs.pickle",
   "political_file": "data/term-116.csv",
-  "behavior_file": "data/recommendations/behaviors_small.tsv",
+  "behavior_file": "data/recommendations/behaviors_large.tsv",
   "output_folder": "output/"
 }

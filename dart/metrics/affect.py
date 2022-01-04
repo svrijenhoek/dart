@@ -48,5 +48,8 @@ class Affect:
         self.bins_discretizer.fit(pool_affect)
         distr_pool = self.compute_distr(pool_affect, self.bins_discretizer, False)
         distr_recommendation = self.compute_distr(recommendation_affect, self.bins_discretizer, True)
-        # return np.mean(pool_affect)-np.mean(recommendation_affect), compute_kl_divergence(distr_pool, distr_recommendation)
-        return compute_kl_divergence(distr_pool, distr_recommendation)
+        divergence_with_discount = compute_kl_divergence(distr_pool, distr_recommendation)
+
+        distr_recommendation = self.compute_distr(recommendation_affect, self.bins_discretizer, False)
+        divergence_without_discount = compute_kl_divergence(distr_pool, distr_recommendation)
+        return [divergence_with_discount, divergence_without_discount]

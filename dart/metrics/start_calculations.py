@@ -28,7 +28,7 @@ class MetricsCalculator:
     def __init__(self, config, articles, recommendations, behavior_file):
         self.config = config
 
-        self.recommendation_types = ['lstur', 'pop', 'random'] # self.handlers.recommendations.get_recommendation_types()
+        self.recommendation_types = ['lstur', 'naml', 'npa', 'nrms', 'pop', 'random'] # self.handlers.recommendations.get_recommendation_types()
         self.Calibration = dart.metrics.calibration.Calibration(self.config)
         self.Fragmentation = dart.metrics.fragmentation.Fragmentation()
         self.Affect = dart.metrics.affect.Affect(self.config)
@@ -142,13 +142,13 @@ class MetricsCalculator:
         print(str(datetime.now()) + "\tdone")
 
         output_folder = self.config["output_folder"]
-        # self.write_to_file(df, output_folder)
+        self.write_to_file(df, output_folder)
         # dart.metrics.visualize.Visualize.boxplot(df)
-        dart.metrics.visualize.Visualize.violin_plot_per_distance(df, output_folder)
+        # dart.metrics.visualize.Visualize.violin_plot_per_distance(df, output_folder)
 
     def write_to_file(self, df, output_folder):
-        df.groupby('rec_type').mean().to_csv(Path(output_folder + 'summary.csv'), encoding='utf-8', mode='w')
-        df.groupby('rec_type').std().to_csv(Path(output_folder + 'summary.csv'), encoding='utf-8', mode='a')
+        # df.groupby('rec_type').mean().to_csv(Path(output_folder + 'summary.csv'), encoding='utf-8', mode='w')
+        # df.groupby('rec_type').std().to_csv(Path(output_folder + 'summary.csv'), encoding='utf-8', mode='a')
         df.to_csv(Path(output_folder + 'full.csv'), encoding='utf-8')
 
 

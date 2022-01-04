@@ -31,7 +31,7 @@ def main():
 
     thread_retrieve_articles = threading.Thread(
         target=dart.preprocess.add_articles.AddArticles(config, handlers).execute,
-        args=("data/news.tsv",))
+        args=("data/news_large.tsv",))
     thread_enrich_articles = threading.Thread(
         target=dart.preprocess.enrich_articles.Enricher(handlers, config).enrich,
         args=())
@@ -40,19 +40,19 @@ def main():
        args=())
     thread_add_users = threading.Thread(
         target=dart.preprocess.generate_users.UserSimulator(config, handlers).execute,
-        args=("data/recommendations/behaviors_small.tsv",))
+        args=("data/recommendations/behaviors_large.tsv",))
 
     # step 1: load articles
-    print(str(datetime.datetime.now())+"\tloading articles")
-    if es.indices.exists(index="articles") and config["append"] == "N":
-        # delete index
-        elastic_connector.clear_index('articles')
-        module_logger.info("Index removed")
-    if not es.indices.exists(index="articles"):
-        module_logger.info("Index created")
-        dart.handler.elastic.initialize.InitializeIndex().initialize_articles()
-        module_logger.info("Started adding documents")
-
+    # print(str(datetime.datetime.now())+"\tloading articles")
+    # if es.indices.exists(index="articles") and config["append"] == "N":
+    #     # delete index
+    #     elastic_connector.clear_index('articles')
+    #     module_logger.info("Index removed")
+    # if not es.indices.exists(index="articles"):
+    #     module_logger.info("Index created")
+    #     dart.handler.elastic.initialize.InitializeIndex().initialize_articles()
+    #     module_logger.info("Started adding documents")
+    #
     # thread_retrieve_articles.start()
     # time.sleep(60)
     print(str(datetime.datetime.now()) + "\tenriching articles")
@@ -61,25 +61,25 @@ def main():
     thread_enrich_articles.join()
 
     # step 1.7: identify stories in the range specified in the configuration
-    print(str(datetime.datetime.now())+"\tidentifying stories")
-    if dart.handler.mongo.connector.MongoConnector().collection_exists('support', 'stories'):
-        dart.handler.mongo.connector.MongoConnector().drop_collection('support', 'stories')
+    # print(str(datetime.datetime.now())+"\tidentifying stories")
+    # if dart.handler.mongo.connector.MongoConnector().collection_exists('support', 'stories'):
+    #     dart.handler.mongo.connector.MongoConnector().drop_collection('support', 'stories')
     # thread_cluster_stories.start()
 
-    print(str(datetime.datetime.now())+"\tloading users")
-    if dart.handler.mongo.connector.MongoConnector().database_exists('users') and config["append"] == "N":
-        dart.handler.mongo.connector.MongoConnector().drop_database('users')
-    thread_add_users.start()
-    thread_add_users.join()
+    # print(str(datetime.datetime.now())+"\tloading users")
+    # if dart.handler.mongo.connector.MongoConnector().database_exists('users') and config["append"] == "N":
+    #     dart.handler.mongo.connector.MongoConnector().drop_database('users')
+    # thread_add_users.start()
+    # thread_add_users.join()
     # thread_cluster_stories.join()
-
-    # step 3: simulate recommendations
-    print(str(datetime.datetime.now())+"\tloading recommendations")
-    if dart.handler.mongo.connector.MongoConnector().database_exists('recommendations') and config["append"] == "N":
-        dart.handler.mongo.connector.MongoConnector().drop_database('recommendations')
-    module_logger.info("Generating baseline recommendations")
-    dart.preprocess.generate_recommendations.RunRecommendations(config, handlers).execute_tsv()
-    time.sleep(5)
+    #
+    # # step 3: simulate recommendations
+    # print(str(datetime.datetime.now())+"\tloading recommendations")
+    # if dart.handler.mongo.connector.MongoConnector().database_exists('recommendations') and config["append"] == "N":
+    #     dart.handler.mongo.connector.MongoConnector().drop_database('recommendations')
+    # module_logger.info("Generating baseline recommendations")
+    # dart.preprocess.generate_recommendations.RunRecommendations(config, handlers).execute_tsv()
+    # time.sleep(5)
 
 
 if __name__ == "__main__":

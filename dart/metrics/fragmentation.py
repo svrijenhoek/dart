@@ -44,10 +44,15 @@ class Fragmentation:
             # output = rbo(x, y, 0.9)
             freq_x = self.compute_distr(x, adjusted=True)
             freq_y = self.compute_distr(y, adjusted=True)
+            divergence_with_discount = compute_kl_divergence(freq_x, freq_y)
+
+            freq_x = self.compute_distr(x, adjusted=False)
+            freq_y = self.compute_distr(y, adjusted=False)
+            divergence_without_discount = compute_kl_divergence(freq_x, freq_y)
             # xy = compute_kl_divergence(freq_x, freq_y)
             # yx = compute_kl_divergence(freq_y, freq_x)
             # kl = 1/2*(xy[0] + yx[0])
             # jsd = 1/2*(xy[1] + yx[1])
-            return compute_kl_divergence(freq_x, freq_y)
+            return [divergence_with_discount, divergence_without_discount]
         else:
             return
