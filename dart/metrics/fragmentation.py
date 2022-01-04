@@ -27,17 +27,22 @@ class Fragmentation:
         return distr
 
     def calculate(self, sample, recommendation):
-        fr = []
+        with_discount = []
+        without_discount = []
         stories_x = recommendation.story.tolist()
         for y in sample:
             try:
                 stories_y = y.story.tolist()
                 values = self.compare_recommendations(stories_x, stories_y)
                 if values:
-                    fr.append(values)
+                    with_discount.append(values[0])
+                    without_discount.append(values[1])
             except AttributeError:
                 pass
-        return [np.mean([f[0] for f in fr]), np.mean([f[1] for f in fr]), np.mean([f[2] for f in fr])]
+        means_with_discount = [np.mean([f[0] for f in with_discount]), np.mean([f[1] for f in with_discount]), np.mean([f[2] for f in with_discount])]
+        means_without_discount = [np.mean([f[0] for f in without_discount]), np.mean([f[1] for f in without_discount]),
+                               np.mean([f[2] for f in without_discount])]
+        return [means_with_discount, means_without_discount]
 
     def compare_recommendations(self, x, y):
         if x and y:

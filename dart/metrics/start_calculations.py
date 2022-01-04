@@ -104,17 +104,23 @@ class MetricsCalculator:
                     row = {'impr_index': impr_index,
                         'rec_type': recommendation_type}
                     if calibration:
-                        row['calibration_topic'] = calibration[0]
-                        row['calibration_complexity'] = calibration[1]
+                        row['calibration_topic'] = calibration[0][0]
+                        row['calibration_complexity'] = calibration[1][0]
+                        row['calibration_topic_wo'] = calibration[0][1]
+                        row['calibration_complexity_wo'] = calibration[1][1]
                     if fragmentation:
-                        row['fragmentation'] = fragmentation
+                        row['fragmentation'] = fragmentation[0]
+                        row['fragmentation_wo'] = fragmentation[1]
                     if affect:
-                        row['affect'] = affect
+                        row['affect'] = affect[0]
+                        row['affect_wo'] = affect[1]
                     if representation:
-                        row['representation'] = representation
+                        row['representation'] = representation[0]
+                        row['representation_wo'] = representation[1]
                     if alternative_voices:
                         try:
-                            row['alternative_voices'] = alternative_voices
+                            row['alternative_voices'] = alternative_voices[0]
+                            row['alternative_voices_wo'] = alternative_voices[1]
                         except TypeError:
                             # print(alternative_voices)
                             pass
@@ -127,7 +133,10 @@ class MetricsCalculator:
 
         print(self.timer)
         df = pd.DataFrame(data, columns=['impr_index', 'rec_type', 'calibration_topic', 'calibration_complexity', 'fragmentation',
-                                         'affect', 'representation', 'alternative_voices'])
+                                         'affect', 'representation', 'alternative_voices',
+                                         'calibration_topic_wo', 'calibration_complexity_wo', 'fragmentation_wo',
+                                         'affect_wo', 'representation_wo', 'alternative_voices_wo'
+                                         ])
 
         #
         # print(df.head())
@@ -144,7 +153,7 @@ class MetricsCalculator:
         output_folder = self.config["output_folder"]
         self.write_to_file(df, output_folder)
         # dart.metrics.visualize.Visualize.boxplot(df)
-        # dart.metrics.visualize.Visualize.violin_plot_per_distance(df, output_folder)
+        dart.metrics.visualize.Visualize.violin_plot_per_distance(df, output_folder)
 
     def write_to_file(self, df, output_folder):
         # df.groupby('rec_type').mean().to_csv(Path(output_folder + 'summary.csv'), encoding='utf-8', mode='w')

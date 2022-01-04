@@ -44,7 +44,8 @@ def compute_kl_divergence(s, q, alpha=0.001):
         s_score = s.get(key, 0.)
         # by contruction they cannot be both 0
         if s_score == 0 and q_score == 0:
-            raise Exception('Something is wrong in compute_kl_divergence')
+            pass
+            # raise Exception('Something is wrong in compute_kl_divergence')
         elif s_score == 0:
             ss_score = (1 - alpha) * s_score + alpha * q_score
             ss.append(ss_score)

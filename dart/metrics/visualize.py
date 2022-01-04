@@ -48,13 +48,13 @@ class Visualize:
     def violin_plot_per_distance(df, output_folder):
         pd.options.mode.chained_assignment = None
         columns = list(df.columns)[2:8]
-        metrics = ['kl', 'kl_symm', 'jsd', 'jsd_root']
+        metrics = ['kl', 'kl_symm', 'jsd']
         for i, column in enumerate(columns):
             fig, axs = plt.subplots(ncols=len(metrics))
             fig.suptitle(column)
             df1 = df[['rec_type']]
             try:
-                df1['kl'], df1['kl_symm'], df1['jsd'], df1['jsd_root'] = df[column].str
+                df1['kl'], df1['jsd'], df1['kl_symm'] = df[column].str
                 print(column)
                 print(df1.groupby('rec_type').mean())
                 for a, metric in enumerate(metrics):
