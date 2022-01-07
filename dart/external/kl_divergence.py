@@ -42,21 +42,23 @@ def compute_kl_divergence(s, q, alpha=0.001):
     for key in sorted(merged_dic.keys()):
         q_score = q.get(key, 0.)
         s_score = s.get(key, 0.)
+        ss.append((1 - alpha) * s_score + alpha * q_score)
+        qq.append((1 - alpha) * q_score + alpha * s_score)
         # by contruction they cannot be both 0
-        if s_score == 0 and q_score == 0:
-            pass
-            # raise Exception('Something is wrong in compute_kl_divergence')
-        elif s_score == 0:
-            ss_score = (1 - alpha) * s_score + alpha * q_score
-            ss.append(ss_score)
-            qq.append(q_score)
-        elif q_score == 0:
-            qq_score = (1 - alpha) * q_score + alpha * s_score
-            ss.append(s_score)
-            qq.append(qq_score)
-        else:
-            ss.append(s_score)
-            qq.append(q_score)
+        # if s_score == 0 and q_score == 0:
+        #     pass
+        #     # raise Exception('Something is wrong in compute_kl_divergence')
+        # elif s_score == 0:
+        #     ss_score = (1 - alpha) * s_score + alpha * q_score
+        #     ss.append(ss_score)
+        #     qq.append(q_score)
+        # elif q_score == 0:
+        #     qq_score = (1 - alpha) * q_score + alpha * s_score
+        #     ss.append(s_score)
+        #     qq.append(qq_score)
+        # else:
+        #     ss.append(s_score)
+        #     qq.append(q_score)
     kl = entropy(ss, qq, base=2)
     jsd = JSD(ss,qq)
     kl_symmetric = (kl + entropy(qq, ss, base=2))/2
