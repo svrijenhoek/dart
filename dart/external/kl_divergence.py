@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.stats import entropy
 from numpy.linalg import norm
+import math
 
 
 def opt_merge_max_mappings(dict1, dict2):
@@ -61,8 +62,7 @@ def compute_kl_divergence(s, q, alpha=0.001):
         #     qq.append(q_score)
     kl = entropy(ss, qq, base=2)
     jsd = JSD(ss,qq)
-    kl_symmetric = (kl + entropy(qq, ss, base=2))/2
-    return [kl, jsd, kl_symmetric]
+    return [kl, jsd]
 
 
 def KL_symmetric(a, b):
@@ -74,4 +74,5 @@ def JSD(P, Q):
     _Q = Q / norm(Q, ord=1)
     _M = 0.5 * (_P + _Q)
     # return 0.5 * (KL(_P, _M) + KL(_Q, _M))
-    return 0.5 * (entropy(_P, _M, base=2) + entropy(_Q, _M, base=2))
+    # added the abs to catch situations where the disocunting causes a very small <0 value, check this more!!!!
+    return math.sqrt(abs(0.5 * (entropy(_P, _M, base=2) + entropy(_Q, _M, base=2))))
