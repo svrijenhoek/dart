@@ -14,7 +14,7 @@ regex
 matplotlib
 community~=1.0.0b1
 scipy~=1.6.3
-networkx~=2.5
+networkx~=2.7
 textblob~=0.15.3
 textblob_de~=0.4.3
 textblob_nl~=0.0.1
