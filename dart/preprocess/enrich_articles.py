@@ -37,7 +37,6 @@ class Enricher:
         return annotated_entities
 
     def annotate_document(self, article):
-        doc = {'id': article.id}
         if not article.entities:
             _, entities, tags = self.annotator.annotate(article.text)
         else:
@@ -46,22 +45,23 @@ class Enricher:
 
         enriched_entities = self.annotate_entities(aggregated_entities)
 
-        doc['entities'] = enriched_entities
-        doc['entities_base'] = entities
-        doc['sentiment'] = self.sentiment.get_sentiment_score(article.text)
+        article.entities = enriched_entities
+        article.entities_base = entities
+        article.sentiment = self.sentiment.get_sentiment_score(article.text)
 
-        doc['complexity'] = self.textstat.flesch_kincaid_score(article.text)
+        article.complexity = self.textstat.flesch_kincaid_score(article.text)
 
         if 'classify' in self.metrics:
             if 'entities' not in doc:
                 classification = 'unknown'
             else:
                 classification, scope = self.classifier.classify(doc['entities'], article.text)
-            doc['classification'] = classification
-            doc['scope'] = scope
+            article.classification = classification
+            article.scope = scope
 
-        doc['annotated'] = 'Y'
-        self.handlers.articles.update_doc(article.id, doc)
+        article.annotated = 'Y'
+        return article
+        # self.handlers.articles.update_doc(article.id, doc)
 
     def enrich(self):
         try:

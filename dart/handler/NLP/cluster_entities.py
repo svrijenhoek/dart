@@ -102,8 +102,9 @@ class Clustering:
                             most_frequent_name = max(set(with_space), key=with_space.count)
                     alternative_names = v
                     spans = [(entity['start_char'], entity['end_char']) for entity in with_name]
-                    output.append({'text': most_frequent_name, 'alternative': alternative_names, 'frequency': len(with_name),
-                                   'spans': spans, 'label': label})
+                    if len(with_name) > 3:
+                        output.append({'text': most_frequent_name, 'alternative': alternative_names, 'frequency': len(with_name),
+                                       'spans': spans, 'label': label})
             return output
         else:
             return []

@@ -27,7 +27,7 @@ class MongoConnector:
             print(documents)
 
     def delete(self, database, collection, data):
-        self.client[database][collection].remove(data)
+        self.client[database][collection].delete_one(data)
 
     def count(self, database, collection):
         return self.client[database][collection].count()
