@@ -75,4 +75,11 @@ def JSD(P, Q):
     _M = 0.5 * (_P + _Q)
     # return 0.5 * (KL(_P, _M) + KL(_Q, _M))
     # added the abs to catch situations where the disocunting causes a very small <0 value, check this more!!!!
-    return math.sqrt(abs(0.5 * (entropy(_P, _M, base=2) + entropy(_Q, _M, base=2))))
+    try:
+        jsd_root = math.sqrt(abs(0.5 * (entropy(_P, _M, base=2) + entropy(_Q, _M, base=2))))
+    except ZeroDivisionError:
+        print(P)
+        print(Q)
+        print()
+        jsd_root = None
+    return jsd_root
