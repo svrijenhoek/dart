@@ -4,7 +4,7 @@ elasticsearch~=7.12
 requests~=2.25
 whoswho~=0.2
 nltk~=3.6
-gensim~=4.0
+gensim~=4.2
 spacy
 scikit-learn~=0.24
 nano
