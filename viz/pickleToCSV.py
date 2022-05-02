@@ -26,7 +26,6 @@ meanTable.iloc[:, 1:7] = meanTable.iloc[:, 1:7].mul(100)
 print("\n" + meanTable.to_latex(index = False))
 meanTable.to_pickle("meanTable.pickle")
 
-
 medianTable = d.iloc[:,0:8].groupby('rec_type', as_index=False).median()
 
 
@@ -49,6 +48,8 @@ meanTable = d.iloc[:,0:8].groupby('rec_type', as_index=False).mean()
 print("\n" + meanTable.to_latex(index = False))
 meanTable.to_pickle("meanTableKL.pickle")
 
+meanTable = pd.read_pickle("meanTableKL.pickle")
+meanTable.to_csv("meanTableKL.csv")
 
 medianTable = d.iloc[:,0:8].groupby('rec_type', as_index=False).median()
 
