@@ -368,13 +368,33 @@ random
 
 # 3 Jensen-Shannon divergence Kullback-Leibler divergence with and without rank-awareness
 
-![Jensen-Shannon divergence for each DART metric, with and without
-rank-awareness, with a cutoff @10. Boxplot with median and the
-interquartile range in the inner box.](viz/figs/KL.pdf)
+<div class="figure">
 
-![Kullback-Leibler divergence for each DART metric, with and without
+<img src="viz/figs/KL.jpg" alt="Jensen-Shannon divergence for each DART metric, with and without rank-awareness, with a cutoff @10. Boxplot with median and the interquartile range in the inner box." width="13340" />
+
+<p class="caption">
+
+Jensen-Shannon divergence for each DART metric, with and without
 rank-awareness, with a cutoff @10. Boxplot with median and the
-interquartile range in the inner box.](viz/figs/JS.pdf)
+interquartile range in the inner box.
+
+</p>
+
+</div>
+
+<div class="figure">
+
+<img src="viz/figs/JS.jpg" alt="Kullback-Leibler divergence for each DART metric, with and without rank-awareness, with a cutoff @10. Boxplot with median and the interquartile range in the inner box." width="13341" />
+
+<p class="caption">
+
+Kullback-Leibler divergence for each DART metric, with and without
+rank-awareness, with a cutoff @10. Boxplot with median and the
+interquartile range in the inner box.
+
+</p>
+
+</div>
 
 # 4 Jensen-Shannon divergence for all recommender strategies without cutoff
 

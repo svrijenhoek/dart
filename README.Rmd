@@ -35,12 +35,12 @@ kable(d[,2:8], digits = 4, caption = "RADio framework with DART metrics based on
 # Jensen-Shannon divergence Kullback-Leibler divergence with and without rank-awareness
 
 ```{r, fig.cap="Jensen-Shannon divergence for each DART metric, with and without rank-awareness, with a cutoff @10. Boxplot with median and the interquartile range in the inner box."}
-include_graphics("viz/figs/KL.pdf")
+include_graphics("viz/figs/KL.jpg")
 
 ```
 
 ```{r, fig.cap="Kullback-Leibler divergence for each DART metric, with and without rank-awareness, with a cutoff @10. Boxplot with median and the interquartile range in the inner box."}
-include_graphics("viz/figs/JS.pdf")
+include_graphics("viz/figs/JS.jpg")
 
 ```
 
