@@ -39,9 +39,8 @@ class Fragmentation:
                     without_discount.append(values[1])
             except AttributeError:
                 pass
-        means_with_discount = [np.mean([f[0] for f in with_discount]), np.mean([f[1] for f in with_discount]), np.mean([f[2] for f in with_discount])]
-        means_without_discount = [np.mean([f[0] for f in without_discount]), np.mean([f[1] for f in without_discount]),
-                               np.mean([f[2] for f in without_discount])]
+        means_with_discount = [np.mean([f[0] for f in with_discount]), np.mean([f[1] for f in with_discount])]
+        means_without_discount = [np.mean([f[0] for f in without_discount]), np.mean([f[1] for f in without_discount])]
         return [means_with_discount, means_without_discount]
 
     def compare_recommendations(self, x, y):

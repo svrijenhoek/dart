@@ -63,3 +63,28 @@ class Visualize:
             except ValueError:
                 pass
         plt.show(block=True)
+
+    @staticmethod
+    def violin_plot_on_jsd(df):
+        df1 = df.copy()
+        columns = list(df1.columns)[2:8]
+        for i, column in enumerate(columns):
+            _, df1[column], _ = df1[column].str
+
+        f, axs = plt.subplots(nrows=2, ncols=3)
+        sns.violinplot(data=df1, x='calibration_topic', y="rec_type", inner="quart", split=True, ax=axs[0][0])
+        sns.violinplot(data=df1, x='calibration_complexity', y="rec_type", inner="quart", split=True, ax=axs[0][1])
+        sns.violinplot(data=df1, x='fragmentation', y="rec_type", inner="quart", split=True, ax=axs[0][2])
+        sns.violinplot(data=df1, x='affect', inner="quart", y="rec_type", split=True, ax=axs[1][0])
+        sns.violinplot(data=df1, x='representation', y="rec_type", inner="quart", split=True, ax=axs[1][1])
+        sns.violinplot(data=df1, x='alternative_voices', y="rec_type", inner="quart", split=True, ax=axs[1][2])
+        plt.show()
+
+    @staticmethod
+    def visualize(df, cutoff, distance):
+        df = df.loc[(df['cutoff'] == cutoff) & (df['distance'] == distance)]
+        sns.catplot(x="rec_type", y="value",
+                    hue="discount", col="metric",
+                    data=df, kind="boxen",
+                    height=4, aspect=.7, col_wrap=3)
+        plt.show()

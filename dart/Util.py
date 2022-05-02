@@ -25,12 +25,11 @@ def read_full_config_file():
     dictionary['append'] = data['append']
     dictionary['test_size'] = data['test_size']
     dictionary['metrics'] = data['metrics']
-    dictionary['discount'] = data['discount']
+    dictionary['cutoff'] = data['cutoff']
     dictionary['language'] = data['language']
 
     dictionary['behavior_file'] = data['behavior_file']
-    dictionary['baseline_recommendations'] = data['baseline_recommendations']
-    dictionary['recommendation_size'] = data['size']
+    dictionary['algorithms'] = data['algorithms']
     dictionary["politics_file"] = data["political_file"]
     dictionary["articles"] = data["articles"]
     dictionary["recommendations"] = data["recommendations"]
@@ -90,5 +89,11 @@ def read_behavior_file(file):
 
 def read_pickle(path):
     return pickle.load(open(Path(path), "rb"))
+
+
+def create_pickle(o, path):
+    file = os.path.join(BASE_DIR, Path(path))
+    with open(file, 'wb') as f:
+        pickle.dump(o, f)
 
 
