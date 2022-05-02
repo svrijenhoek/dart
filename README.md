@@ -17,7 +17,7 @@ Recommendations*.
 
 # 1 Jensen Shannon as an f-Divergence
 
-![](viz/JSasF.pdf)<!-- -->
+<img src="viz/figs/JSasF.jpg" width="5229" />
 
 # 2 RADio with KL divergence
 

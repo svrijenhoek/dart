@@ -20,7 +20,7 @@ library(kableExtra)
 # Jensen Shannon as an f-Divergence
 
 ```{r}
-include_graphics("viz/JSasF.pdf")
+include_graphics("viz/figs/JSasF.jpg")
 
 ```
 
