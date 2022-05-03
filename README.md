@@ -1,25 +1,35 @@
 RADio
 ================
-Sanne, Gabriel, Mateo, Daan, Maarten
 
-  - [1 Jensen Shannon as an
-    f-Divergence](#jensen-shannon-as-an-f-divergence)
-  - [2 RADio with KL divergence](#radio-with-kl-divergence)
-  - [3 Jensen-Shannon divergence Kullback-Leibler divergence with and
-    without
-    rank-awareness](#jensen-shannon-divergence-kullback-leibler-divergence-with-and-without-rank-awareness)
-  - [4 Jensen-Shannon divergence for all recommender strategies without
-    cutoff](#jensen-shannon-divergence-for-all-recommender-strategies-without-cutoff)
+  - [1 To run the code](#to-run-the-code)
+  - [2 Additional Material](#additional-material)
+      - [2.1 Jensen Shannon as an
+        f-Divergence](#jensen-shannon-as-an-f-divergence)
+      - [2.2 RADio with KL divergence](#radio-with-kl-divergence)
+      - [2.3 Jensen-Shannon divergence Kullback-Leibler divergence with
+        and without
+        rank-awareness](#jensen-shannon-divergence-kullback-leibler-divergence-with-and-without-rank-awareness)
+      - [2.4 Jensen-Shannon divergence for all recommender strategies
+        without
+        cutoff](#jensen-shannon-divergence-for-all-recommender-strategies-without-cutoff)
 
-This repository contains the supporting material for the paper *RADio –
-Rank-Aware Divergence Metrics to Measure Normative Diversity in News
-Recommendations*.
+This repository contains the supporting material for the paper 📻 *RADio
+– Rank-Aware Divergence metrIcs to measure nOrmative diversity in news
+recommendations*.
 
-# 1 Jensen Shannon as an f-Divergence
+# 1 To run the code
+
+    git clone https://anonymous.4open.science/r/RADio/
+    pip install -f requirements.txt
+    python metrics_calculations.py
+
+# 2 Additional Material
+
+## 2.1 Jensen Shannon as an f-Divergence
 
 <img src="viz/figs/JSasF.jpg" width="5229" />
 
-# 2 RADio with KL divergence
+## 2.2 RADio with KL divergence
 
 <table>
 
@@ -366,7 +376,7 @@ random
 
 </table>
 
-# 3 Jensen-Shannon divergence Kullback-Leibler divergence with and without rank-awareness
+## 2.3 Jensen-Shannon divergence Kullback-Leibler divergence with and without rank-awareness
 
 <div class="figure">
 
@@ -396,7 +406,7 @@ interquartile range in the inner box.
 
 </div>
 
-# 4 Jensen-Shannon divergence for all recommender strategies without cutoff
+## 2.4 Jensen-Shannon divergence for all recommender strategies without cutoff
 
 <div class="figure">
 
