@@ -22,7 +22,7 @@ library(emo)
 
 This repository contains the supporting material for the paper `r emo::ji("radio")` *RADio – Rank-Aware Divergence metrIcs to measure nOrmative diversity in news recommendations*.
 
-# To run the code
+# Computing RADio with rank-aware JS-divergence
 
 ```{}
 git clone https://anonymous.4open.science/r/RADio/

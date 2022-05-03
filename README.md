@@ -1,7 +1,8 @@
 RADio
 ================
 
-  - [1 To run the code](#to-run-the-code)
+  - [1 Computing RADio with rank-aware
+    JS-divergence](#computing-radio-with-rank-aware-js-divergence)
   - [2 Additional Material](#additional-material)
       - [2.1 Jensen Shannon as an
         f-Divergence](#jensen-shannon-as-an-f-divergence)
@@ -17,7 +18,7 @@ This repository contains the supporting material for the paper 📻 *RADio
 – Rank-Aware Divergence metrIcs to measure nOrmative diversity in news
 recommendations*.
 
-# 1 To run the code
+# 1 Computing RADio with rank-aware JS-divergence
 
     git clone https://anonymous.4open.science/r/RADio/
     pip install -f requirements.txt
